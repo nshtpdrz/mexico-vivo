@@ -1,0 +1,565 @@
+// Construcción del mapa 3D de México. Todo vive en el plano XY con Z "hacia
+// afuera del papel"; así el mismo grupo sirve en modo mesa y anclado al marcador AR.
+import * as THREE from 'three';
+import { proyectar, desproyectar, prepararEstados, MARCADOR_ASPECTO, KM_POR_UNIDAD } from './geo.js';
+
+export const EXAG_PROF = 4; // exageración vertical de la profundidad bajo el mapa
+import {
+  ESTADOS, REGIONES, ZONAS_SISMICAS, BIOMAS, LIMITES_PLACAS, PLACAS, VOLCANES,
+  EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, MUSEO,
+} from './datos.js';
+import { dibujarMarcador } from './marcador.js';
+
+export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgba(10,14,22,0.78)', borde = null, negrita = true } = {}) {
+  const lineas = String(texto).split('\n');
+  const fs = 44;
+  const cv = document.createElement('canvas');
+  const c = cv.getContext('2d');
+  c.font = `${negrita ? '700' : '500'} ${fs}px system-ui, sans-serif`;
+  const w = Math.max(...lineas.map((l) => c.measureText(l).width)) + fs * 0.9;
+  const h = lineas.length * fs * 1.2 + fs * 0.5;
+  cv.width = Math.ceil(w);
+  cv.height = Math.ceil(h);
+  c.font = `${negrita ? '700' : '500'} ${fs}px system-ui, sans-serif`;
+  if (fondo) {
+    c.fillStyle = fondo;
+    const r = fs * 0.4;
+    c.beginPath();
+    c.roundRect(0, 0, cv.width, cv.height, r);
+    c.fill();
+    if (borde) { c.strokeStyle = borde; c.lineWidth = 4; c.stroke(); }
+  }
+  c.fillStyle = color;
+  c.textBaseline = 'middle';
+  c.textAlign = 'center';
+  lineas.forEach((l, i) => c.fillText(l, cv.width / 2, fs * 0.25 + fs * 0.6 + i * fs * 1.2));
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  const s = new THREE.Sprite(mat);
+  const alto = tam * (h / (fs * 1.7));
+  s.scale.set((alto * cv.width) / cv.height, alto, 1);
+  s.center.set(0.5, 0);
+  s.renderOrder = 10;
+  s.userData.actualizarTexto = (nuevo) => {
+    const n = crearEtiqueta(nuevo, { tam, color, fondo, borde, negrita });
+    s.material.map.dispose();
+    s.material.map = n.material.map;
+    s.scale.copy(n.scale);
+  };
+  return s;
+}
+
+function emojiSprite(emoji, tam = 0.03) {
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = 128;
+  const c = cv.getContext('2d');
+  c.fillStyle = 'rgba(255,255,255,0.92)';
+  c.beginPath(); c.arc(64, 64, 60, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#1f8a5a'; c.lineWidth = 6; c.stroke();
+  c.font = '76px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif';
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(emoji, 64, 70);
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: true, transparent: true }));
+  s.scale.set(tam, tam, 1);
+  s.center.set(0.5, 0);
+  return s;
+}
+
+const V = (lon, lat, z = 0) => {
+  const [x, y] = proyectar(lon, lat);
+  return new THREE.Vector3(x, y, z);
+};
+
+export class MapaMexico {
+  constructor() {
+    this.root = new THREE.Group();
+    this.root.name = 'MexicoVivo';
+    this.estados = new Map();
+    this.pickables = [];
+    this.animables = [];
+    this.capas = {};
+    this.capa = 'estados';
+    this.seleccion = null;
+    this.hover = null;
+    this.tiempo = 0;
+
+    this._papel();
+    this._estados();
+    this._comun();
+    this._tectonica();
+    this._volcanes();
+    this._biodiversidad();
+    this.capas.clima = new THREE.Group();
+    this.capas.sismo = new THREE.Group();
+    this.capas.usgs = new THREE.Group();
+    Object.values(this.capas).forEach((g) => this.root.add(g));
+    this.setCapa('estados');
+  }
+
+  _papel() {
+    const cv = dibujarMarcador(document.createElement('canvas'), 2048);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 8;
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, color: 0x8a8f99 });
+    this.papel = new THREE.Mesh(new THREE.PlaneGeometry(1, MARCADOR_ASPECTO), mat);
+    this.papel.position.z = -0.0005;
+    this.papel.receiveShadow = true;
+    this.root.add(this.papel);
+  }
+
+  _estados() {
+    this.grupoEstados = new THREE.Group();
+    this.root.add(this.grupoEstados);
+    const datos = prepararEstados(window.MX_GEO, 0.012);
+    for (const e of datos) {
+      const info = ESTADOS[e.id];
+      if (!info) continue;
+      const formas = e.poligonos.map((pol) => {
+        const s = new THREE.Shape(pol[0].map(([lon, lat]) => new THREE.Vector2(...proyectar(lon, lat))));
+        for (let i = 1; i < pol.length; i++) s.holes.push(new THREE.Path(pol[i].map(([lon, lat]) => new THREE.Vector2(...proyectar(lon, lat)))));
+        return s;
+      });
+      const geo = new THREE.ExtrudeGeometry(formas, { depth: 1, bevelEnabled: false, curveSegments: 1 });
+      const mat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.62, metalness: 0.05, emissive: 0x000000 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.scale.z = 0.001;
+      // contorno superior
+      e.poligonos.forEach((pol) => {
+        const pts = pol[0].map(([lon, lat]) => V(lon, lat, 1.001));
+        const linea = new THREE.LineLoop(
+          new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.LineBasicMaterial({ color: 0x0b0f17, transparent: true, opacity: 0.55 }),
+        );
+        mesh.add(linea);
+      });
+      mesh.userData = { tipo: 'estado', id: e.id, nombre: e.nombre, info };
+      const reg = {
+        id: e.id, nombre: e.nombre, info, mesh,
+        color: new THREE.Color('#888'), colorObj: new THREE.Color('#888'),
+        altura: 0.001, alturaObj: 0.012, sacudida: 0, offset: new THREE.Vector3(),
+      };
+      this.estados.set(e.id, reg);
+      this.grupoEstados.add(mesh);
+      this.pickables.push(mesh);
+    }
+  }
+
+  alturaEn(id) {
+    const r = this.estados.get(id);
+    return r ? r.altura : 0.012;
+  }
+
+  _comun() {
+    const g = new THREE.Group();
+    this.capas.comun = g;
+    // Pin del museo
+    const pin = new THREE.Group();
+    const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, 0.05, 8), new THREE.MeshStandardMaterial({ color: 0xffd34d }));
+    palo.rotation.x = Math.PI / 2;
+    palo.position.z = 0.025;
+    const bola = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 20, 14), new THREE.MeshStandardMaterial({ color: 0xffc21a, emissive: 0x8a5a00, emissiveIntensity: 0.6 }));
+    bola.position.z = 0.052;
+    pin.add(palo, bola);
+    const lbl = crearEtiqueta('★ Museo El Rehilete', { tam: 0.017, color: '#1a1200', fondo: 'rgba(255,205,60,0.95)' });
+    lbl.position.z = 0.062;
+    pin.add(lbl);
+    pin.position.copy(V(MUSEO.lon, MUSEO.lat, 0));
+    pin.userData.base = 0.03;
+    this.pinMuseo = pin;
+    bola.userData = { tipo: 'museo' };
+    this.pickables.push(bola);
+    g.add(pin);
+    this.animables.push((t) => { bola.position.z = 0.052 + Math.sin(t * 3) * 0.003; });
+  }
+
+  _tubo(puntos, radio, material, z = 0.05) {
+    const curva = new THREE.CatmullRomCurve3(puntos.map(([lon, lat]) => V(lon, lat, z)), false, 'catmullrom', 0.3);
+    return new THREE.Mesh(new THREE.TubeGeometry(curva, puntos.length * 12, radio, 6, false), material);
+  }
+
+  _tectonica() {
+    const g = new THREE.Group();
+    this.capas.tectonica = g;
+    const colores = { subduccion: 0xff3b3b, transformante: 0x3ad1ff, divergente: 0xffd23a };
+    for (const lim of LIMITES_PLACAS) {
+      const mat = new THREE.MeshStandardMaterial({ color: colores[lim.tipo], emissive: colores[lim.tipo], emissiveIntensity: 0.6 });
+      const tubo = this._tubo(lim.puntos, 0.0022, mat, 0.004);
+      tubo.userData = { tipo: 'limite', data: lim };
+      this.pickables.push(tubo);
+      g.add(tubo);
+      if (lim.tipo === 'subduccion') {
+        // "dientes" triangulares apuntando a la placa que cabalga (convención geológica)
+        const curva = new THREE.CatmullRomCurve3(lim.puntos.map(([lon, lat]) => V(lon, lat, 0.004)));
+        for (let i = 1; i < 26; i++) {
+          const u = i / 26;
+          const p = curva.getPointAt(u);
+          const tg = curva.getTangentAt(u);
+          const diente = new THREE.Mesh(new THREE.ConeGeometry(0.0045, 0.009, 3), mat);
+          diente.position.copy(p);
+          const normal = new THREE.Vector3(-tg.y, tg.x, 0).normalize(); // hacia el continente
+          diente.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+          diente.position.addScaledVector(normal, 0.004);
+          g.add(diente);
+        }
+      }
+    }
+    for (const pl of PLACAS) {
+      const lbl = crearEtiqueta(pl.nombre + (pl.mov ? `\n${pl.mov.cm} cm/año` : ''), { tam: 0.014, color: '#e9f6ff', fondo: 'rgba(8,30,48,0.82)', borde: '#3ad1ff' });
+      lbl.position.copy(V(pl.lon, pl.lat, 0.02));
+      g.add(lbl);
+      if (pl.mov) {
+        const ang = ((90 - pl.mov.dir) * Math.PI) / 180;
+        const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), 0);
+        const largo = 0.025 + pl.mov.cm * 0.006;
+        const flecha = new THREE.ArrowHelper(dir, V(pl.lon, pl.lat - 0.9, 0.01), largo, 0xffffff, 0.012, 0.009);
+        flecha.line.material.linewidth = 2;
+        g.add(flecha);
+        const base = flecha.position.clone();
+        this.animables.push((t) => {
+          if (!g.visible) return;
+          const f = (t * 0.5) % 1;
+          flecha.position.copy(base).addScaledVector(dir, f * 0.015);
+          flecha.cone.material.opacity = 1;
+        });
+      }
+    }
+    this._placaCocos();
+    // sensores de alerta
+    this.grupoSensores = new THREE.Group();
+    const geoS = new THREE.OctahedronGeometry(0.004);
+    for (const s of SENSORES) {
+      const m = new THREE.Mesh(geoS, new THREE.MeshStandardMaterial({ color: 0x9ef0ff, emissive: 0x1b8fb0, emissiveIntensity: 0.8 }));
+      m.position.copy(V(s.lon, s.lat, 0.05));
+      m.userData = { tipo: 'sensor', data: s, z0: 0.05 };
+      this.pickables.push(m);
+      this.grupoSensores.add(m);
+    }
+    this.animables.push((t) => this.grupoSensores.children.forEach((m, i) => { m.rotation.z = t + i; }));
+    g.add(this.grupoSensores);
+  }
+
+  // Superficie de la placa de Cocos hundiéndose bajo México (geometría esquemática).
+  // Bajo Guerrero la placa viaja casi horizontal ~50 km antes de hundirse
+  // (losa plana; Pérez-Campos et al., 2008). Profundidad exagerada ×EXAG_PROF.
+  _placaCocos() {
+    const g = new THREE.Group();
+    this.capas.subsuelo = g;
+    const fosa = LIMITES_PLACAS[0].puntos.filter(([lon]) => lon > -105.5);
+    const curva = new THREE.CatmullRomCurve3(fosa.map(([lon, lat]) => V(lon, lat, 0)));
+    const plana = [[0, 6], [60, 20], [120, 40], [160, 48], [280, 50], [320, 60], [360, 90], [420, 140], [470, 180]];
+    const normal = [[0, 6], [60, 20], [120, 40], [200, 80], [280, 120], [360, 160], [470, 210]];
+    const interp = (perfil, d) => {
+      for (let i = 1; i < perfil.length; i++) {
+        if (d <= perfil[i][0]) {
+          const [d0, z0] = perfil[i - 1], [d1, z1] = perfil[i];
+          return z0 + ((d - d0) / (d1 - d0)) * (z1 - z0);
+        }
+      }
+      return perfil.at(-1)[1];
+    };
+    const suave = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const NU = 70, NV = 24, DMAX = 470;
+    const pos = [], col = [], idx = [];
+    const cSom = new THREE.Color('#ff9a3a'), cProf = new THREE.Color('#3a5bff'), tmp = new THREE.Color();
+    for (let i = 0; i <= NU; i++) {
+      const u = i / NU;
+      const p = curva.getPointAt(u);
+      const tg = curva.getTangentAt(u);
+      const nrm = new THREE.Vector3(-tg.y, tg.x, 0).normalize(); // hacia el continente
+      const [lon] = desproyectar(p.x, p.y);
+      const w = suave(-103.5, -101.5, lon) * (1 - suave(-97.5, -95.5, lon)); // 1 = losa plana
+      for (let j = 0; j <= NV; j++) {
+        const d = (j / NV) * DMAX;
+        const prof = w * interp(plana, d) + (1 - w) * interp(normal, d);
+        const q = p.clone().addScaledVector(nrm, d / KM_POR_UNIDAD);
+        pos.push(q.x, q.y, -(prof / KM_POR_UNIDAD) * EXAG_PROF);
+        tmp.copy(cSom).lerp(cProf, Math.min(1, prof / 200));
+        col.push(tmp.r, tmp.g, tmp.b);
+      }
+    }
+    for (let i = 0; i < NU; i++) {
+      for (let j = 0; j < NV; j++) {
+        const a = i * (NV + 1) + j, b = a + NV + 1;
+        idx.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    const losa = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 0.8, roughness: 0.7, depthWrite: false,
+    }));
+    losa.userData = { tipo: 'placa' };
+    this.pickables.push(losa);
+    g.add(losa);
+    // malla de referencia cada 50 km de profundidad
+    const lineas = new THREE.LineSegments(new THREE.WireframeGeometry(geo), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.08 }));
+    g.add(lineas);
+    const lbl = (txt, lon, lat, prof) => {
+      const s = crearEtiqueta(txt, { tam: 0.013, color: '#dfe8ff', fondo: 'rgba(20,30,80,0.8)', negrita: false });
+      s.position.copy(V(lon, lat, -(prof / KM_POR_UNIDAD) * EXAG_PROF));
+      g.add(s);
+    };
+    lbl('Placa de Cocos bajo México', -99.6, 16.9, 15);
+    lbl('Losa plana ~50 km', -99.3, 18.6, 50);
+    lbl('~100 km: nace el magma', -98.9, 19.6, 100);
+    lbl('Profundidad ×4', -94.5, 16.4, 120);
+  }
+
+  setSubsuelo(on) {
+    this.subsueloActivo = on;
+    this.capas.subsuelo.visible = on && this.capa === 'tectonica';
+    const ver = on && this.capa === 'tectonica';
+    this.papel.material.transparent = ver;
+    this.papel.material.opacity = ver ? 0.35 : 1;
+    this.papel.material.depthWrite = !ver;
+    for (const r of this.estados.values()) {
+      r.mesh.material.transparent = ver;
+      r.mesh.material.opacity = ver ? 0.55 : 1;
+      r.mesh.material.depthWrite = !ver;
+      r.mesh.material.needsUpdate = true;
+    }
+    this.papel.material.needsUpdate = true;
+  }
+
+  _volcanes() {
+    const g = new THREE.Group();
+    this.capas.volcanes = g;
+    const eje = this._tubo(EJE_NEOVOLCANICO, 0.014, new THREE.MeshBasicMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.18, depthWrite: false }), 0.012);
+    eje.userData = { tipo: 'eje' };
+    this.pickables.push(eje);
+    g.add(eje);
+    const lblEje = crearEtiqueta('Eje Neovolcánico Transversal', { tam: 0.016, color: '#ffd1a8', fondo: 'rgba(60,20,0,0.75)' });
+    lblEje.position.copy(V(-100.3, 20.5, 0.05));
+    g.add(lblEje);
+
+    this.volcanes = [];
+    for (const v of VOLCANES) {
+      const h = 0.012 + (v.alt / 5636) * 0.05;
+      const grupo = new THREE.Group();
+      const cono = new THREE.Mesh(
+        new THREE.ConeGeometry(0.0085 + h * 0.18, h, 24, 1, true),
+        new THREE.MeshStandardMaterial({ color: 0x5b3a2a, roughness: 0.9, flatShading: true }),
+      );
+      cono.rotation.x = Math.PI / 2;
+      cono.position.z = h / 2;
+      grupo.add(cono);
+      if (v.alt > 4400) {
+        const nieve = new THREE.Mesh(new THREE.ConeGeometry((0.0085 + h * 0.18) * 0.33, h * 0.33, 24), new THREE.MeshStandardMaterial({ color: 0xf4f7ff, roughness: 0.6 }));
+        nieve.rotation.x = Math.PI / 2;
+        nieve.position.z = h - h * 0.165 + 0.0004;
+        grupo.add(nieve);
+      }
+      const lbl = crearEtiqueta(v.nombre.split(' (')[0], { tam: 0.012, color: '#ffe3cc', fondo: 'rgba(40,12,0,0.7)', negrita: false });
+      lbl.position.z = h + 0.006;
+      grupo.add(lbl);
+      grupo.position.copy(V(v.lon, v.lat, 0));
+      cono.userData = { tipo: 'volcan', data: v };
+      this.pickables.push(cono);
+      g.add(grupo);
+      const reg = { v, grupo, h, humo: null, erupcion: null, lbl };
+      if (v.activo) reg.humo = this._humo(grupo, h);
+      this.volcanes.push(reg);
+    }
+
+    for (const s of GEOSITIOS) {
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.012, 6), new THREE.MeshStandardMaterial({ color: 0x2b2f3a, roughness: 0.4, metalness: 0.3, flatShading: true }));
+      m.rotation.x = Math.PI / 2;
+      m.position.copy(V(s.lon, s.lat, 0.04));
+      m.userData = { tipo: 'geositio', data: s };
+      const lbl = crearEtiqueta('⬡ ' + s.nombre, { tam: 0.012, color: '#e7f1ff', fondo: 'rgba(20,30,60,0.8)', negrita: false });
+      lbl.position.copy(m.position).add(new THREE.Vector3(0, 0, 0.01));
+      this.pickables.push(m);
+      g.add(m, lbl);
+    }
+  }
+
+  _humo(grupo, h, n = 40) {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(n * 3);
+    const vida = new Float32Array(n);
+    for (let i = 0; i < n; i++) vida[i] = Math.random();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ color: 0xcfcfcf, size: 0.006, transparent: true, opacity: 0.55, depthWrite: false });
+    const pts = new THREE.Points(geo, mat);
+    grupo.add(pts);
+    const anim = (t, dt) => {
+      if (!pts.parent?.parent?.visible) return;
+      for (let i = 0; i < n; i++) {
+        vida[i] += dt * 0.25;
+        if (vida[i] > 1) vida[i] -= 1;
+        const v = vida[i];
+        const a = i * 2.399;
+        pos[i * 3] = Math.cos(a) * v * 0.006 + v * 0.012;
+        pos[i * 3 + 1] = Math.sin(a) * v * 0.006;
+        pos[i * 3 + 2] = h + v * 0.05;
+      }
+      geo.attributes.position.needsUpdate = true;
+    };
+    this.animables.push(anim);
+    return pts;
+  }
+
+  erupcion(reg) {
+    const n = 260;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 3);
+    const vel = [];
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.25;
+      vel.push(new THREE.Vector3(Math.cos(a) * r * 0.12, Math.sin(a) * r * 0.12, 0.08 + Math.random() * 0.14));
+      pos[i * 3 + 2] = reg.h;
+      const lava = Math.random() < 0.55;
+      col.set(lava ? [1, 0.25 + Math.random() * 0.4, 0.05] : [0.35, 0.33, 0.32], i * 3);
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.006, vertexColors: true, transparent: true, depthWrite: false }));
+    reg.grupo.add(pts);
+    const luz = new THREE.PointLight(0xff5a1a, 2, 0.12);
+    luz.position.z = reg.h + 0.01;
+    reg.grupo.add(luz);
+    let vidaT = 0;
+    const anim = (t, dt) => {
+      vidaT += dt;
+      for (let i = 0; i < n; i++) {
+        const v = vel[i];
+        v.z -= 0.16 * dt;
+        pos[i * 3] += v.x * dt;
+        pos[i * 3 + 1] += v.y * dt;
+        pos[i * 3 + 2] = Math.max(0.002, pos[i * 3 + 2] + v.z * dt);
+      }
+      geo.attributes.position.needsUpdate = true;
+      pts.material.opacity = Math.max(0, 1 - vidaT / 5);
+      luz.intensity = Math.max(0, 2 * (1 - vidaT / 2.5)) * (0.7 + Math.random() * 0.3);
+      if (vidaT > 5) {
+        reg.grupo.remove(pts, luz);
+        geo.dispose();
+        return false;
+      }
+    };
+    this.animables.push(anim);
+  }
+
+  _biodiversidad() {
+    const g = new THREE.Group();
+    this.capas.biodiversidad = g;
+    this.especies = [];
+    for (const e of ESPECIES) {
+      const s = emojiSprite(e.emoji, 0.03);
+      s.position.copy(V(e.lon, e.lat, 0.03));
+      s.userData = { tipo: 'especie', data: e };
+      this.pickables.push(s);
+      g.add(s);
+      const fase = Math.random() * 6;
+      this.animables.push((t) => { s.position.z = 0.03 + Math.sin(t * 2 + fase) * 0.003; });
+      this.especies.push(s);
+    }
+  }
+
+  // ------------------------------------------------------------------
+  setCapa(capa) {
+    this.capa = capa;
+    const vis = {
+      estados: ['comun'],
+      tectonica: ['comun', 'tectonica', 'sismo', 'usgs'],
+      volcanes: ['comun', 'volcanes'],
+      biodiversidad: ['comun', 'biodiversidad'],
+      clima: ['comun', 'clima'],
+    }[capa];
+    Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
+    this.setSubsuelo(this.subsueloActivo ?? true);
+    for (const r of this.estados.values()) {
+      const { info } = r;
+      let color = '#888', h = 0.012;
+      switch (capa) {
+        case 'estados':
+          color = REGIONES[info.region].color;
+          h = r.id === 'MX-HID' ? 0.032 : 0.012;
+          if (r.id === 'MX-HID') color = '#f2b21b';
+          break;
+        case 'tectonica':
+          color = ZONAS_SISMICAS[info.zona].color;
+          h = ZONAS_SISMICAS[info.zona].altura;
+          break;
+        case 'volcanes':
+          color = '#9a8a68';
+          h = 0.006;
+          break;
+        case 'biodiversidad':
+          color = BIOMAS[info.bioma].color;
+          h = 0.01;
+          break;
+        case 'clima':
+          color = r.climaColor || '#5a6b80';
+          h = r.climaAltura ?? 0.01;
+          break;
+      }
+      r.colorObj.set(color);
+      r.alturaObj = h;
+    }
+  }
+
+  setClimaEstado(id, color, altura) {
+    const r = this.estados.get(id);
+    if (!r) return;
+    r.climaColor = color;
+    r.climaAltura = altura;
+    if (this.capa === 'clima') { r.colorObj.set(color); r.alturaObj = altura; }
+  }
+
+  seleccionar(id) {
+    this.seleccion = id;
+  }
+
+  setHover(id) {
+    this.hover = id;
+  }
+
+  // dt en segundos
+  update(dt) {
+    this.tiempo += dt;
+    const t = this.tiempo;
+    const k = 1 - Math.pow(0.0015, dt);
+    for (const r of this.estados.values()) {
+      const sel = r.id === this.seleccion;
+      const hov = r.id === this.hover;
+      const objetivo = r.alturaObj * (sel ? 1.8 : 1) + (hov ? 0.004 : 0);
+      r.altura += (objetivo - r.altura) * k;
+      r.mesh.scale.z = Math.max(0.0005, r.altura);
+      r.color.lerp(r.colorObj, k);
+      r.mesh.material.color.copy(r.color);
+      const em = sel ? 0.28 + Math.sin(t * 4) * 0.08 : hov ? 0.14 : 0;
+      r.mesh.material.emissive.copy(r.color).multiplyScalar(em);
+      // sacudida sísmica
+      if (r.sacudida > 0.0001) {
+        const a = r.sacudida;
+        r.mesh.position.set((Math.random() - 0.5) * a, (Math.random() - 0.5) * a, 0);
+        r.sacudida *= Math.pow(0.15, dt);
+      } else if (r.mesh.position.lengthSq() > 0) r.mesh.position.set(0, 0, 0);
+    }
+    const hid = this.estados.get('MX-HID');
+    if (hid) this.pinMuseo.position.z = hid.altura;
+    this.animables = this.animables.filter((fn) => fn(t, dt) !== false);
+  }
+
+  // altura "del terreno" en un punto (aprox. usando el estado bajo el punto)
+  superficie() {
+    let max = 0;
+    for (const r of this.estados.values()) max = Math.max(max, r.altura);
+    return max;
+  }
+}
+
+export { V as vec };

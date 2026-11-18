@@ -1,0 +1,19 @@
+{
+  "_instrucciones": "Pon cada archivo (mp3, ogg o wav) en esta carpeta y escribe su nombre en 'archivo'. Llena autor, licencia y fuente: la app los muestra en Créditos. Si 'archivo' es null se usa el sonido sintetizado. Usa solo licencias CC0, CC BY o CC BY-NC (uso educativo sin fines de lucro), nunca 'todos los derechos reservados'.",
+
+  "bioma-selva": { "archivo": null, "busqueda": "Freesound, filtro licencia CC0: 'rainforest ambience' o 'jungle ambience'", "autor": null, "licencia": null, "fuente": null, "volumen": 0.8 },
+  "bioma-selvaSeca": { "archivo": null, "busqueda": "Freesound CC0: 'dry forest birds' o 'tropical dry forest'", "autor": null, "licencia": null, "fuente": null, "volumen": 0.8 },
+  "bioma-bosque": { "archivo": null, "busqueda": "Freesound CC0: 'pine forest wind birds'", "autor": null, "licencia": null, "fuente": null, "volumen": 0.8 },
+  "bioma-desierto": { "archivo": null, "busqueda": "Freesound CC0: 'desert wind ambience'", "autor": null, "licencia": null, "fuente": null, "volumen": 0.8 },
+  "bioma-humedal": { "archivo": null, "busqueda": "Freesound CC0: 'mangrove frogs night' o 'waves shore'", "autor": null, "licencia": null, "fuente": null, "volumen": 0.8 },
+
+  "especie-quetzal": { "archivo": null, "busqueda": "xeno-canto: Pharomachrus mocinno (de preferencia grabado en Chiapas)", "autor": null, "licencia": null, "fuente": null },
+  "especie-guacamaya-roja": { "archivo": null, "busqueda": "xeno-canto: Ara macao", "autor": null, "licencia": null, "fuente": null },
+  "especie-flamenco-americano": { "archivo": null, "busqueda": "xeno-canto: Phoenicopterus ruber", "autor": null, "licencia": null, "fuente": null },
+  "especie-lobo-mexicano": { "archivo": null, "busqueda": "Freesound / U.S. Fish & Wildlife (dominio público): 'mexican gray wolf howl'", "autor": null, "licencia": null, "fuente": null },
+  "especie-jaguar": { "archivo": null, "busqueda": "Freesound CC0/CC BY: 'jaguar roar' (verifica que sea jaguar y no leopardo)", "autor": null, "licencia": null, "fuente": null },
+  "especie-vaquita-marina": { "archivo": null, "busqueda": "NOAA (dominio público): clics de ecolocalización de vaquita (acoustic monitoring)", "autor": null, "licencia": null, "fuente": null },
+  "especie-manati": { "archivo": null, "busqueda": "NOAA / USGS (dominio público): 'manatee vocalization'", "autor": null, "licencia": null, "fuente": null },
+  "especie-tortuga-golfina": { "archivo": null, "busqueda": "Opcional: oleaje en la playa durante la arribada", "autor": null, "licencia": null, "fuente": null },
+  "especie-perrito-llanero-mexicano": { "archivo": null, "busqueda": "xeno-canto no aplica; Freesound: 'prairie dog alarm call'", "autor": null, "licencia": null, "fuente": null }
+}

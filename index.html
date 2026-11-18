@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>México Vivo</title>
+  <meta name="description" content="Mapa interactivo de México con realidad aumentada: sismos, volcanes, biodiversidad y clima en vivo.">
+  <meta name="theme-color" content="#0a0f1c">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌎</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilo.css">
+  <script type="importmap">
+    { "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+    } }
+  </script>
+</head>
+<body>
+  <div id="vista" class="vista"></div>
+  <div id="ar-contenedor" class="ar-contenedor"></div>
+
+  <header class="barra">
+    <div class="marca">
+      <span class="logo" aria-hidden="true"></span>
+      <div><strong>México Vivo</strong><small>Mapa interactivo · Realidad aumentada</small></div>
+    </div>
+    <nav class="capas" role="tablist" aria-label="Capas del mapa">
+      <button role="tab" data-capa="estados"><span>🗺️</span>Estados</button>
+      <button role="tab" data-capa="tectonica"><span>📈</span>Sismos</button>
+      <button role="tab" data-capa="volcanes"><span>🌋</span>Volcanes</button>
+      <button role="tab" data-capa="biodiversidad"><span>🦋</span>Biodiversidad</button>
+      <button role="tab" data-capa="clima"><span>🌦️</span>Clima en vivo</button>
+    </nav>
+    <div class="acciones">
+      <button class="btn icono" id="btn-sonido" aria-pressed="true" title="Sonido"><span>🔊</span></button>
+      <button class="btn pasaporte" id="btn-pasaporte" title="Pasaporte de misiones"><span>🎒</span><span>0/9</span></button>
+      <button class="btn icono" id="btn-voz" aria-pressed="false" title="Leer en voz alta"><span>🗣️</span></button>
+      <button class="btn icono" id="btn-sencillo" aria-pressed="false" title="Modo sencillo: menos texto, botones grandes"><span>Aa</span></button>
+      <button class="btn icono" id="btn-reto" title="Reto y evaluación"><span>🏆</span></button>
+      <button class="btn primario" id="btn-ar"><span>📷</span><span>Realidad aumentada</span></button>
+    </div>
+  </header>
+
+  <button class="btn-panel" id="btn-panel" aria-controls="panel" aria-expanded="true" title="Ocultar panel"><span aria-hidden="true">›</span></button>
+  <aside class="panel" id="panel">
+    <article id="ficha" class="ficha" hidden></article>
+
+    <section class="panel-capa" data-capa="estados">
+      <p class="sub">Capa 1</p>
+      <h2>Un país sobre placas en movimiento</h2>
+      <p>México está donde se juntan <b>5 placas tectónicas</b>. Por eso tiene sismos, volcanes y montañas, y gracias a ese relieve variado es uno de los <b>17 países megadiversos</b> del planeta.</p>
+      <p class="nota">Toca un estado para ver sus datos. Arrastra para girar el mapa y usa la rueda o pellizca para hacer zoom.</p>
+      <div class="tarjetas">
+        <div><b>~12 %</b><small>de las especies del mundo</small></div>
+        <div><b>~80</b><small>sismos al día que registra el SSN</small></div>
+        <div><b>+2,000</b><small>volcanes en el territorio</small></div>
+      </div>
+      <details>
+        <summary>Créditos y fuentes de datos</summary>
+        <p><b>Datos en vivo:</b> Open-Meteo (clima), USGS (sismos recientes).</p>
+        <p><b>Sismogramas:</b> estación G.UNM (GEOSCOPE / UNAM), servicio FDSN de EarthScope.</p>
+        <p><b>Sonidos:</b></p>
+        <ul id="creditos-sonido"></ul>
+        <p><b>Bibliotecas:</b> Three.js y MindAR (licencia MIT).</p>
+      </details>
+    </section>
+
+    <section class="panel-capa" data-capa="tectonica" hidden>
+      <p class="sub">Capa 2 · Física de ondas</p>
+      <h2>Simulador de sismos y alerta temprana</h2>
+      <p>Toca el mapa (también el mar) para elegir el epicentro. Después pulsa <b>Simular</b> y verás las <span class="tag p">ondas P</span> y <span class="tag s">ondas S</span> viajar por el país.</p>
+      <div class="poe">
+        <p><b>1. Predice:</b> ¿cuántos segundos de aviso tendrá <b id="poe-ciudad">Pachuca</b>?</p>
+        <div class="control">
+          <label for="rng-pred">Tu predicción <output id="val-pred">30 s</output></label>
+          <input type="range" id="rng-pred" min="0" max="150" step="5" value="30">
+        </div>
+        <p class="nota"><b>2. Observa:</b> simula el sismo · <b>3. Explica:</b> compara con el resultado.</p>
+        <p class="poe-res" id="poe-res" hidden></p>
+      </div>
+      <div class="control">
+        <label for="rng-mag">Magnitud <output id="val-mag">7.4</output></label>
+        <input type="range" id="rng-mag" min="4" max="9" step="0.1" value="7.4">
+      </div>
+      <div class="control">
+        <label for="rng-prof">Profundidad <output><span id="val-prof">20</span> km</output></label>
+        <input type="range" id="rng-prof" min="5" max="200" step="1" value="20">
+      </div>
+      <div class="control">
+        <label for="rng-vel">Velocidad de la simulación <output id="val-vel">10×</output></label>
+        <input type="range" id="rng-vel" min="1" max="40" step="1" value="10">
+      </div>
+      <div class="fila">
+        <label class="campo">🎧 Escuchar desde
+          <select id="sel-escucha"></select>
+        </label>
+        <label class="switch"><input type="checkbox" id="chk-alerta" checked><span></span>Alerta sísmica</label>
+      </div>
+      <label class="switch"><input type="checkbox" id="chk-simulacro" checked><span></span>Simulacro al sonar la alerta (agáchate, cúbrete, sujétate)</label>
+      <p class="nota">Epicentro: <b id="epi-texto">—</b></p>
+      <div class="fila">
+        <button class="btn primario grande" id="btn-sismo">▶ Simular sismo</button>
+        <div class="reloj"><b id="sismo-reloj">0.0 s</b><small id="sismo-radios">P: 0 km · S: 0 km</small></div>
+      </div>
+      <label class="switch"><input type="checkbox" id="chk-subsuelo" checked><span></span>Ver bajo la superficie (placa de Cocos e hipocentro)</label>
+      <p class="aviso-sim">Simulación educativa con modelos simplificados. <b>No</b> es un sistema de alerta ni de predicción: para eso consulta el SASMEX y el SSN.</p>
+      <h3>Sismos históricos</h3>
+      <div class="historicos" id="historicos"></div>
+      <h3>Corte de la zona de subducción</h3>
+      <canvas id="corte" class="corte"></canvas>
+      <div class="resumen" id="sismo-resumen"></div>
+      <div class="tabla-wrap">
+        <table id="sismo-tabla">
+          <thead><tr><th>Ciudad</th><th>km</th><th>P (s)</th><th>S (s)</th><th>Aviso</th><th>Int.</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <ol class="log" id="sismo-log"></ol>
+      <h3>Escucha un sismo real</h3>
+      <p>Estos son <b>registros reales</b> del sismógrafo de Ciudad Universitaria (UNAM). La vibración es demasiado lenta para oírla, así que la aceleramos: a ×200, una vibración de 1 Hz suena a 200 Hz.</p>
+      <div class="historicos" id="reales"></div>
+      <canvas id="sismograma" class="sismograma"></canvas>
+      <div class="fila">
+        <button class="btn primario" id="btn-escuchar" disabled>🎧 Escuchar</button>
+        <label class="campo">Acelerar
+          <select id="sel-acelerar">
+            <option value="100">×100 (grave, 9 s)</option>
+            <option value="200" selected>×200 (4.5 s)</option>
+            <option value="400">×400 (agudo, 2.3 s)</option>
+          </select>
+        </label>
+      </div>
+      <p class="resultado" id="sismograma-info">Elige un sismo para ver su sismograma. Compara las líneas del <b>modelo</b> con la onda P que detecta el algoritmo <b>STA/LTA</b>.</p>
+
+      <h3>Haz tu propio sismo</h3>
+      <p>Tu dispositivo se vuelve un sismógrafo. En tablet o celular usa el <b>acelerómetro</b>: ponlo en la mesa y salta o golpea cerca. En laptop usa el <b>micrófono</b>: aplaude. El detector STA/LTA te avisará, igual que en una estación real.</p>
+      <button class="btn" id="btn-sensor">📳 Activar mi sismógrafo</button>
+      <div class="sensor-wrap"><canvas id="sensor-cv" class="sismograma chico"></canvas><div class="sensor-alerta" id="sensor-alerta" hidden></div></div>
+      <p class="nota" id="sensor-info"></p>
+
+      <h3>Sismos reales</h3>
+      <label class="switch"><input type="checkbox" id="chk-usgs"><span></span>Mostrar los sismos de los últimos 30 días (USGS)</label>
+      <p class="nota" id="usgs-estado"></p>
+      <ul class="lista" id="usgs-lista"></ul>
+      <details>
+        <summary>¿Cómo funciona la física?</summary>
+        <p>La <b>onda P</b> (primaria) comprime y estira la roca, como un resorte, a ~6.5 km/s. La <b>onda S</b> (secundaria) la mueve de lado a lado a ~3.6 km/s y causa la mayor parte del daño.</p>
+        <p>Como la P llega primero, la diferencia de tiempo <b>S − P</b> sirve para saber a qué distancia ocurrió el sismo: <i>d = Δt / (1/v<sub>S</sub> − 1/v<sub>P</sub>)</i>.</p>
+        <p>La <b>magnitud</b> mide la energía: cada punto más libera unas <b>32 veces</b> más energía (log₁₀E = 1.5M + 4.8). La <b>intensidad</b> (escala de Mercalli, I–XII) mide qué tan fuerte se siente en cada lugar, y baja con la distancia.</p>
+      </details>
+      <details>
+        <summary>Límites del modelo (léelo antes de confiar en los números)</summary>
+        <ul>
+          <li><b>Velocidades constantes</b> (P 6.5 km/s, S 3.6 km/s) y trayectoria recta. En la Tierra real la velocidad aumenta con la profundidad y las ondas se curvan.</li>
+          <li><b>Intensidad:</b> I = 2.7 + 1.5M − 3·log₁₀R es una relación <b>didáctica ajustada por el equipo</b>, no una ecuación oficial. Error esperado: ±1 grado o más. La CDMX suma +1 por su suelo lacustre.</li>
+          <li><b>Alerta:</b> un solo sensor (el más cercano, a menos de 300 km), 6 s de procesamiento y umbral M5.5. El SASMEX real confirma con varias estaciones y usa umbrales por región.</li>
+          <li><b>Zona sísmica y ecosistema</b>: un solo valor por estado, el predominante. Dentro de cada estado hay variación.</li>
+          <li><b>Placa de Cocos</b>: geometría esquemática, con la profundidad exagerada ×4.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="panel-capa" data-capa="volcanes" hidden>
+      <p class="sub">Capa 3 · Geología</p>
+      <h2>Volcanes y el Eje Neovolcánico</h2>
+      <p>La placa de Cocos se hunde bajo México. A unos 100 km de profundidad suelta agua que funde el manto, y ese magma sube y forma la cadena de volcanes que cruza el país.</p>
+      <p class="nota">Toca un volcán y pulsa «Simular erupción». Los volcanes con 🔥 están activos y echan fumarolas.</p>
+      <ul class="lista" id="lista-volcanes"></ul>
+    </section>
+
+    <section class="panel-capa" data-capa="biodiversidad" hidden>
+      <p class="sub">Capa 4 · Ecología</p>
+      <h2>Biodiversidad y paisajes sonoros</h2>
+      <p>Cada color es un ecosistema. Toca un estado para <b>escuchar</b> su paisaje sonoro, sintetizado con física del sonido: ruido filtrado para el viento y las olas, osciladores para las aves, las ranas y los insectos.</p>
+      <ul class="lista" id="lista-especies"></ul>
+    </section>
+
+    <section class="panel-capa" data-capa="clima" hidden>
+      <p class="sub">Capa 5 · Datos en tiempo real</p>
+      <h2>Clima en vivo</h2>
+      <div class="fila">
+        <label class="campo">Variable
+          <select id="sel-clima">
+            <option value="temp">Temperatura</option>
+            <option value="sensacion">Sensación térmica</option>
+            <option value="humedad">Humedad</option>
+            <option value="viento">Viento</option>
+          </select>
+        </label>
+        <button class="btn" id="btn-clima">↻ Actualizar</button>
+      </div>
+      <p class="nota" id="clima-estado"></p>
+      <h3>Experimento: ¿la altura enfría?</h3>
+      <p>Cada punto es una capital (x = altitud, y = temperatura). La línea dorada es el efecto de la altura una vez descontado el de la latitud (regresión múltiple).</p>
+      <label class="campo">Datos de la gráfica
+        <select id="sel-grafica">
+          <option value="ayer">Temperatura media de ayer (más confiable)</option>
+          <option value="ahora">Temperatura de este momento</option>
+        </select>
+      </label>
+      <canvas id="grafica-clima" class="grafica"></canvas>
+      <p class="resultado" id="clima-resultado"></p>
+      <details>
+        <summary>¿Por qué pasa?</summary>
+        <p>El aire que sube se expande porque hay menos presión, y al expandirse se enfría (enfriamiento adiabático). Por eso Toluca (2,660 m) es mucho más fría que Villahermosa (10 m), aunque están casi a la misma latitud.</p>
+      </details>
+    </section>
+  </aside>
+
+  <div class="leyenda" id="leyenda"></div>
+  <div class="tooltip" id="tooltip" hidden></div>
+  <div class="alerta-banner" id="alerta-banner" role="alert">🚨 ALERTA SÍSMICA 🚨</div>
+  <div class="ar-guia" id="ar-guia" hidden>
+    <div class="marco"></div>
+    <p>Apunta la cámara al mapa impreso</p>
+  </div>
+  <div class="simulacro" id="simulacro" role="dialog" aria-modal="true" aria-label="Simulacro" hidden></div>
+  <div class="ar-aviso" id="ar-aviso" hidden>Buscando el mapa… mantenlo a la vista</div>
+  <div class="ar-estado" id="ar-estado" hidden></div>
+
+  <dialog id="reto" class="reto">
+    <button class="cerrar" id="reto-x" aria-label="Cerrar">×</button>
+    <div id="reto-cont"></div>
+  </dialog>
+
+  <div class="inicio" id="inicio">
+    <div class="inicio-cont">
+      <span class="logo grande" aria-hidden="true"></span>
+      <h1>México Vivo</h1>
+      <p>Explora las fuerzas que mueven, sacuden y dan vida a México: placas tectónicas, ondas sísmicas, volcanes, ecosistemas y clima en tiempo real.</p>
+      <div class="inicio-botones">
+        <button class="btn primario grande" id="btn-empezar">Explorar en 3D</button>
+        <button class="btn grande" id="btn-empezar-ar">📷 Realidad aumentada</button>
+      </div>
+      <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a> · Teclas 1–5 para cambiar de capa</p>
+    </div>
+  </div>
+
+  <script src="data/mexico-estados.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

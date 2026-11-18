@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marcador AR</title>
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+  </script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f1ea; color: #1b1b1b; }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+    h1 { margin: 0 0 6px; }
+    .barra { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+    button { font: 600 14px system-ui; padding: 10px 16px; border-radius: 10px; border: 1px solid #c9c1ad; background: #fff; cursor: pointer; }
+    button.pri { background: #ffb81a; border-color: #e09a00; }
+    canvas { width: 100%; height: auto; display: block; box-shadow: 0 6px 30px rgba(0,0,0,0.15); }
+    #estado { font-size: 14px; color: #555; }
+    ol { line-height: 1.7; }
+    @media print {
+      @page { size: letter landscape; margin: 8mm; }
+      body { background: #fff; }
+      main > :not(canvas) { display: none !important; }
+      main { padding: 0; max-width: none; }
+      canvas { box-shadow: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Marcador de realidad aumentada</h1>
+    <p>Imprime este mapa a color, en <b>tamaño carta horizontal</b> o más grande (tabloide o doble carta funcionan aún mejor). Pégalo sobre cartón o MDF para que quede plano.</p>
+    <div class="barra">
+      <button class="pri" onclick="print()">🖨️ Imprimir</button>
+      <button id="png">⬇️ Descargar PNG en alta resolución</button>
+      <button id="mind">⚙️ Generar archivo .mind (opcional)</button>
+      <span id="estado"></span>
+    </div>
+    <ol>
+      <li>Imprime el mapa sin escalar raro: usa «Ajustar a la página» en horizontal y apaga los encabezados.</li>
+      <li>Evita el papel muy brillante porque los reflejos confunden a la cámara. El mate funciona mejor.</li>
+      <li><i>Opcional:</i> genera el archivo <code>.mind</code> y guárdalo como <code>assets/marcador.mind</code> para que la AR arranque al instante. Si no lo haces, la app lo calcula sola la primera vez.</li>
+    </ol>
+    <canvas id="cv"></canvas>
+  </main>
+  <script src="data/mexico-estados.js"></script>
+  <script type="module">
+    import { dibujarMarcador } from './js/marcador.js';
+    import { compilarMarcador } from './js/ar.js';
+    const cv = document.getElementById('cv');
+    dibujarMarcador(cv, 3300); // ~300 dpi en carta horizontal
+    const bajar = (blob, nombre) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = nombre;
+      a.click();
+    };
+    document.getElementById('png').onclick = () => cv.toBlob((b) => bajar(b, 'mexico-vivo-marcador.png'));
+    document.getElementById('mind').onclick = async () => {
+      const est = document.getElementById('estado');
+      est.textContent = 'Analizando rasgos de la imagen…';
+      const data = await compilarMarcador((p) => (est.textContent = `Analizando… ${p.toFixed(0)} %`));
+      bajar(new Blob([data]), 'marcador.mind');
+      est.textContent = '✅ Listo: guarda el archivo en la carpeta assets/';
+    };
+  </script>
+</body>
+</html>
