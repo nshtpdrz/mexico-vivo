@@ -662,3 +662,51 @@ body.sencillo .no-exploradores { display: none; }
 .m-opciones .btn.incorrecta { border-color: #ff6b6b; background: rgba(255,107,107,.14); }
 .m-opciones .btn:disabled { opacity: 1; cursor: default; }
 .m-resultado { font-weight: 700; color: var(--oro); }
+
+/* ---------- Panel didáctico: tarjeta, misión y pestañas ---------- */
+.tarjeta-capa { margin: 10px 0 8px; padding: 12px 14px; border-radius: 14px; background: linear-gradient(135deg, rgba(255,194,26,.14), rgba(255,154,26,.05)); border: 1px solid rgba(255,194,26,.35); }
+.tc-etq { margin: 0; font: 700 11px var(--display); letter-spacing: .08em; text-transform: uppercase; color: var(--oro); }
+.tc-pregunta { margin: 4px 0 8px; font: 600 16px/1.3 var(--display); }
+.tc-opciones { display: flex; flex-wrap: wrap; gap: 6px; }
+.tc-opciones .btn { flex: 1 1 auto; justify-content: center; }
+.tc-opciones .btn.correcta, .m-opciones .btn.correcta { border-color: #3ddc97; background: rgba(61,220,151,.18); }
+.tc-opciones .btn.incorrecta { border-color: #ff6b6b; background: rgba(255,107,107,.14); }
+.tc-opciones .btn:disabled { opacity: 1; cursor: default; }
+.tc-respuesta { margin-top: 8px; font-size: 14px; }
+.tc-respuesta p { margin: 4px 0; }
+.tc-res { color: var(--oro); }
+.tc-accion { font-weight: 600; color: var(--texto); }
+.tc-accion::before { content: '→ '; color: var(--oro); }
+.mision-capa { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; margin: 0 0 10px; border-radius: 12px; background: var(--vidrio-2); border: 1px dashed var(--linea); font-size: 13px; }
+.mision-capa b { display: block; font-size: 13px; }
+.mision-capa small { color: var(--texto-2); font-size: 12px; }
+.mision-capa .mc-ico { font-size: 22px; }
+.mision-capa .mc-cuenta { font: 700 12px var(--display); color: var(--texto-2); }
+.mision-capa.completa { border-style: solid; border-color: rgba(61,220,151,.5); }
+.mision-capa.completa .mc-ico { color: #3ddc97; }
+.pestanas { position: sticky; top: -1px; z-index: 2; display: flex; gap: 4px; padding: 6px 0; margin: 0 0 8px; background: var(--fondo-2); border-bottom: 1px solid var(--linea); }
+.pestanas .pt { flex: 1 1 auto; padding: 8px 6px; border: 0; border-radius: 9px; background: transparent; color: var(--texto-2); font: 600 13px var(--cuerpo); cursor: pointer; }
+.pestanas .pt[aria-selected='true'] { background: rgba(255,194,26,.16); color: var(--texto); box-shadow: inset 0 -2px 0 var(--oro); }
+.pestanas .pt-fuentes { flex: 0 0 auto; font-weight: 500; font-size: 12px; }
+.pestana[hidden] { display: none !important; }
+body.sencillo .pestanas .pt-fuentes { display: none; }
+body.sencillo .tc-pregunta { font-size: 19px; }
+body.sencillo .tc-opciones .btn { font-size: 16px; padding: 12px 10px; }
+/* Sismos en tres pasos */
+.paso-sim { display: grid; grid-template-columns: 30px 1fr; gap: 10px; margin: 0 0 12px; }
+.paso-sim .paso-num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--oro); color: #1b1200; font: 700 14px var(--display); }
+.paso-sim p { margin: 2px 0 6px; }
+.opciones-sim { margin: 8px 0; }
+/* Mi estado */
+.mi-estado { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 6px; }
+.me-fila { display: grid; grid-template-columns: 92px 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--vidrio-2); border: 1px solid var(--linea); cursor: pointer; font-size: 13px; }
+.me-fila:hover { border-color: var(--oro); }
+.me-fila b { color: var(--oro); font-size: 12.5px; }
+.me-fila i { color: var(--texto-2); font-style: normal; }
+/* Barra de capas: sombra que avisa «hay más pestañas» */
+.capas.mas-derecha { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.capas.mas-izquierda { -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%); mask-image: linear-gradient(90deg, transparent, #000 15%); }
+.capas.mas-derecha.mas-izquierda { -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+/* Exploradores: listas solo con el nombre (el detalle está en la ficha) */
+body.sencillo .lista li small, body.sencillo .lista-maravillas li small, body.sencillo .linea-sabores li small { display: none; }
+.pestanas .pt[hidden] { display: none; }

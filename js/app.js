@@ -18,6 +18,7 @@ import { desproyectar, distanciaKm, proyectar } from './geo.js';
 import * as audio from './audio.js';
 import * as ev from './evaluacion.js';
 import * as guia from './guia.js';
+import { organizarPanel, mostrarPestana, pintarMisiones, reiniciarPanel, actualizarPestanas } from './panel.js';
 import { cargarSismograma, sonificar, detenerSonido, dibujarSismograma, staLta } from './sismograma.js';
 import { iniciarSensor, detenerSensor, dibujarSensor, sensorActivo } from './sensor.js';
 import {
@@ -289,7 +290,8 @@ function ponerNivel(nivel, avisar = false) {
   document.body.classList.remove('nivel-exploradores', 'nivel-aventureros', 'nivel-descubridores');
   document.body.classList.add('nivel-' + nivel);
   document.body.classList.toggle('sencillo', nivel === 'exploradores'); // reutiliza los estilos del modo sencillo
-  $$('.panel details').forEach((d) => { d.open = nivel === 'descubridores'; });
+  $$('.panel details:not([data-tab="comprende"])').forEach((d) => { d.open = nivel === 'descubridores'; });
+  actualizarPestanas();
   $$('.niveles .nivel').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.nivel === nivel)));
   const b = $('#btn-sencillo');
   b.setAttribute('aria-pressed', String(nivel !== 'aventureros'));
@@ -365,6 +367,7 @@ function fichaEstado(id) {
     return;
   }
   if (app.capa === 'lenguas') {
+    guia.completar('lenguas');
     const d = LENGUA_ESTADOS[id];
     const rango = Object.values(LENGUA_ESTADOS).filter((x) => x.pct2020 > d.pct2020).length + 1;
     const cambio = d.pct2020 - d.pct2010;
@@ -405,7 +408,7 @@ function fichaEstado(id) {
   }
   if (app.capa === 'cultura') {
     const k = CULTURA_ESTADOS[id] || {};
-    if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
+    if (k.sonido) { audio.reproducirGrabacion(k.sonido, pan); guia.completar('musica'); }
     const rasgos = [['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]].filter(([, v]) => v);
     abrirFicha({
       ...base,
@@ -463,11 +466,83 @@ function fichaEstado(id) {
     chips: [`🌿 ${BIOMAS[e.bioma].nombre}`, `📈 ${ZONAS_SISMICAS[e.zona].nombre}`],
     cuerpo: `<p class="dato">💡 ${e.dato}</p>`,
     acciones: [
+      { texto: 'Ver todo de este estado', clase: 'primario', fn: () => fichaMiEstado(id) },
       { texto: '🌍 Ver su sismicidad', fn: () => { cambiarCapa('tectonica'); } },
       { texto: '🦋 Ver su biodiversidad', fn: () => { cambiarCapa('biodiversidad'); fichaEstado(id); } },
     ],
   });
   audio.clic(990);
+}
+
+// «Mi estado»: una sola ficha que une lo que cada capa sabe del estado.
+// Solo reúne datos que ya existen en la app (con su fuente o su aviso).
+function fichaMiEstado(id) {
+  const r = mapa.estados.get(id);
+  if (!r) return;
+  const e = r.info;
+  mapa.seleccionar(id);
+  app.seleccion = id;
+  const cerca = (lista, km) => lista.filter((x) => distanciaKm(x.lat, x.lon, e.lat, e.lon) < km);
+  const volc = cerca(VOLCANES, 150);
+  const lengua = LENGUA_ESTADOS[id];
+  const sab = cerca(ORIGENES, 250);
+  const mar = cerca(MARAVILLAS, 350);
+  const k = CULTURA_ESTADOS[id] || {};
+  const fila = (capa, titulo, texto) => `<li class="me-fila" data-capa="${capa}"><b>${titulo}</b><span>${texto}</span><i aria-hidden="true">›</i></li>`;
+  abrirFicha({
+    titulo: r.nombre, sub: `Mi estado · Capital: ${e.capital}`, color: REGIONES[e.region].color, revision: false,
+    cuerpo: `<p>Toca un renglón para ir a esa capa.</p><ul class="mi-estado">
+      ${fila('tectonica', 'Sismos', ZONAS_SISMICAS[e.zona].nombre)}
+      ${fila('volcanes', 'Volcanes', volc.length ? `Cerca de su capital: ${volc.map((v) => v.nombre).join(', ')}` : 'No hay volcanes de la app a menos de 150 km de su capital')}
+      ${fila('biodiversidad', 'Naturaleza', `Ecosistema predominante: ${BIOMAS[e.bioma].nombre}`)}
+      ${lengua ? fila('lenguas', 'Lenguas', `${fmt(lengua.pct2020, 1)} % habla una lengua indígena (INEGI 2020)`) : ''}
+      ${k.platillo ? fila('cultura', 'Cultura', k.platillo) : ''}
+      ${fila('sabores', 'Sabores', sab.length ? sab.map((o) => `${o.alimento} en ${o.nombre}`).join('; ') : 'Aún no hay evidencia verificada cerca')}
+      ${fila('maravillas', 'Maravillas', mar.length ? mar.map((m) => m.nombre).join('; ') : 'Aún no hay maravillas verificadas cerca')}
+    </ul><p class="nota">«Cerca» se mide desde la capital. Algunos datos de estados y cultura siguen en revisión.</p>`,
+  });
+  $$('.mi-estado .me-fila', ficha).forEach((li) => (li.onclick = () => { cambiarCapa(li.dataset.capa); fichaEstado(id); }));
+  if (id === 'MX-HID') guia.completar('hidalgo');
+  audio.clic(880);
+}
+
+// Regla: dos toques en el mapa → distancia y tiempos de viaje de las ondas
+const medida = { puntos: [], objetos: [] };
+function limpiarMedida() {
+  medida.objetos.forEach((o) => { mapa.root.remove(o); o.geometry?.dispose(); });
+  medida.objetos = [];
+  medida.puntos = [];
+}
+function activarMedida(on) {
+  app.midiendo = on;
+  limpiarMedida();
+  $('#btn-medir').textContent = on ? 'Dejar de medir' : 'Empezar a medir';
+  $('#btn-medir').classList.toggle('primario', on);
+  const res = $('#medida-res');
+  res.hidden = !on;
+  res.innerHTML = on ? 'Toca el <b>primer punto</b> en el mapa.' : '';
+}
+function puntoMedida(p) {
+  if (medida.puntos.length === 2) limpiarMedida();
+  medida.puntos.push(p.clone());
+  const bola = new THREE.Mesh(new THREE.SphereGeometry(0.006, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffc21a }));
+  bola.position.set(p.x, p.y, 0.03);
+  mapa.root.add(bola);
+  medida.objetos.push(bola);
+  audio.clic(medida.puntos.length === 1 ? 700 : 940);
+  if (medida.puntos.length === 1) { $('#medida-res').innerHTML = 'Ahora toca el <b>segundo punto</b>.'; return; }
+  const [a, b] = medida.puntos;
+  const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x, a.y, 0.03), new THREE.Vector3(b.x, b.y, 0.03)]);
+  const linea = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xffc21a }));
+  mapa.root.add(linea);
+  medida.objetos.push(linea);
+  const [lon1, lat1] = desproyectar(a.x, a.y), [lon2, lat2] = desproyectar(b.x, b.y);
+  const d = distanciaKm(lat1, lon1, lat2, lon2);
+  const tiempo = (s) => (s < 90 ? `${fmt(s)} s` : s < 5400 ? `${fmt(s / 60)} min` : `${fmt(s / 3600, 1)} h`);
+  $('#medida-res').innerHTML = `<b>${fmt(d)} km</b> en línea recta.<br>
+    Onda P (≈6.5 km/s): <b>${tiempo(d / 6.5)}</b> · Onda S (≈3.6 km/s): <b>${tiempo(d / 3.6)}</b><br>
+    <span class="no-exploradores">Tsunami en mar abierto (≈713 km/h, si el camino fuera por el océano): <b>${tiempo((d / 713) * 3600)}</b>.<br></span>
+    <small>Toca otros dos puntos para medir de nuevo. Velocidades del modelo de la app.</small>`;
 }
 
 function rumbo(g) {
@@ -641,6 +716,7 @@ function alClic(ev, cam, el) {
   const { hit, enPapel } = lanzarRayo(ev, cam, el);
   const ud = hit?.userData;
   // la placa está bajo el mapa: tocarla no debe impedir elegir el epicentro
+  if (app.midiendo && enPapel && Math.abs(enPapel.x) < 0.5 && Math.abs(enPapel.y) < 0.32) return puntoMedida(enPapel);
   if (ud && ud.tipo && ud.tipo !== 'estado' && ud.tipo !== 'placa') return fichaObjeto(ud);
   if (app.capa === 'tectonica' && enPapel && Math.abs(enPapel.x) < 0.5 && Math.abs(enPapel.y) < 0.32) {
     const [lon, lat] = desproyectar(enPapel.x, enPapel.y);
@@ -1352,6 +1428,27 @@ function pintarExpedicion() {
   pintarExpedicion();
 }
 
+// ---------------------------------------------------------------------
+// Panel didáctico: tarjeta «Adivina primero», misión y pestañas por capa
+// ---------------------------------------------------------------------
+organizarPanel({ onResponder: (capa, bien) => audio.clic(bien ? 980 : 330) });
+{
+  const nombres = [...mapa.estados.values()].map((r) => [r.id, r.nombre]).sort((a, b) => a[1].localeCompare(b[1], 'es'));
+  $('#sel-mi-estado').innerHTML = nombres.map(([id, n]) => `<option value="${id}" ${id === 'MX-HID' ? 'selected' : ''}>${n}</option>`).join('');
+  $('#btn-mi-estado').onclick = () => fichaMiEstado($('#sel-mi-estado').value);
+  $('#btn-medir').onclick = () => activarMedida(!app.midiendo);
+  // Barra de capas: avisa cuando hay más pestañas fuera de la vista
+  const nav = $('.capas');
+  const revisarMas = () => {
+    nav.classList.toggle('mas-derecha', nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4);
+    nav.classList.toggle('mas-izquierda', nav.scrollLeft > 4);
+  };
+  nav.addEventListener('scroll', revisarMas, { passive: true });
+  addEventListener('resize', revisarMas);
+  setInterval(revisarMas, 1500);
+  revisarMas();
+}
+
 function slug(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1508,7 +1605,7 @@ function iniciarSimulacro(ciudad) {
 // ---------------------------------------------------------------------
 $('#btn-pasaporte').addEventListener('click', () => guia.abrirPasaporte());
 guia.montarGuia();
-guia.onProgreso((n, total) => { $('#btn-pasaporte .cuenta').textContent = `${n}/${total}`; });
+guia.onProgreso((n, total) => { $('#btn-pasaporte .cuenta').textContent = `${n}/${total}`; pintarMisiones(); });
 audio.cargarManifiesto().then(() => {
   const cr = audio.creditos();
   $('#creditos-sonido').innerHTML = cr.length
@@ -1571,11 +1668,13 @@ const limpiarPaso = () => {
   $$('.resaltar').forEach((x) => x.classList.remove('resaltar'));
 };
 const recorrido = crearRecorrido({
-  cambiarCapa, fichaEstado, volarA, ponerAnio,
+  mostrarPestana,
+  cambiarCapa, fichaEstado, volarA, ponerAnio(a) { mostrarPestana('historia', 'experimenta', false); ponerAnio(a); },
   abrirPasaporte: () => guia.abrirPasaporte(),
   clic: () => audio.clic(700),
   verSubsuelo(on) { $('#chk-subsuelo').checked = on; mapa.setSubsuelo(on); },
   prepararPrediccion() {
+    mostrarPestana('tectonica', 'experimenta', false);
     plegarPanel(false);
     ponerEscucha('MX-HID');
     sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 });
@@ -1592,6 +1691,7 @@ const recorrido = crearRecorrido({
     volarA(-99.3, 18.2, 0.75);
   },
   async escucharReal(archivo) {
+    mostrarPestana('tectonica', 'descubre', false);
     plegarPanel(false);
     const k = REALES.findIndex((s) => s.archivo === archivo);
     await mostrarReal(REALES[k], $$('#reales button')[k]);
@@ -1651,6 +1751,7 @@ function volverAlInicio() {
   if (app.modoAR) salirAR();
   if (recorrido.activo()) recorrido.salir();
   guia.reiniciar();
+  reiniciarPanel(); activarMedida(false);
   app.maravillasVistas.clear(); for (const m of MARAVILLAS) mapa.maravillas.get(m.id).mat.emissiveIntensity = 0; pintarExpedicion();
   ponerNivel('aventureros');
   cambiarCapa('estados');

@@ -46,7 +46,7 @@ export function crearRecorrido(api) {
     {
       titulo: 'Más alto, más frío',
       texto: 'Estos son datos del tiempo de hace unos minutos. En la gráfica del panel, cada punto es una capital: mientras más alta está, más fría suele ser. Es una medición con datos reales, no un experimento controlado.',
-      hacer() { api.cambiarCapa('clima'); api.volarA(-101.5, 22.5, 1.1); },
+      hacer() { api.cambiarCapa('clima'); api.mostrarPestana('clima', 'experimenta', false); api.volarA(-101.5, 22.5, 1.1); },
     },
     {
       titulo: 'Viaje en el tiempo',

@@ -14,6 +14,8 @@ export const MISIONES = [
   { id: 'relieve', icono: '🏔️', titulo: 'Explora un volcán real', pista: 'En Volcanes, toca el Popocatépetl o el Pico de Orizaba y abre «Explorar su relieve real».' },
   { id: 'tula', icono: '🗿', titulo: 'Conoce a los Atlantes', pista: 'En Historia, toca Tula: la capital tolteca está en Hidalgo.' },
   { id: 'tenochtitlan', icono: '🦅', titulo: 'Viaja a 1325', pista: 'En Historia, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
+  { id: 'musica', icono: '🎶', titulo: 'Música de una región', pista: 'En Cultura, toca Chiapas, Veracruz, Hidalgo o San Luis Potosí y escucha su música.' },
+  { id: 'lenguas', icono: '💬', titulo: 'Lenguas vivas', pista: 'En Lenguas, toca un estado y descubre qué parte de su población habla una lengua indígena.' },
   { id: 'tsunami', icono: '🌊', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
   { id: 'sabores', icono: '🌽', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
   { id: 'nixtamal', icono: '🫓', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
@@ -120,6 +122,7 @@ export function alEntrarCapa(capa) {
 // Misiones
 // ---------------------------------------------------------------------
 export const progreso = () => MISIONES.filter((m) => hechas[m.id]).length;
+export const estaHecha = (id) => Boolean(hechas[id]);
 let alCambiar = () => {};
 export function onProgreso(fn) { alCambiar = fn; fn(progreso(), MISIONES.length); }
 

@@ -206,3 +206,14 @@ Librerías: Three.js (MIT), MindAR (MIT).
 - **Qué muestra:** 11 símbolos en el mapa (árbol = natural, pirámide = mixto, prismas = geoparque, anillo de agua = cenotes). Cada ficha es una mini expedición: primero el visitante adivina «¿por qué existe este lugar?» y luego lee la respuesta con su fuente. Hay barra de progreso, 2 misiones nuevas (17 en total) y enlaces a Volcanes, Biodiversidad, Historia, Lenguas y Sabores, sin duplicar contenido. El modo exhibición reinicia la expedición.
 - **Qué NO hace, por diseño:** listar áreas naturales protegidas sin fuente consultada (las de CONANP quedan pendientes) ni presentar al pueblo mixteco como cultura del pasado.
 - **Ajuste de interfaz:** con 10 pestañas, la barra superior reduce el espacio entre pestañas en pantallas medianas y siempre desplaza la pestaña activa a la vista.
+
+## Panel didáctico (18 nov 2026)
+Medimos el panel y era demasiado: Sabores tenía unas 1,300 palabras en una sola columna, incluso para niños. Ahora cada capa se organiza así (`js/panel.js`), **sin borrar contenido**, solo reorganizándolo:
+- **Adivina primero:** una pregunta con 3 opciones al abrir la capa; al responder aparece un dato breve y una acción («Toca…»). Todas las respuestas usan datos que ya estaban en la app con su fuente.
+- **Misión de la capa** siempre visible, con su progreso. Dos misiones nuevas (Cultura y Lenguas): 19 en total.
+- **Pestañas Descubre · Experimenta · Comprende · Fuentes.** En HTML, cada bloque indica su pestaña con `data-tab`; sin atributo va a «Descubre». Las pestañas vacías para un nivel se ocultan, y Exploradores no ve «Fuentes».
+- **Sismos en 3 pasos:** elige el lugar → elige la fuerza → predice y simula. La profundidad solo aparece en Descubridores; las demás opciones están en «Más opciones».
+- **Mi estado:** en Estados → Experimenta (o con «Ver todo de este estado» en la ficha), una sola ficha une sismos, volcanes, naturaleza, lenguas, cultura, sabores y maravillas, y cada renglón lleva a su capa.
+- **Mide distancias:** dos toques en el mapa dan los kilómetros y el tiempo que tardarían la onda P, la onda S y un tsunami en mar abierto (velocidades del modelo de la app).
+- **Barra de capas:** un desvanecido avisa cuando hay más pestañas fuera de la vista.
+- Resultado medido para Exploradores en Sabores: Descubre ~90 palabras, Experimenta ~60, Comprende ~160 (antes, 1,323 en una sola columna).

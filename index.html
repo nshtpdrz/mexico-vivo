@@ -55,81 +55,108 @@
       <p class="sub">Capa 1</p>
       <h2>Un país sobre placas en movimiento</h2>
       <p class="solo-exploradores nino">México está hecho de piezas gigantes de roca que se mueven muy despacio: las placas. ¡Toca un estado para conocerlo!</p>
-      <p class="solo-descubridores avanzado">Fuentes de los datos: ver «Créditos y fuentes». Las cifras marcadas «en revisión» todavía no tienen una fuente registrada.</p>
-      <p>México está donde se juntan <b>5 placas tectónicas</b>. Por eso tiene sismos, volcanes y montañas, y gracias a ese relieve variado es uno de los <b>17 países megadiversos</b> del planeta.</p>
-      <p class="nota">Toca un estado para ver sus datos. Arrastra para girar el mapa y usa la rueda o pellizca para hacer zoom.</p>
-      <div class="tarjetas">
-        <div><b>~12 %</b><small>de las especies del mundo</small></div>
-        <div><b>~80</b><small>sismos al día que registra el SSN</small></div>
-        <div><b>+2,000</b><small>volcanes en el territorio</small></div>
-      </div>
-      <p class="revision">Cifras en revisión: el equipo está verificando sus fuentes.</p>
+      <p class="solo-descubridores avanzado" data-tab="fuentes">Las cifras marcadas «en revisión» todavía no tienen una fuente registrada.</p>
+      <p class="no-exploradores">México está donde se juntan <b>5 placas tectónicas</b>. Por eso tiene sismos, volcanes y montañas, y gracias a ese relieve variado es uno de los <b>17 países megadiversos</b> del planeta.</p>
+      <p class="nota">Arrastra para girar el mapa y usa la rueda o pellizca para hacer zoom.</p>
       <button class="btn primario" id="btn-recorrido-panel">Recorrido guiado de 4 minutos</button>
-      <details>
-        <summary>Créditos y fuentes de datos</summary>
+      <div class="no-exploradores">
+        <div class="tarjetas">
+          <div><b>~12 %</b><small>de las especies del mundo</small></div>
+          <div><b>~80</b><small>sismos al día que registra el SSN</small></div>
+          <div><b>+2,000</b><small>volcanes en el territorio</small></div>
+        </div>
+        <p class="revision">Cifras en revisión: el equipo está verificando sus fuentes.</p>
+      </div>
+      <div data-tab="experimenta">
+        <h3>Mi estado</h3>
+        <p>Elige tu estado y mira en una sola ficha todo lo que el mapa sabe de él: sismos, volcanes, naturaleza, lenguas, sabores y maravillas.</p>
+        <div class="fila">
+          <label class="campo">Estado <select id="sel-mi-estado"></select></label>
+          <button class="btn primario" id="btn-mi-estado">Ver mi estado</button>
+        </div>
+        <h3>Mide distancias</h3>
+        <p>Toca dos puntos del mapa. Te diremos cuántos kilómetros hay entre ellos y cuánto tardarían en recorrerlos una onda sísmica y un tsunami.</p>
+        <button class="btn" id="btn-medir">Empezar a medir</button>
+        <p class="resultado" id="medida-res" hidden></p>
+      </div>
+      <div data-tab="fuentes">
         <p><b>Datos en vivo:</b> Open-Meteo (clima), USGS (sismos recientes).</p>
         <p><b>Sismogramas:</b> estación G.UNM (GEOSCOPE / UNAM), servicio FDSN de EarthScope.</p>
         <p><b>Sonidos:</b></p>
         <ul id="creditos-sonido"></ul>
         <p><b>Bibliotecas:</b> Three.js y MindAR (licencia MIT).</p>
-      </details>
+        <p class="nota">Cada capa tiene su propia pestaña «Fuentes». La lista completa de afirmaciones está en el <a href="verificador.html" target="_blank" rel="noopener">verificador</a>.</p>
+      </div>
     </section>
 
     <section class="panel-capa" data-capa="tectonica" hidden>
       <p class="sub">Capa 2 · Física de ondas</p>
       <h2>Simulador de sismos y alerta temprana</h2>
       <p class="solo-exploradores nino">Cuando dos placas se atoran y de pronto se sueltan, la tierra tiembla. Toca el mar cerca de la costa y presiona Simular.</p>
-      <p class="solo-descubridores avanzado">Ecuaciones del modelo: llegada t = R / v; distancia hipocentral R = √(d² + h²); distancia por S−P: d = Δt / (1/v<sub>S</sub> − 1/v<sub>P</sub>); energía log₁₀E = 1.5M + 4.8; intensidad I = 2.7 + 1.5M − 3·log₁₀R (relación ajustada por el equipo, no oficial). Tsunami: v = √(g·h).</p>
-      <p>Toca el mapa (también el mar) para elegir el epicentro. Después pulsa <b>Simular</b> y verás las <span class="tag p">ondas P</span> y <span class="tag s">ondas S</span> viajar por el país.</p>
-      <div class="poe">
-        <p><b>1. Predice:</b> ¿cuántos segundos de aviso tendrá <b id="poe-ciudad">Pachuca</b>?</p>
-        <div class="control">
-          <label for="rng-pred">Tu predicción <output id="val-pred">30 s</output></label>
-          <input type="range" id="rng-pred" min="0" max="150" step="5" value="30">
+      <p class="solo-descubridores avanzado" data-tab="comprende">Ecuaciones del modelo: llegada t = R / v; distancia hipocentral R = √(d² + h²); distancia por S−P: d = Δt / (1/v<sub>S</sub> − 1/v<sub>P</sub>); energía log₁₀E = 1.5M + 4.8; intensidad I = 2.7 + 1.5M − 3·log₁₀R (relación ajustada por el equipo, no oficial). Tsunami: v = √(g·h).</p>
+      <div data-tab="experimenta">
+        <div class="paso-sim">
+          <span class="paso-num">1</span>
+          <div><b>Elige el lugar</b><p>Toca el mapa (también el mar). Epicentro: <b id="epi-texto">—</b></p></div>
         </div>
-        <p class="nota"><b>2. Observa:</b> simula el sismo · <b>3. Explica:</b> compara con el resultado.</p>
-        <p class="poe-res" id="poe-res" hidden></p>
+        <div class="paso-sim">
+          <span class="paso-num">2</span>
+          <div><b>Elige la fuerza</b>
+            <div class="control">
+              <label for="rng-mag">Magnitud <output id="val-mag">7.4</output></label>
+              <input type="range" id="rng-mag" min="4" max="9" step="0.1" value="7.4">
+            </div>
+            <div class="control solo-descubridores">
+              <label for="rng-prof">Profundidad <output><span id="val-prof">20</span> km</output></label>
+              <input type="range" id="rng-prof" min="5" max="200" step="1" value="20">
+            </div>
+          </div>
+        </div>
+        <div class="paso-sim">
+          <span class="paso-num">3</span>
+          <div><b>Predice y simula</b>
+            <div class="poe">
+              <p>¿Cuántos segundos de aviso tendrá <b id="poe-ciudad">Pachuca</b>?</p>
+              <div class="control">
+                <label for="rng-pred">Tu predicción <output id="val-pred">30 s</output></label>
+                <input type="range" id="rng-pred" min="0" max="150" step="5" value="30">
+              </div>
+              <p class="poe-res" id="poe-res" hidden></p>
+            </div>
+            <div class="fila">
+              <button class="btn primario grande" id="btn-sismo">▶ Simular sismo</button>
+              <div class="reloj"><b id="sismo-reloj">0.0 s</b><small id="sismo-radios">P: 0 km · S: 0 km</small></div>
+            </div>
+          </div>
+        </div>
+        <p class="aviso-sim">Simulación educativa con modelos simplificados. <b>No</b> es un sistema de alerta ni de predicción: para eso consulta el SASMEX y el SSN.</p>
+        <div class="resumen" id="sismo-resumen"></div>
+        <p class="resultado" id="tsunami-res"></p>
+        <details class="opciones-sim">
+          <summary>Más opciones</summary>
+          <div class="control">
+            <label for="rng-vel">Velocidad de la simulación <output id="val-vel">10×</output></label>
+            <input type="range" id="rng-vel" min="1" max="40" step="1" value="10">
+          </div>
+          <label class="campo">🎧 Escuchar desde <select id="sel-escucha"></select></label>
+          <label class="switch"><input type="checkbox" id="chk-alerta" checked><span></span>Alerta sísmica</label>
+          <label class="switch"><input type="checkbox" id="chk-simulacro" checked><span></span>Simulacro al sonar la alerta (agáchate, cúbrete, sujétate)</label>
+          <label class="switch"><input type="checkbox" id="chk-tsunami" checked><span></span>Simular tsunami si el sismo es en el mar</label>
+          <label class="switch"><input type="checkbox" id="chk-subsuelo" checked><span></span>Ver bajo la superficie (placa de Cocos e hipocentro)</label>
+        </details>
+        <div class="no-exploradores">
+          <h3>Resultados por ciudad</h3>
+          <div class="tabla-wrap">
+            <table id="sismo-tabla">
+              <thead><tr><th>Ciudad</th><th>km</th><th>P (s)</th><th>S (s)</th><th>Aviso</th><th>Int.</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <ol class="log" id="sismo-log"></ol>
+        </div>
       </div>
-      <div class="control">
-        <label for="rng-mag">Magnitud <output id="val-mag">7.4</output></label>
-        <input type="range" id="rng-mag" min="4" max="9" step="0.1" value="7.4">
-      </div>
-      <div class="control">
-        <label for="rng-prof">Profundidad <output><span id="val-prof">20</span> km</output></label>
-        <input type="range" id="rng-prof" min="5" max="200" step="1" value="20">
-      </div>
-      <div class="control">
-        <label for="rng-vel">Velocidad de la simulación <output id="val-vel">10×</output></label>
-        <input type="range" id="rng-vel" min="1" max="40" step="1" value="10">
-      </div>
-      <div class="fila">
-        <label class="campo">🎧 Escuchar desde
-          <select id="sel-escucha"></select>
-        </label>
-        <label class="switch"><input type="checkbox" id="chk-alerta" checked><span></span>Alerta sísmica</label>
-      </div>
-      <label class="switch"><input type="checkbox" id="chk-simulacro" checked><span></span>Simulacro al sonar la alerta (agáchate, cúbrete, sujétate)</label>
-      <label class="switch"><input type="checkbox" id="chk-tsunami" checked><span></span>Simular tsunami si el sismo es en el mar</label>
-      <p class="nota">Epicentro: <b id="epi-texto">—</b></p>
-      <div class="fila">
-        <button class="btn primario grande" id="btn-sismo">▶ Simular sismo</button>
-        <div class="reloj"><b id="sismo-reloj">0.0 s</b><small id="sismo-radios">P: 0 km · S: 0 km</small></div>
-      </div>
-      <label class="switch"><input type="checkbox" id="chk-subsuelo" checked><span></span>Ver bajo la superficie (placa de Cocos e hipocentro)</label>
-      <p class="aviso-sim">Simulación educativa con modelos simplificados. <b>No</b> es un sistema de alerta ni de predicción: para eso consulta el SASMEX y el SSN.</p>
       <h3>Sismos históricos</h3>
       <div class="historicos" id="historicos"></div>
-      <h3>Corte de la zona de subducción</h3>
-      <canvas id="corte" class="corte"></canvas>
-      <div class="resumen" id="sismo-resumen"></div>
-      <p class="resultado" id="tsunami-res"></p>
-      <div class="tabla-wrap">
-        <table id="sismo-tabla">
-          <thead><tr><th>Ciudad</th><th>km</th><th>P (s)</th><th>S (s)</th><th>Aviso</th><th>Int.</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <ol class="log" id="sismo-log"></ol>
       <h3>Escucha un sismo real</h3>
       <p>Estos son <b>registros reales</b> del sismógrafo de Ciudad Universitaria (UNAM). La vibración es demasiado lenta para oírla, así que la aceleramos: a ×200, una vibración de 1 Hz suena a 200 Hz.</p>
       <div class="historicos" id="reales"></div>
@@ -146,24 +173,30 @@
       </div>
       <p class="resultado" id="sismograma-info">Elige un sismo para ver su sismograma. Compara las líneas del <b>modelo</b> con la onda P que detecta el algoritmo <b>STA/LTA</b>.</p>
 
-      <h3>Haz tu propio sismo</h3>
-      <p>Tu dispositivo se vuelve un sismógrafo. En tablet o celular usa el <b>acelerómetro</b>: ponlo en la mesa y salta o golpea cerca. En laptop usa el <b>micrófono</b>: aplaude. El detector STA/LTA te avisará, igual que en una estación real.</p>
-      <button class="btn" id="btn-sensor">📳 Activar mi sismógrafo</button>
-      <div class="sensor-wrap"><canvas id="sensor-cv" class="sismograma chico"></canvas><div class="sensor-alerta" id="sensor-alerta" hidden></div></div>
-      <p class="nota" id="sensor-info"></p>
+      <div data-tab="experimenta">
+        <h3>Haz tu propio sismo</h3>
+        <p>Tu dispositivo se vuelve un sismógrafo. En tablet o celular usa el <b>acelerómetro</b>: ponlo en la mesa y salta o golpea cerca. En laptop usa el <b>micrófono</b>: aplaude. El detector STA/LTA te avisará, igual que en una estación real.</p>
+        <button class="btn" id="btn-sensor">📳 Activar mi sismógrafo</button>
+        <div class="sensor-wrap"><canvas id="sensor-cv" class="sismograma chico"></canvas><div class="sensor-alerta" id="sensor-alerta" hidden></div></div>
+        <p class="nota" id="sensor-info"></p>
+      </div>
 
       <h3>Sismos reales</h3>
       <label class="switch"><input type="checkbox" id="chk-usgs"><span></span>Mostrar los sismos de los últimos 30 días (USGS)</label>
       <p class="nota" id="usgs-estado"></p>
       <ul class="lista" id="usgs-lista"></ul>
-      <details>
+      <div data-tab="comprende">
+        <h3>Corte de la zona de subducción</h3>
+        <canvas id="corte" class="corte"></canvas>
+      </div>
+      <details data-tab="comprende" open>
         <summary>¿Cómo funciona la física?</summary>
         <p>La <b>onda P</b> (primaria) comprime y estira la roca, como un resorte, a ~6.5 km/s. La <b>onda S</b> (secundaria) la mueve de lado a lado a ~3.6 km/s y causa la mayor parte del daño.</p>
         <p>Como la P llega primero, la diferencia de tiempo <b>S − P</b> sirve para saber a qué distancia ocurrió el sismo: <i>d = Δt / (1/v<sub>S</sub> − 1/v<sub>P</sub>)</i>.</p>
         <p>La <b>magnitud</b> mide la energía: cada punto más libera unas <b>32 veces</b> más energía (log₁₀E = 1.5M + 4.8). La <b>intensidad</b> (escala de Mercalli, I–XII) mide qué tan fuerte se siente en cada lugar, y baja con la distancia.</p>
         <p><b>Tsunami:</b> si un sismo grande y somero levanta el fondo del mar, toda la columna de agua se mueve. La ola viaja a <i>v = √(g·h)</i>: en mar abierto (4 km de profundidad) va a unos 710 km/h, como un avión. Cerca de la costa se frena y crece. El 22 de junio de 1932 un tsunami arrasó Cuyutlán, Colima. Las alturas que muestra la app son estimaciones didácticas.</p>
       </details>
-      <details>
+      <details data-tab="comprende" class="no-exploradores">
         <summary>Límites del modelo (léelo antes de confiar en los números)</summary>
         <ul>
           <li><b>Velocidades constantes</b> (P 6.5 km/s, S 3.6 km/s) y trayectoria recta. En la Tierra real la velocidad aumenta con la profundidad y las ondas se curvan.</li>
@@ -179,26 +212,27 @@
       <p class="sub">Capa 3 · Geología</p>
       <h2>Volcanes y el Eje Neovolcánico</h2>
       <p class="solo-exploradores nino">Los volcanes son montañas por donde sale roca derretida del interior de la Tierra. ¡Toca uno que tenga fuego!</p>
-      <p class="solo-descubridores avanzado">En el visor de relieve real, la exageración vertical multiplica las alturas para que el relieve se note. Con 1× la proporción es la real. Las erupciones son representaciones educativas, no simulaciones físicas.</p>
-      <p>La placa de Cocos se hunde bajo México. A unos 100 km de profundidad suelta agua que funde el manto, y ese magma sube y forma la cadena de volcanes que cruza el país.</p>
-      <p class="nota">Toca un volcán y pulsa «Simular erupción». Los volcanes con 🔥 están activos y echan fumarolas.</p>
+      <p class="solo-descubridores avanzado" data-tab="comprende">En el visor de relieve real, la exageración vertical multiplica las alturas para que el relieve se note. Con 1× la proporción es la real. Las erupciones son representaciones educativas, no simulaciones físicas.</p>
+      <p class="nota">Los volcanes con 🔥 están activos y echan fumarolas. Toca uno de la lista o del mapa.</p>
       <ul class="lista" id="lista-volcanes"></ul>
+      <p data-tab="comprende">La placa de Cocos se hunde bajo México. A unos 100 km de profundidad suelta agua que funde el manto, y ese magma sube y forma la cadena de volcanes que cruza el país.</p>
     </section>
 
     <section class="panel-capa" data-capa="biodiversidad" hidden>
       <p class="sub">Capa 4 · Ecología</p>
       <h2>Biodiversidad y paisajes sonoros</h2>
       <p class="solo-exploradores nino">En México viven muchísimos animales y plantas que no existen en ningún otro país. Toca un estado y escucha.</p>
-      <p class="solo-descubridores avanzado">Una especie endémica solo vive en un lugar del mundo; una nativa vive naturalmente en un lugar, pero también puede vivir en otros. Las categorías de riesgo se están verificando con la NOM-059-SEMARNAT-2010 y la Lista Roja de la UICN.</p>
-      <p>Cada color es un ecosistema. Toca un estado para <b>escuchar</b> su paisaje sonoro, sintetizado con física del sonido: ruido filtrado para el viento y las olas, osciladores para las aves, las ranas y los insectos.</p>
+      <p class="solo-descubridores avanzado" data-tab="comprende">Una especie endémica solo vive en un lugar del mundo; una nativa vive naturalmente en un lugar, pero también puede vivir en otros. Las categorías de riesgo se están verificando con la NOM-059-SEMARNAT-2010 y la Lista Roja de la UICN.</p>
+      <p class="no-exploradores">Cada color es un ecosistema. Toca un estado para <b>escuchar</b> su paisaje sonoro.</p>
       <ul class="lista" id="lista-especies"></ul>
+      <p data-tab="comprende">Algunos paisajes sonoros son grabaciones reales (autor y licencia en la pestaña Fuentes de la capa Estados). Otros se sintetizan con física del sonido: ruido filtrado para el viento y las olas, osciladores para las aves, las ranas y los insectos.</p>
     </section>
 
     <section class="panel-capa" data-capa="clima" hidden>
       <p class="sub">Capa 5 · Datos en tiempo real</p>
       <h2>Clima en vivo</h2>
       <p class="solo-exploradores nino">Mientras más alto subes, más frío hace. Mira qué capitales están más frías hoy.</p>
-      <p class="solo-descubridores avanzado">Modelo: T = a + b·altitud + c·latitud, ajustado por mínimos cuadrados. R² es la fracción de la variación que el modelo explica; no demuestra causalidad. Los datos de Open-Meteo son estimaciones de modelos meteorológicos, no mediciones de estación; el clima se describe con normales de 30 años, no con el dato de un día.</p>
+      <p class="solo-descubridores avanzado" data-tab="comprende">Modelo: T = a + b·altitud + c·latitud, ajustado por mínimos cuadrados. R² es la fracción de la variación que el modelo explica; no demuestra causalidad. Los datos de Open-Meteo son estimaciones de modelos meteorológicos, no mediciones de estación; el clima se describe con normales de 30 años, no con el dato de un día.</p>
       <div class="fila">
         <label class="campo">Variable
           <select id="sel-clima">
@@ -211,17 +245,19 @@
         <button class="btn" id="btn-clima">↻ Actualizar</button>
       </div>
       <p class="nota" id="clima-estado"></p>
-      <h3>Experimento: ¿la altura enfría?</h3>
-      <p>Cada punto es una capital (x = altitud, y = temperatura). La línea dorada es el efecto de la altura una vez descontado el de la latitud (regresión múltiple).</p>
-      <label class="campo">Datos de la gráfica
-        <select id="sel-grafica">
-          <option value="ayer">Temperatura media de ayer (más confiable)</option>
-          <option value="ahora">Temperatura de este momento</option>
-        </select>
-      </label>
-      <canvas id="grafica-clima" class="grafica"></canvas>
-      <p class="resultado" id="clima-resultado"></p>
-      <details>
+      <div data-tab="experimenta">
+        <h3>Experimento: ¿la altura enfría?</h3>
+        <p>Cada punto es una capital: a la derecha, más alta; arriba, más caliente. <span class="no-exploradores">La línea dorada es el efecto de la altura una vez descontado el de la latitud (regresión múltiple).</span></p>
+        <label class="campo">Datos de la gráfica
+          <select id="sel-grafica">
+            <option value="ayer">Temperatura media de ayer (más confiable)</option>
+            <option value="ahora">Temperatura de este momento</option>
+          </select>
+        </label>
+        <canvas id="grafica-clima" class="grafica"></canvas>
+        <p class="resultado" id="clima-resultado"></p>
+      </div>
+      <details data-tab="comprende" open>
         <summary>¿Por qué pasa?</summary>
         <p>El aire que sube se expande porque hay menos presión, y al expandirse se enfría (enfriamiento adiabático). Por eso Toluca (2,660 m) es mucho más fría que Villahermosa (10 m), aunque están casi a la misma latitud.</p>
       </details>
@@ -230,128 +266,133 @@
       <p class="sub">Capa 6 · Historia</p>
       <h2>3,500 años de historia en un mapa</h2>
       <p class="solo-exploradores nino">Hace miles de años ya había ciudades en México. Mueve la línea del tiempo para viajar al pasado.</p>
-      <p class="solo-descubridores avanzado">Las fechas son aproximadas y algunas siguen en debate académico. Las culturas mencionadas tienen descendientes y comunidades vivas hoy.</p>
-      <p>De los olmecas a hoy. Mueve la línea del tiempo: los lugares que existían en esa época se encienden en el mapa. Toca un sitio para conocer su historia o un estado para ver los sitios que tiene cerca.</p>
-      <div class="linea-tiempo">
-        <div class="lt-cab"><b id="anio-texto">Todas las épocas</b><button class="btn mini" id="btn-todas-epocas">Ver todas</button></div>
-        <input type="range" id="rng-anio" min="-1500" max="2026" step="1" value="1325" aria-label="Año">
-        <div class="lt-marcas"><span>1500 a.C.</span><span>0</span><span>1521</span><span>hoy</span></div>
-      </div>
-      <p class="resultado" id="era-texto"></p>
-      <ul class="lista eventos" id="eventos-cerca"></ul>
-      <h3>Épocas</h3>
-      <div class="historicos" id="eras"></div>
+      <p class="solo-descubridores avanzado" data-tab="comprende">Las fechas son aproximadas y algunas siguen en debate académico. Las culturas mencionadas tienen descendientes y comunidades vivas hoy.</p>
+      <p class="no-exploradores">De los olmecas a hoy. Toca un sitio para conocer su historia o un estado para ver los sitios que tiene cerca.</p>
       <h3>Lugares</h3>
       <ul class="lista" id="lista-sitios"></ul>
-      <p class="nota">Fechas aproximadas. Fuentes sugeridas: INAH, INEHRM, Archivo General de la Nación.</p>
+      <div data-tab="experimenta">
+        <p>Mueve la línea del tiempo: los lugares que existían en esa época se encienden en el mapa.</p>
+        <div class="linea-tiempo">
+          <div class="lt-cab"><b id="anio-texto">Todas las épocas</b><button class="btn mini" id="btn-todas-epocas">Ver todas</button></div>
+          <input type="range" id="rng-anio" min="-1500" max="2026" step="1" value="1325" aria-label="Año">
+          <div class="lt-marcas"><span>1500 a.C.</span><span>0</span><span>1521</span><span>hoy</span></div>
+        </div>
+        <p class="resultado" id="era-texto"></p>
+        <ul class="lista eventos" id="eventos-cerca"></ul>
+      </div>
+      <div data-tab="comprende">
+        <h3>Épocas</h3>
+        <div class="historicos" id="eras"></div>
+      </div>
+      <p class="nota" data-tab="fuentes">Fechas aproximadas y en revisión. Fuentes sugeridas: INAH, INEHRM, Archivo General de la Nación.</p>
     </section>
 
     <section class="panel-capa" data-capa="cultura" hidden>
       <p class="sub">Capa 7 · Cultura viva</p>
       <h2>Tradiciones de hoy, de cada región</h2>
       <p class="solo-exploradores nino">En cada rincón de México se cocina, se teje y se baila distinto. Toca un estado y escucha su música.</p>
-      <p class="solo-descubridores avanzado">Una tradición pertenece a una región o comunidad, no a todo el estado: por eso cada rasgo indica su lugar. Son prácticas vivas, no reconstrucciones del pasado.</p>
-      <p>Toca un estado para conocer un platillo, una artesanía y una tradición, cada uno con la región o comunidad de donde es propio. En Chiapas, Veracruz, Hidalgo y San Luis Potosí suena su música regional.</p>
-      <h3>Patrimonio Cultural Inmaterial (UNESCO)</h3>
-      <ul class="lista" id="inmaterial"></ul>
-      <p class="nota">Contenido en revisión. Fuentes sugeridas: Secretaría de Cultura, Sistema de Información Cultural, UNESCO.</p>
+      <p class="solo-descubridores avanzado" data-tab="comprende">Una tradición pertenece a una región o comunidad, no a todo el estado: por eso cada rasgo indica su lugar. Son prácticas vivas, no reconstrucciones del pasado.</p>
+      <p class="no-exploradores">Toca un estado para conocer un platillo, una artesanía y una tradición de una región o comunidad. En Chiapas, Veracruz, Hidalgo y San Luis Potosí suena su música regional.</p>
+      <div data-tab="comprende">
+        <h3>Patrimonio Cultural Inmaterial (UNESCO)</h3>
+        <ul class="lista" id="inmaterial"></ul>
+      </div>
+      <p class="nota" data-tab="fuentes">Contenido en revisión. Fuentes sugeridas: Secretaría de Cultura, Sistema de Información Cultural, UNESCO.</p>
     </section>
     <section class="panel-capa" data-capa="lenguas" hidden>
       <p class="sub">Capa 8 · Lenguas de México</p>
       <h2>Lenguas vivas: 68 agrupaciones, 364 variantes</h2>
       <p class="solo-exploradores nino">En México se hablan muchas lenguas además del español. ¡Millones de personas las hablan hoy en su casa, en la escuela y en su comunidad!</p>
-      <p class="solo-descubridores avanzado">El mapa muestra el porcentaje de la población de 3 años y más que <i>habla</i> alguna lengua indígena en cada entidad (Censo 2020). No mide la autoadscripción indígena: en 2020, 11,800,247 personas vivían en hogares indígenas según el INEGI, una cifra mayor que la de hablantes.</p>
-      <p>En 2020, <b>7,364,645 personas</b> de 3 años y más hablaban alguna lengua indígena: el <b>6.1 %</b> de esa población (INEGI). El mapa muestra en qué entidades hay más hablantes en proporción. Las lenguas no siguen las fronteras estatales: una misma lengua puede hablarse en varias entidades.</p>
+      <p class="no-exploradores">En 2020, <b>7,364,645 personas</b> de 3 años y más hablaban alguna lengua indígena: el <b>6.1 %</b> de esa población (INEGI). Las lenguas no siguen las fronteras estatales: una misma lengua puede hablarse en varias entidades.</p>
       <div class="tarjetas">
         <div><b>11</b><small>familias lingüísticas</small></div>
         <div><b>68</b><small>agrupaciones lingüísticas</small></div>
         <div><b>364</b><small>variantes lingüísticas</small></div>
       </div>
-      <h3>Cómo las organiza el INALI</h3>
-      <ul class="terminos">
-        <li><b>Familia lingüística:</b> lenguas con un origen común, como la familia maya o la oto-mangue.</li>
-        <li><b>Agrupación lingüística:</b> el conjunto de variantes que lleva el nombre con que históricamente se conoce a un pueblo, como «náhuatl» o «zapoteco».</li>
-        <li><b>Variante lingüística:</b> cada forma de hablar que tiene diferencias de estructura y vocabulario respecto de otras de la misma agrupación, y que para sus hablantes implica una identidad propia. Por eso no todas las personas que hablan una misma agrupación hablan igual.</li>
-      </ul>
       <h3>Las 10 con más hablantes (2020)</h3>
       <div class="barras-lenguas" id="barras-lenguas"></div>
-      <h3>Las 11 familias</h3>
-      <div id="familias-lenguas"></div>
-      <div class="politica">
-        <b>Cómo cuidamos este módulo</b>
-        <p>No traducimos palabras, no inventamos pronunciaciones y no usamos voces sintetizadas. Tampoco mezclamos variantes ni asignamos una lengua a un solo estado. Si en el futuro se agregan audios, serán grabaciones auténticas, con permiso de quienes hablan y con su crédito.</p>
+      <div data-tab="comprende">
+        <p class="solo-descubridores avanzado">El mapa muestra el porcentaje de la población de 3 años y más que <i>habla</i> alguna lengua indígena en cada entidad (Censo 2020). No mide la autoadscripción indígena: en 2020, 11,800,247 personas vivían en hogares indígenas según el INEGI, una cifra mayor que la de hablantes.</p>
+        <h3>Cómo las organiza el INALI</h3>
+        <ul class="terminos">
+          <li><b>Familia lingüística:</b> lenguas con un origen común, como la familia maya o la oto-mangue.</li>
+          <li><b>Agrupación lingüística:</b> el conjunto de variantes que lleva el nombre con que históricamente se conoce a un pueblo, como «náhuatl» o «zapoteco».</li>
+          <li><b>Variante lingüística:</b> cada forma de hablar que tiene diferencias de estructura y vocabulario respecto de otras de la misma agrupación, y que para sus hablantes implica una identidad propia. Por eso no todas las personas que hablan una misma agrupación hablan igual.</li>
+        </ul>
+        <h3>Las 11 familias</h3>
+        <div id="familias-lenguas"></div>
       </div>
-      <h3>Fuentes consultadas</h3>
-      <ul class="fuentes" id="fuentes-lenguas"></ul>
+      <div data-tab="fuentes">
+        <div class="politica">
+          <b>Cómo cuidamos este módulo</b>
+          <p>No traducimos palabras, no inventamos pronunciaciones y no usamos voces sintetizadas. Tampoco mezclamos variantes ni asignamos una lengua a un solo estado. Si en el futuro se agregan audios, serán grabaciones auténticas, con permiso de quienes hablan y con su crédito.</p>
+        </div>
+        <ul class="fuentes" id="fuentes-lenguas"></ul>
+      </div>
     </section>
     <section class="panel-capa" data-capa="sabores" hidden>
       <p class="sub">Capa 9 · Sabores de México</p>
       <h2>Del teocintle a la tortilla</h2>
-      <p class="solo-exploradores nino">El maíz, el frijol, la calabaza y el chile se cultivan en esta tierra desde hace miles de años. ¡Toca las vasijas del mapa para descubrir dónde se encontraron sus rastros más antiguos!</p>
-      <p class="solo-descubridores avanzado">La arqueobotánica combina restos visibles (semillas, mazorcas), microfósiles (almidones, fitolitos), residuos químicos en cerámica y ADN antiguo. Cada línea de evidencia tiene límites: el uso de una planta no prueba que ya estuviera domesticada.</p>
-      <p>Las vasijas del mapa marcan sitios donde se encontró evidencia antigua de alimentos. Muestran <b>dónde hay pruebas</b>, no «el único lugar de origen»: varias plantas se domesticaron en regiones amplias, y algunas, como el cacao, tienen su evidencia más antigua fuera de México.</p>
-
-      <h3>Descubre: la línea del tiempo</h3>
+      <p class="solo-exploradores nino">El maíz, el frijol, la calabaza y el chile se cultivan en esta tierra desde hace miles de años. ¡Toca las vasijas del mapa!</p>
+      <p class="no-exploradores">Las vasijas del mapa marcan dónde se encontró evidencia antigua de alimentos. Muestran <b>dónde hay pruebas</b>, no «el único lugar de origen».</p>
+      <h3>La línea del tiempo</h3>
       <ol class="linea-sabores" id="linea-sabores"></ol>
-
-      <h3>Experimenta: laboratorio de nixtamalización</h3>
-      <p class="solo-exploradores nino">Nixtamalizar es cocer el maíz con agua y cal. ¡Así se hace la masa de las tortillas!</p>
-      <div class="lab-nixtamal" id="lab-nixtamal">
-        <div class="lab-olla" aria-hidden="true"><div class="lab-agua"></div><div class="lab-granos"></div><div class="lab-vapor"></div></div>
-        <div class="lab-pasos" id="lab-pasos" role="list"></div>
-        <p class="lab-texto" id="lab-texto" aria-live="polite"></p>
-        <div class="lab-botones">
-          <button class="btn sec" id="lab-atras">Anterior</button>
-          <button class="btn primario" id="lab-sig">Siguiente paso</button>
+      <div data-tab="experimenta">
+        <h3>Laboratorio de nixtamalización</h3>
+        <p class="solo-exploradores nino">Nixtamalizar es cocer el maíz con agua y cal. ¡Así se hace la masa de las tortillas!</p>
+        <div class="lab-nixtamal" id="lab-nixtamal">
+          <div class="lab-olla" aria-hidden="true"><div class="lab-agua"></div><div class="lab-granos"></div><div class="lab-vapor"></div></div>
+          <div class="lab-pasos" id="lab-pasos" role="list"></div>
+          <p class="lab-texto" id="lab-texto" aria-live="polite"></p>
+          <div class="lab-botones">
+            <button class="btn sec" id="lab-atras">Anterior</button>
+            <button class="btn primario" id="lab-sig">Siguiente paso</button>
+          </div>
+          <label class="lab-cal"><input type="checkbox" id="lab-sin-cal"> <span>Comparar: ¿y si cocemos el maíz <b>sin cal</b>?</span></label>
+          <p class="lab-compara" id="lab-compara" hidden></p>
         </div>
-        <label class="lab-cal"><input type="checkbox" id="lab-sin-cal"> <span>Comparar: ¿y si cocemos el maíz <b>sin cal</b>?</span></label>
-        <p class="lab-compara" id="lab-compara" hidden></p>
+        <p class="nota no-exploradores">Los pasos son generales: tiempos, cantidades y temperaturas cambian según la comunidad y la receta, por eso no los indicamos.</p>
       </div>
-      <p class="nota">Los pasos son generales: tiempos, cantidades y temperaturas cambian según la comunidad y la receta, por eso no los indicamos.</p>
-
-      <h3>Comprende: ¿por qué funciona?</h3>
-      <div id="efectos-nixtamal"></div>
-
-      <h3>Una cocina viva</h3>
-      <p>En 2010, la UNESCO inscribió la cocina tradicional mexicana (con el paradigma de Michoacán) en su Lista del Patrimonio Cultural Inmaterial. Destaca el maíz, el frijol y el chile como base, técnicas como la milpa, la chinampa y la nixtamalización, y el papel de las cocineras tradicionales que guardan ese conocimiento.</p>
-      <button class="btn" id="btn-ir-platillos">Ver platillos regionales (capa Cultura)</button>
-
-      <h3>Otros alimentos</h3>
-      <div id="otros-alimentos"></div>
-      <div class="no-exploradores">
+      <div data-tab="comprende">
+        <p class="solo-descubridores avanzado">La arqueobotánica combina restos visibles (semillas, mazorcas), microfósiles (almidones, fitolitos), residuos químicos en cerámica y ADN antiguo. Cada línea de evidencia tiene límites: el uso de una planta no prueba que ya estuviera domesticada.</p>
+        <p class="no-exploradores">Varias plantas se domesticaron en regiones amplias, y algunas, como el cacao, tienen su evidencia más antigua fuera de México.</p>
+        <h3>¿Por qué funciona la nixtamalización?</h3>
+        <div id="efectos-nixtamal"></div>
+        <h3>Una cocina viva</h3>
+        <p>En 2010, la UNESCO inscribió la cocina tradicional mexicana (con el paradigma de Michoacán) en su Lista del Patrimonio Cultural Inmaterial. Destaca el maíz, el frijol y el chile como base, técnicas como la milpa, la chinampa y la nixtamalización, y el papel de las cocineras tradicionales que guardan ese conocimiento.</p>
+        <button class="btn" id="btn-ir-platillos">Ver platillos regionales (capa Cultura)</button>
+        <h3>Otros alimentos</h3>
+        <div id="otros-alimentos"></div>
+      </div>
+      <div data-tab="fuentes">
+        <div class="politica">
+          <b>Cómo cuidamos este módulo</b>
+          <p>Solo usamos datos de artículos científicos y organismos oficiales, con su fecha de consulta. No decimos que un alimento «es de» un solo estado o pueblo cuando la evidencia apunta a varias regiones. Las ubicaciones en el mapa son aproximadas.</p>
+        </div>
+        <ul class="fuentes" id="fuentes-sabores"></ul>
         <p class="nota">Aún en verificación (no se muestran como hechos hasta leer la fuente):</p>
         <ul class="fuentes" id="pendientes-sabores"></ul>
       </div>
-
-      <div class="politica">
-        <b>Cómo cuidamos este módulo</b>
-        <p>Solo usamos datos de artículos científicos y organismos oficiales, con su fecha de consulta. No decimos que un alimento «es de» un solo estado o pueblo cuando la evidencia apunta a varias regiones. Las ubicaciones en el mapa son aproximadas.</p>
-      </div>
-      <h3>Fuentes consultadas</h3>
-      <ul class="fuentes" id="fuentes-sabores"></ul>
     </section>
     <section class="panel-capa" data-capa="maravillas" hidden>
       <p class="sub">Capa 10 · Maravillas naturales</p>
       <h2>¿Por qué existe este lugar?</h2>
-      <p class="solo-exploradores nino">México tiene islas que son volcanes, bosques llenos de mariposas y pozos de agua que podrían venir de un asteroide. ¡Toca cada símbolo del mapa y adivina por qué existe!</p>
-      <p class="solo-descubridores avanzado">Cada maravilla une un proceso de la Tierra (vulcanismo, tectónica, corrientes oceánicas, un impacto) con la vida que hoy la habita. Los textos resumen las fichas oficiales de la UNESCO; los cenotes se apoyan en dos artículos científicos y se presentan como hipótesis.</p>
-      <p>Aquí están los 8 sitios naturales y mixtos de México en la Lista del Patrimonio Mundial de la UNESCO, sus 2 Geoparques Mundiales y el Anillo de Cenotes de Yucatán. En cada uno, primero adivina por qué existe y luego descubre la respuesta.</p>
-
-      <h3>Tu expedición</h3>
+      <p class="solo-exploradores nino">Islas que son volcanes, bosques llenos de mariposas y pozos de agua que podrían venir de un asteroide. ¡Toca un símbolo y adivina!</p>
+      <p class="no-exploradores">Los 8 sitios naturales y mixtos de México en la Lista del Patrimonio Mundial de la UNESCO, sus 2 Geoparques Mundiales y el Anillo de Cenotes de Yucatán.</p>
       <div class="expedicion">
         <div class="exp-pista"><i id="expedicion-barra"></i></div>
         <span><b id="expedicion-num">0 de 11</b> maravillas descubiertas</span>
       </div>
-
-      <h3>Las maravillas</h3>
       <ul class="lista-maravillas" id="lista-maravillas"></ul>
-
-      <div class="politica">
-        <b>Cómo cuidamos este módulo</b>
-        <p>Solo incluimos lugares con reconocimiento oficial de la UNESCO o con estudios científicos que pudimos consultar. México tiene muchas más áreas naturales protegidas; agregarlas requiere verificar sus fuentes (CONANP). Los geositios siguen en la capa Volcanes y las especies en Biodiversidad: desde aquí puedes ir a ellos.</p>
+      <p class="solo-descubridores avanzado" data-tab="comprende">Cada maravilla une un proceso de la Tierra (vulcanismo, tectónica, corrientes oceánicas, un impacto) con la vida que hoy la habita. Los textos resumen las fichas oficiales de la UNESCO; los cenotes se apoyan en dos artículos científicos y se presentan como hipótesis.</p>
+      <p data-tab="comprende">Detrás de cada lugar hay un proceso de la Tierra: volcanes bajo el mar, corrientes que se mezclan, explosiones de vapor, placas que se hunden o, quizá, un impacto. En cada ficha, primero adivinas y luego lees la respuesta con su fuente.</p>
+      <div data-tab="fuentes">
+        <div class="politica">
+          <b>Cómo cuidamos este módulo</b>
+          <p>Solo incluimos lugares con reconocimiento oficial de la UNESCO o con estudios científicos que pudimos consultar. México tiene muchas más áreas naturales protegidas; agregarlas requiere verificar sus fuentes (CONANP). Los geositios siguen en la capa Volcanes y las especies en Biodiversidad: desde aquí puedes ir a ellos.</p>
+        </div>
+        <ul class="fuentes" id="fuentes-maravillas"></ul>
       </div>
-      <h3>Fuentes consultadas</h3>
-      <ul class="fuentes" id="fuentes-maravillas"></ul>
     </section>
 
   </aside>
