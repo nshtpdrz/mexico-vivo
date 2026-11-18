@@ -63,30 +63,39 @@ Abre `marcador.html` → **Imprimir** (carta horizontal o más grande, a color y
 
 ### Controles
 - Arrastra para girar, rueda o pellizco para zoom, toca para seleccionar.
-- Teclas **1–5**: cambiar de capa · **Espacio**: simular sismo · **Esc**: cerrar ficha.
+- Teclas **1–9 y 0**: cambiar de capa (0 = Maravillas) · **Espacio**: simular sismo · **Esc**: cerrar ficha.
 
 ---
 
-## Guion de demostración (5–7 min)
+## Guion de demostración (7 min)
 
-1. **Gancho (30 s):** «¿Sabían que en Pachuca tendríamos cerca de 90 segundos de aviso si temblara en Acapulco? Vamos a comprobarlo.»
-2. **AR (1 min):** apuntar la tablet al mapa impreso; el país se levanta en 3D. Mostrar Hidalgo y el museo.
-3. **Sismos (2 min):** capa Sismos → tocar la costa de Guerrero → Simular. Explicar:
-   - las ondas P (azul) llegan antes que las S (roja): **6.5 contra 3.6 km/s**;
-   - la alerta viaja por radio a la velocidad de la luz;
-   - la tabla de tiempo de aviso por ciudad y el corte de la subducción.
-   Luego reproducir **Puebla 2017**: está tan cerca que casi no hubo aviso.
-4. **Volcanes (1 min):** erupción del Popocatépetl. Explicar por qué los volcanes están ahí (la placa que se hunde libera agua y funde el manto). Mostrar los Prismas Basálticos de Hidalgo.
-5. **Clima en vivo (1 min):** «Estos datos son de hace minutos». Mostrar la gráfica de altitud contra temperatura: la pendiente medida se parece a −6.5 °C/km.
-6. **Biodiversidad (30 s):** tocar Chiapas y escuchar la selva.
-7. **Cierre:** invitar al jurado a hacer el Reto.
+Hilo de la historia: **«Del subsuelo a la mesa»**. La Tierra se mueve (sismos y volcanes), eso crea paisajes y climas, ahí vive una enorme diversidad, y de ella nacen culturas, lenguas y comidas. Cada paso responde a «¿por qué?». Antes de empezar: nivel **Aventureros**, sonido encendido, app abierta en **Estados**.
+
+| Tiempo | Capa (tecla) | Qué hacer | Qué decir |
+|---|---|---|---|
+| 0:00–0:30 | Estados (1) | Abrir con la tablet sobre el mapa impreso | «¿Sabían que en Pachuca tendríamos cerca de 90 segundos de aviso si temblara frente a Acapulco? Vamos a comprobarlo.» |
+| 0:30–1:15 | Realidad aumentada | Apuntar al marcador: el país se levanta en 3D. Tocar Hidalgo | «El mapa está anclado al papel: si muevo la tablet, México se queda en su lugar.» |
+| 1:15–2:45 | Sismos (2) | Activar «Ver bajo la superficie», poner el epicentro frente a Acapulco y simular. Luego escuchar **Puebla 2017** | «La onda P (azul) va a 6.5 km/s y la S (roja), la que sacude, a 3.6. La alerta viaja por radio y llega antes. Esto es una **simulación**. Lo que van a oír ahora es **real**: el sismógrafo de la UNAM, acelerado 200 veces. Comparado con registros reales a menos de 400 km, nuestro modelo acierta la llegada de la onda P con un error de alrededor de 1 segundo.» |
+| 2:45–3:30 | Volcanes (3) | Erupción del Popocatépetl y abrir su relieve real | «La placa que se hunde suelta agua, funde el manto y el magma sube: por eso los volcanes forman una franja. El relieve viene de datos reales de elevación.» |
+| 3:30–4:00 | Maravillas (0) | Tocar el Geoparque Comarca Minera y responder la pregunta | «Esos mismos volcanes formaron nuestro geoparque, reconocido por la UNESCO: crearon una de las regiones mineras más importantes del mundo, donde teotihuacanos, toltecas y mexicas extraían obsidiana.» |
+| 4:00–4:30 | Clima (5) | Mostrar la gráfica de altitud contra temperatura | «Son datos de hace unos minutos. Mientras más alto, más frío. Es una correlación medida, no un experimento.» |
+| 4:30–5:00 | Biodiversidad (4) | Tocar Chiapas y escuchar la selva | «El relieve y el clima crean muchos ecosistemas. Esta es una grabación real de selva en la Sierra Norte de Puebla.» |
+| 5:00–5:45 | Sabores (9) | Tocar la vasija del maíz y dar dos pasos del laboratorio de nixtamalización | «El maíz ya estaba aquí hace 8,700 años, según almidones microscópicos fechados. Nixtamalizar con cal le añade calcio. Cada dato tiene su artículo científico.» |
+| 5:45–6:30 | Lenguas (8) | Tocar Oaxaca | «En 2020, más de 7 millones de personas hablaban una lengua indígena: 68 agrupaciones y 364 variantes, todas vivas. No traducimos ni inventamos pronunciaciones.» |
+| 6:30–7:00 | Cierre | Abrir el pasaporte y el reto | «Todo lo que no es simulación tiene fuente verificada. Los invitamos a completar una misión.» |
+
+**Si sobra tiempo:** el tsunami en Sismos (M8.1 en el mar frente a Acapulco), Historia (tecla 6) en el año 950 con Tula, o Cultura (7).
+**Si falta tiempo:** omitir Clima y Biodiversidad; el hilo se mantiene.
+**Plan B sin cámara:** todo funciona en modo mesa, sin realidad aumentada. Usar el **Recorrido guiado** (4 min) de la pantalla de inicio, que hace el mismo hilo paso a paso.
 
 ## Preguntas probables del jurado
 - **¿Cómo calculan la intensidad?** Con una ley de atenuación simplificada: I = 2.7 + 1.5M − 3·log₁₀(R), +1 en la CDMX por el suelo lacustre. Es didáctica, no oficial.
 - **¿Por qué la magnitud es logarítmica?** log₁₀E = 1.5M + 4.8: cada punto equivale a unas 32 veces más energía.
 - **¿Cómo se sabe la distancia con S−P?** d = Δt / (1/v_S − 1/v_P).
 - **¿Cómo funciona la AR?** MindAR detecta puntos característicos (esquinas y texturas) del mapa impreso, calcula la pose de la cámara en cada cuadro (homografía) y dibuja el modelo 3D con Three.js en esa posición.
-- **¿Cómo hacen los sonidos?** Con la Web Audio API: ruido filtrado (viento, olas, retumbo), osciladores con modulación (aves, ranas, insectos) y paneo estéreo según la posición en el mapa.
+- **¿Cómo hacen los sonidos?** Hay dos tipos: grabaciones reales con licencia libre (selva, aves, jaguar, ballena, música tradicional; autor y licencia en «Créditos») y sonidos sintetizados con la Web Audio API (ruido filtrado y osciladores) con paneo estéreo según la posición en el mapa. Los sismogramas son registros reales de la UNAM, acelerados para hacerlos audibles.
+- **¿De dónde salen los datos?** Cada módulo verificado cita su fuente con fecha de consulta y nivel de evidencia: A (oficial o primaria: INEGI, INALI, UNESCO, SSN) o B (artículos científicos con DOI). Lo que aún no tiene fuente lleva el aviso «en revisión». `verificador.html` lista todas las afirmaciones.
+- **¿Qué es simulación y qué es real?** Son simulaciones educativas la propagación del sismo, la alerta, el tsunami y la erupción. Son reales los sismogramas, el clima en vivo, los sismos de USGS, el relieve de los volcanes, las grabaciones y las cifras de lenguas.
 - **¿Qué es aportación propia?** El diseño didáctico, el modelo físico de propagación y de alerta, la integración de los datos en vivo, el marcador, los paisajes sonoros y la interfaz. Las librerías (Three.js, MindAR) son herramientas.
 
 ## Estructura
