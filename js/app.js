@@ -40,10 +40,45 @@ camara.position.set(0.0, 0.86, 0.66);
 const controles = new OrbitControls(camara, renderer.domElement);
 controles.target.set(0.0, 0, 0.04);
 controles.enableDamping = true;
-controles.minDistance = 0.25;
-controles.maxDistance = 1.8;
+controles.minDistance = 0.06;
+controles.maxDistance = 2.2;
 controles.maxPolarAngle = Math.PI * 0.47;
-controles.zoomSpeed = 0.8;
+controles.zoomSpeed = 0.8; // (pellizco en pantallas táctiles)
+
+// Zoom suave con la rueda del ratón, hacia el punto donde está el cursor.
+// La rueda manda "saltos"; los acumulamos y los aplicamos poco a poco en cada cuadro.
+let zoomPendiente = 0;
+const puntoZoom = new THREE.Vector3();
+let hayPuntoZoom = false;
+$('#vista').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  e.stopPropagation(); // que OrbitControls no haga su zoom a saltos
+  const d = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY;
+  zoomPendiente = Math.max(-900, Math.min(900, zoomPendiente + d));
+  const r = renderer.domElement.getBoundingClientRect();
+  const rc = new THREE.Raycaster();
+  rc.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camara);
+  hayPuntoZoom = !!rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), puntoZoom);
+}, { capture: true, passive: false });
+
+function aplicarZoom(dt) {
+  if (Math.abs(zoomPendiente) < 0.5) { zoomPendiente = 0; return; }
+  const paso = zoomPendiente * Math.min(1, dt * 9);
+  zoomPendiente -= paso;
+  const dist = camara.position.distanceTo(controles.target);
+  const nueva = Math.max(controles.minDistance, Math.min(controles.maxDistance, dist * Math.exp(paso * 0.0013)));
+  const fr = nueva / dist;
+  if (hayPuntoZoom && fr < 1) {
+    // acercarse hacia el cursor: el punto bajo el ratón se queda bajo el ratón
+    const mover = puntoZoom.clone().sub(controles.target).multiplyScalar(1 - fr);
+    controles.target.add(mover);
+    camara.position.add(mover);
+  }
+  controles.target.x = Math.max(-0.5, Math.min(0.5, controles.target.x));
+  controles.target.z = Math.max(-0.35, Math.min(0.35, controles.target.z));
+  const off = camara.position.clone().sub(controles.target).multiplyScalar(fr);
+  camara.position.copy(controles.target).add(off);
+}
 
 escena.add(new THREE.HemisphereLight(0xdfe8ff, 0x2a2016, 1.15));
 const sol = new THREE.DirectionalLight(0xffffff, 2.2);
@@ -971,6 +1006,7 @@ function frame(dt) {
 function bucle() {
   const dt = Math.min(0.05, reloj.getDelta());
   frame(dt);
+  aplicarZoom(dt);
   controles.update();
   renderer.render(escena, camara);
 }
@@ -1217,4 +1253,4 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Exponer para depuración
-window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles };
+window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom };

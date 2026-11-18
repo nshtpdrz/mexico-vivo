@@ -73,7 +73,7 @@ function emojiSprite(emoji, tam = 0.03) {
 // Volcán con perfil cóncavo (como los estratovolcanes reales), cráter en la
 // cima, surcos de erosión y colores por piso de altitud: bosque, roca y nieve.
 function geometriaVolcan(v, h) {
-  const R = 0.013 + h * 0.42;
+  const R = 0.006 + h * 0.5;
   const escudo = /escudo/i.test(v.tipo), escoria = /escoria/i.test(v.tipo);
   const perfil = [];
   const pasos = 14;
@@ -385,14 +385,14 @@ export class MapaMexico {
 
     this.volcanes = [];
     for (const v of VOLCANES) {
-      const h = 0.012 + (v.alt / 5636) * 0.05;
+      const h = 0.005 + (v.alt / 5636) * 0.022; // altura discreta: realista sin tapar el mapa
       const grupo = new THREE.Group();
       const cono = new THREE.Mesh(geometriaVolcan(v, h), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }));
       cono.rotation.x = Math.PI / 2;
       cono.castShadow = true;
       grupo.add(cono);
-      const lbl = crearEtiqueta(v.nombre.split(' (')[0], { tam: 0.012, color: '#ffe3cc', fondo: 'rgba(40,12,0,0.7)', negrita: false });
-      lbl.position.z = h + 0.006;
+      const lbl = crearEtiqueta(v.nombre.split(' (')[0], { tam: 0.0075, color: '#ffe3cc', fondo: 'rgba(40,12,0,0.7)', negrita: false });
+      lbl.position.z = h + 0.004;
       grupo.add(lbl);
       grupo.position.copy(V(v.lon, v.lat, 0));
       cono.userData = { tipo: 'volcan', data: v };
@@ -421,7 +421,7 @@ export class MapaMexico {
     const vida = new Float32Array(n);
     for (let i = 0; i < n; i++) vida[i] = Math.random();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({ color: 0xcfcfcf, size: 0.006, transparent: true, opacity: 0.55, depthWrite: false });
+    const mat = new THREE.PointsMaterial({ color: 0xcfcfcf, size: 0.004, transparent: true, opacity: 0.55, depthWrite: false });
     const pts = new THREE.Points(geo, mat);
     grupo.add(pts);
     const anim = (t, dt) => {
@@ -433,7 +433,7 @@ export class MapaMexico {
         const a = i * 2.399;
         pos[i * 3] = Math.cos(a) * v * 0.006 + v * 0.012;
         pos[i * 3 + 1] = Math.sin(a) * v * 0.006;
-        pos[i * 3 + 2] = h + v * 0.05;
+        pos[i * 3 + 2] = h + v * 0.028;
       }
       geo.attributes.position.needsUpdate = true;
     };
@@ -450,14 +450,14 @@ export class MapaMexico {
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
       const r = Math.random() * 0.25;
-      vel.push(new THREE.Vector3(Math.cos(a) * r * 0.12, Math.sin(a) * r * 0.12, 0.08 + Math.random() * 0.14));
+      vel.push(new THREE.Vector3(Math.cos(a) * r * 0.08, Math.sin(a) * r * 0.08, 0.05 + Math.random() * 0.08));
       pos[i * 3 + 2] = reg.h;
       const lava = Math.random() < 0.55;
       col.set(lava ? [1, 0.25 + Math.random() * 0.4, 0.05] : [0.35, 0.33, 0.32], i * 3);
     }
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.006, vertexColors: true, transparent: true, depthWrite: false }));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.0045, vertexColors: true, transparent: true, depthWrite: false }));
     reg.grupo.add(pts);
     const luz = new THREE.PointLight(0xff5a1a, 2, 0.12);
     luz.position.z = reg.h + 0.01;
