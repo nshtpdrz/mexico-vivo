@@ -11,6 +11,7 @@ import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
 import { crearRecorrido } from './recorrido.js';
 import { LENGUA_ESTADOS, RESUMEN_LENGUAS, TOP_LENGUAS, FAMILIAS, FUENTES_LENGUAS } from './lenguas.js';
+import { MARAVILLAS, TIPOS_MARAVILLA, FUENTES_MARAVILLAS } from './maravillas.js';
 import { FUENTES_SABORES, ORIGENES, LINEA_SABORES, PASOS_NIXTAMAL, EFECTOS_NIXTAMAL, OTROS_ALIMENTOS, PENDIENTES_SABORES } from './sabores.js';
 import { colorLenguas } from './mapa3d.js';
 import { desproyectar, distanciaKm, proyectar } from './geo.js';
@@ -106,6 +107,7 @@ mesa.add(mapa.root);
 // ---------------------------------------------------------------------
 const app = {
   capa: 'estados',
+  maravillasVistas: new Set(), // expedición de Maravillas (se reinicia en modo exhibición)
   modoAR: false,
   ar: null,
   clima: null,
@@ -230,6 +232,7 @@ const LEYENDAS = {
   historia: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
   lenguas: () => [0.2, 2, 8, 16, 31.2].map((p) => [colorLenguas(p), `${p} %`]),
   cultura: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#e2b8a0', 'Cada tradición indica su región o comunidad']]),
+  maravillas: () => Object.values(TIPOS_MARAVILLA).map((t) => [t.color, t.nombre]),
   sabores: () => [['#f2c23a', 'Maíz'], ['#e2873a', 'Calabaza'], ['#d23a2a', 'Chile'], ['#7a4a2a', 'Cacao'], ['#6a2335', 'Frijol (región genética)'], ['#c7ab84', 'Ubicación aproximada de la evidencia']],
 };
 
@@ -240,6 +243,7 @@ function cambiarCapa(capa) {
   mapa.setCapa(capa);
   mapa.capas.usgs.visible = capa === 'tectonica' && $('#chk-usgs').checked;
   $$('.capas button').forEach((b) => b.setAttribute('aria-selected', b.dataset.capa === capa));
+  $(`.capas button[data-capa="${capa}"]`)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // con 10 pestañas o letra grande, la activa siempre a la vista
   $$('.panel-capa').forEach((s) => (s.hidden = s.dataset.capa !== capa));
   cerrarFicha();
   audio.detenerAmbiente();
@@ -373,6 +377,17 @@ function fichaEstado(id) {
     });
     return;
   }
+  if (app.capa === 'maravillas') {
+    const cerca = MARAVILLAS.filter((m) => distanciaKm(m.lat, m.lon, e.lat, e.lon) < 350);
+    abrirFicha({
+      ...base, revision: false, color: '#2fae7a',
+      cuerpo: cerca.length
+        ? `<p>Maravillas cerca de aquí:</p><ul class="lista-sp lista-maravilla-ficha">${cerca.map((m) => `<li data-id="${m.id}"><b>${m.nombre}</b> · ${TIPOS_MARAVILLA[m.tipo].nombre}</li>`).join('')}</ul>`
+        : '<p>Todavía no hay una maravilla verificada cerca de este estado. México tiene muchas más áreas naturales protegidas; aquí solo mostramos las que tienen reconocimiento de la UNESCO o estudios científicos que pudimos consultar.</p>',
+    });
+    $$('.lista-maravilla-ficha li', ficha).forEach((li) => (li.onclick = () => fichaObjeto({ tipo: 'maravilla', data: MARAVILLAS.find((m) => m.id === li.dataset.id) })));
+    return;
+  }
   if (app.capa === 'sabores') {
     // sitios a menos de 250 km de la capital; los platillos viven en la capa Cultura
     const cerca = ORIGENES.filter((o) => distanciaKm(o.lat, o.lon, e.lat, e.lon) < 250);
@@ -489,6 +504,41 @@ function fichaObjeto(ud) {
       if (d.id === 'tula') guia.completar('tula');
       audio.clic(800);
       break;
+    case 'maravilla': {
+      // Expedición: primero el visitante adivina «¿por qué existe?», luego lee la respuesta
+      const t = TIPOS_MARAVILLA[d.tipo];
+      const yaVisitada = app.maravillasVistas.has(d.id);
+      abrirFicha({
+        titulo: d.nombre, sub: `${t.nombre}${d.anio ? ` · ${d.anio}` : ''}`, color: t.color, revision: false,
+        chips: [d.lugar, ...(d.peligro ? ['En la Lista del Patrimonio en Peligro'] : []), 'Ubicación aproximada'],
+        cuerpo: `<p class="m-pregunta"><b>Expedición:</b> ${d.pregunta.p}</p>
+          <div class="m-opciones">${d.pregunta.o.map((o, i) => `<button class="btn sec" data-o="${i}">${o}</button>`).join('')}</div>
+          <div class="m-respuesta" ${yaVisitada ? '' : 'hidden'}>
+            <p class="rasgo m-resultado"></p>
+            <p class="rasgo solo-exploradores">${d.nino}</p>
+            <p class="rasgo no-exploradores"><b>¿Por qué existe?</b> ${d.porque}</p>
+            <p class="dato">${d.dato}</p>
+            <p class="nota">Fuente (nivel ${d.fuente.nivel}): <a href="${d.fuente.url}" target="_blank" rel="noopener">${d.fuente.cita}</a> Consulta: 18 nov 2026.</p>
+          </div>`,
+        acciones: d.enlace ? [{ texto: d.enlace.texto, clase: 'sec', fn: () => cambiarCapa(d.enlace.capa) }] : [],
+      });
+      const resp = $('.m-respuesta', ficha);
+      $$('.m-opciones button', ficha).forEach((b) => (b.onclick = () => {
+        const bien = Number(b.dataset.o) === d.pregunta.r;
+        $$('.m-opciones button', ficha).forEach((x) => { x.disabled = true; x.classList.toggle('correcta', Number(x.dataset.o) === d.pregunta.r); });
+        if (!bien) b.classList.add('incorrecta');
+        $('.m-resultado', ficha).textContent = bien ? '¡Exacto!' : `Casi. La respuesta es: ${d.pregunta.o[d.pregunta.r]}.`;
+        resp.hidden = false;
+        audio.clic(bien ? 980 : 330);
+        app.maravillasVistas.add(d.id);
+        mapa.marcarMaravilla(d.id);
+        pintarExpedicion();
+        if (d.id === 'comarca') guia.completar('geoparque');
+        if (app.maravillasVistas.size >= 3) guia.completar('expedicion');
+      }));
+      audio.clic(760);
+      break;
+    }
     case 'origen': {
       const citas = d.fuentes.map((k) => FUENTES_SABORES[k]);
       abrirFicha({
@@ -1278,6 +1328,30 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
   pintarLab();
 }
 
+// ---------------------------------------------------------------------
+// Maravillas: lista por tipo, progreso de la expedición y fuentes
+// ---------------------------------------------------------------------
+function pintarExpedicion() {
+  const n = app.maravillasVistas.size, total = MARAVILLAS.length;
+  $('#expedicion-num').textContent = `${n} de ${total}`;
+  $('#expedicion-barra').style.width = `${(n / total) * 100}%`;
+  $$('#lista-maravillas li').forEach((li) => li.classList.toggle('vista', app.maravillasVistas.has(li.dataset.id)));
+}
+{
+  $('#lista-maravillas').innerHTML = Object.entries(TIPOS_MARAVILLA).map(([k, t]) => {
+    const items = MARAVILLAS.filter((m) => m.tipo === k);
+    return `<li class="m-grupo"><span><i style="background:${t.color}"></i>${t.nombre}</span><ul>${items.map((m) => `<li data-id="${m.id}"><b>${m.nombre}</b><small>${m.lugar}${m.anio ? ` · ${m.anio}` : ''}</small></li>`).join('')}</ul></li>`;
+  }).join('');
+  $$('#lista-maravillas li[data-id]').forEach((li) => (li.onclick = () => {
+    const m = MARAVILLAS.find((x) => x.id === li.dataset.id);
+    volarA(m.lon, m.lat, 0.5);
+    fichaObjeto({ tipo: 'maravilla', data: m });
+  }));
+  $('#fuentes-maravillas').innerHTML = FUENTES_MARAVILLAS.map((s) => `
+    <li><a href="${s.url}" target="_blank" rel="noopener">${s.cita}</a> Consulta: ${s.consulta}. Nivel ${s.nivel}.<br><small><i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
+  pintarExpedicion();
+}
+
 function slug(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1480,7 +1554,7 @@ $('#btn-empezar-ar').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.matches?.('input, select, textarea')) return;
-  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura', 8: 'lenguas', 9: 'sabores' };
+  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura', 8: 'lenguas', 9: 'sabores', 0: 'maravillas' };
   if (mapaTeclas[e.key]) cambiarCapa(mapaTeclas[e.key]);
   if (e.key === ' ' && app.capa === 'tectonica') { e.preventDefault(); $('#btn-sismo').click(); }
   if (e.key === 'Escape') cerrarFicha();
@@ -1577,6 +1651,7 @@ function volverAlInicio() {
   if (app.modoAR) salirAR();
   if (recorrido.activo()) recorrido.salir();
   guia.reiniciar();
+  app.maravillasVistas.clear(); for (const m of MARAVILLAS) mapa.maravillas.get(m.id).mat.emissiveIntensity = 0; pintarExpedicion();
   ponerNivel('aventureros');
   cambiarCapa('estados');
   encuadrado = false; redimensionar();

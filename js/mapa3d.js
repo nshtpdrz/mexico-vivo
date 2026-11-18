@@ -11,6 +11,7 @@ import {
 import { SITIOS } from './cultura.js';
 import { LENGUA_ESTADOS } from './lenguas.js';
 import { ORIGENES } from './sabores.js';
+import { MARAVILLAS, TIPOS_MARAVILLA } from './maravillas.js';
 
 // Escala para el % de hablantes de lengua indígena (de menos a más)
 export const ESCALA_LENGUAS = ['#f3e7c9', '#a9d8b8', '#3fa38a', '#2a6f86', '#1e3f73'];
@@ -162,6 +163,7 @@ export class MapaMexico {
     this._biodiversidad();
     this._cultura();
     this._sabores();
+    this._maravillas();
     this.capas.clima = new THREE.Group();
     this.capas.sismo = new THREE.Group();
     this.capas.usgs = new THREE.Group();
@@ -662,6 +664,69 @@ export class MapaMexico {
     }
   }
 
+  // Maravillas naturales: una base de piedra con un símbolo por tipo
+  // (árbol = natural, pirámide en selva = mixto, prisma de basalto = geoparque,
+  // anillo de agua = cenotes). Al visitarlas se marcan con un brillo.
+  _maravillas() {
+    const g = new THREE.Group();
+    this.capas.maravillas = g;
+    this.maravillas = new Map();
+    const base = new THREE.MeshStandardMaterial({ color: 0x8a8070, roughness: 0.9 });
+    for (const mv of MARAVILLAS) {
+      const color = new THREE.Color(TIPOS_MARAVILLA[mv.tipo].color);
+      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5, emissive: color, emissiveIntensity: 0 });
+      const m = new THREE.Group();
+      const disco = new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.0085, 0.002, 24), base);
+      disco.rotation.x = Math.PI / 2;
+      disco.position.z = 0.001;
+      m.add(disco);
+      const add = (geo, z, rot = true) => { const o = new THREE.Mesh(geo, mat); if (rot) o.rotation.x = Math.PI / 2; o.position.z = z; m.add(o); return o; };
+      let icono;
+      if (mv.tipo === 'natural') {
+        // árbol estilizado: tronco y copa en dos conos
+        const tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.0009, 0.0011, 0.004, 8), base);
+        tronco.rotation.x = Math.PI / 2; tronco.position.z = 0.004; m.add(tronco);
+        add(new THREE.ConeGeometry(0.0055, 0.008, 12), 0.009);
+        icono = add(new THREE.ConeGeometry(0.004, 0.006, 12), 0.0135);
+      } else if (mv.tipo === 'mixto') {
+        add(new THREE.CylinderGeometry(0.0035, 0.0055, 0.004, 4), 0.004).rotation.y = Math.PI / 4;
+        icono = add(new THREE.CylinderGeometry(0.002, 0.0034, 0.0035, 4), 0.0077);
+        icono.rotation.y = Math.PI / 4;
+      } else if (mv.tipo === 'geoparque') {
+        // haz de prismas hexagonales de distinta altura
+        [[0, 0, 0.012], [0.0034, 0.001, 0.009], [-0.003, 0.0016, 0.0075], [0.0006, -0.0034, 0.0065]].forEach(([x, y, h], k) => {
+          const p = add(new THREE.CylinderGeometry(0.0017, 0.0017, h, 6), h / 2 + 0.002);
+          p.position.x = x; p.position.y = y;
+          if (k === 0) icono = p;
+        });
+      } else {
+        icono = add(new THREE.TorusGeometry(0.0045, 0.0013, 10, 28), 0.004, false);
+        const agua = new THREE.Mesh(new THREE.CircleGeometry(0.0034, 24), new THREE.MeshStandardMaterial({ color: 0x1f7fb0, roughness: 0.2, metalness: 0.2 }));
+        agua.position.z = 0.0035; m.add(agua);
+      }
+      const zona = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.026), new THREE.MeshBasicMaterial({ visible: false }));
+      zona.position.z = 0.012;
+      zona.userData = { tipo: 'maravilla', data: mv };
+      m.add(zona);
+      this.pickables.push(zona);
+      const lbl = crearEtiqueta(mv.nombre.replace(/^(Reserva de la Biosfera de la |Islas y áreas protegidas del |Antigua ciudad maya y bosques tropicales protegidos de )/, ''), { prioridad: mv.id === 'comarca' ? 5 : 3, tam: 0.0135, color: '#f2fff8', fondo: 'rgba(16,52,40,0.82)', negrita: false });
+      lbl.position.z = 0.026;
+      m.add(lbl);
+      m.position.copy(V(mv.lon, mv.lat, 0.012));
+      m.scale.setScalar(1.35);
+      g.add(m);
+      this.maravillas.set(mv.id, { m, mat });
+      const fase = mv.lon, z0 = icono.position.z;
+      this.animables.push((t) => { if (g.visible) icono.position.z = z0 + Math.sin(t * 1.8 + fase) * 0.0005; });
+    }
+  }
+
+  // Marca una maravilla como visitada (brillo suave permanente)
+  marcarMaravilla(id) {
+    const r = this.maravillas?.get(id);
+    if (r) r.mat.emissiveIntensity = 0.45;
+  }
+
   // Resalta los sitios que existían en el año elegido (null = todos)
   setAnio(anio) {
     for (const r of this.sitios || []) r.objetivo = anio === null || (anio >= r.s.desde && anio <= r.s.hasta) ? 1 : 0;
@@ -680,6 +745,7 @@ export class MapaMexico {
       cultura: ['comun'],
       lenguas: ['comun'],
       sabores: ['comun', 'sabores'],
+      maravillas: ['comun', 'maravillas'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     this.setSubsuelo(this.subsueloActivo ?? true);
@@ -718,6 +784,10 @@ export class MapaMexico {
           h = d ? 0.004 + (d.pct2020 / 31.2) * 0.045 : 0.004;
           break;
         }
+        case 'maravillas':
+          color = '#a9b89a';
+          h = 0.007;
+          break;
         case 'sabores':
           // tono neutro: los sitios son puntos, no estados «de origen»
           color = '#c7ab84';

@@ -40,6 +40,7 @@
     import { ESTADOS, VOLCANES, ESPECIES, GEOSITIOS, SISMOS_HISTORICOS, BIOMAS } from './js/datos.js';
     import { SITIOS, EVENTOS, ERAS, CULTURA_ESTADOS, INMATERIAL } from './js/cultura.js';
     import { ORIGENES, EFECTOS_NIXTAMAL, FUENTES_SABORES } from './js/sabores.js';
+    import { MARAVILLAS } from './js/maravillas.js';
 
     const nombreEstado = Object.fromEntries(window.MX_GEO.features.map((f) => [f.properties.id, f.properties.name]));
     const filas = [];
@@ -67,6 +68,7 @@
     // Sabores ya tiene fuente: se listan para revisión cruzada del equipo
     for (const o of ORIGENES) add('Sabores', `${o.alimento} · ${o.nombre}`, o.texto, 'YA VERIFICADO: ' + o.fuentes.map((k) => FUENTES_SABORES[k].url).join(' ; '));
     for (const x of EFECTOS_NIXTAMAL) add('Sabores', `Nixtamalización · ${x.titulo}`, x.texto, 'YA VERIFICADO: ' + FUENTES_SABORES[x.fuente].url);
+    for (const m of MARAVILLAS) add('Maravillas', m.nombre, `${m.porque} ${m.dato}`, 'YA VERIFICADO: ' + m.fuente.url);
 
     const sel = document.getElementById('filtro');
     [...new Set(filas.map((f) => f.modulo))].forEach((m) => sel.add(new Option(m, m)));

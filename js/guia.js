@@ -17,6 +17,8 @@ export const MISIONES = [
   { id: 'tsunami', icono: '🌊', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
   { id: 'sabores', icono: '🌽', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
   { id: 'nixtamal', icono: '🫓', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
+  { id: 'expedicion', icono: '🧭', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, visita tres maravillas naturales y responde por qué existen.' },
+  { id: 'geoparque', icono: '⬢', titulo: 'Nuestro geoparque', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, aquí en Hidalgo.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
@@ -104,6 +106,7 @@ const PISTAS_CAPA = {
   historia: 'Mueve la línea del tiempo y mira cómo aparecen las ciudades de cada época.',
   cultura: '¡Toca un estado para conocer su comida, su artesanía y su música!',
   lenguas: 'En 2020, más de 7 millones de personas hablaban una lengua indígena. Toca un estado para ver qué porcentaje de su población la habla.',
+  maravillas: 'Cada símbolo es una maravilla natural reconocida por la UNESCO o estudiada por la ciencia. Tócalas y responde: ¿por qué existe este lugar?',
   sabores: 'Las vasijas marcan dónde se encontraron rastros antiguos de maíz, frijol, calabaza, chile y cacao. En el panel puedes hacer nixtamal paso a paso.',
 };
 const yaDicho = new Set();

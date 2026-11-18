@@ -188,3 +188,12 @@ Librerías: Three.js (MIT), MindAR (MIT).
 - **Qué NO hace, por diseño:** atribuir un origen exclusivo cuando hay disputa (chile) o evidencia fuera de México (cacao); dar tiempos, temperaturas o porcentajes de nixtamalización (varían según la receta); presentar el frijol como hallazgo arqueológico (es una región inferida por genética).
 - **Segunda verificación (18 nov 2026):** frijol (Kwak et al. 2009, Crop Science: centro de domesticación en la cuenca Lerma–Santiago; Bitocchi et al. 2012, PNAS: origen mesoamericano de la especie), jitomate (Razifard et al. 2020, Mol Biol Evol: domesticación en dos etapas, Sudamérica y Mesoamérica) y fecha de Paso de la Amada (Powis et al. 2007, Antiquity: 1900–1500 a. C.).
 - **Pendiente:** aguacate (Smith 1966, Economic Botany) y vainilla (Lubinsky et al. 2008, Economic Botany): referencias identificadas, pero no se pudo leer su resumen; aparecen en el panel como «en verificación», no como hechos.
+
+## P2: Maravillas naturales (capa 10, tecla 0)
+- **Fuentes verificadas** (consulta: 18 nov 2026) en `js/maravillas.js`:
+  - UNESCO, Centro del Patrimonio Mundial (nivel A): los 8 sitios naturales y mixtos de México. Naturales: Revillagigedo (2016), El Pinacate y Gran Desierto de Altar (2013), Golfo de California (2005, en la Lista en Peligro), El Vizcaíno (1993), Mariposa Monarca (2008), Sian Ka'an (1987). Mixtos: Calakmul (2002, 2014) y Tehuacán-Cuicatlán (2018).
+  - UNESCO, Geoparques Mundiales (nivel A): Comarca Minera, Hidalgo y Mixteca Alta, Oaxaca (ambos 2017).
+  - Anillo de Cenotes (nivel B): Hildebrand et al. 1995 (Nature) y Perry et al. 1995 (Geology). Se presenta como hipótesis («posible relación» con Chicxulub).
+- **Qué muestra:** 11 símbolos en el mapa (árbol = natural, pirámide = mixto, prismas = geoparque, anillo de agua = cenotes). Cada ficha es una mini expedición: primero el visitante adivina «¿por qué existe este lugar?» y luego lee la respuesta con su fuente. Hay barra de progreso, 2 misiones nuevas (17 en total) y enlaces a Volcanes, Biodiversidad, Historia, Lenguas y Sabores, sin duplicar contenido. El modo exhibición reinicia la expedición.
+- **Qué NO hace, por diseño:** listar áreas naturales protegidas sin fuente consultada (las de CONANP quedan pendientes) ni presentar al pueblo mixteco como cultura del pasado.
+- **Ajuste de interfaz:** con 10 pestañas, la barra superior reduce el espacio entre pestañas en pantallas medianas y siempre desplaza la pestaña activa a la vista.

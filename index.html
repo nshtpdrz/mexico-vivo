@@ -36,6 +36,7 @@
       <button role="tab" data-capa="cultura">Cultura</button>
       <button role="tab" data-capa="lenguas">Lenguas</button>
       <button role="tab" data-capa="sabores">Sabores</button>
+      <button role="tab" data-capa="maravillas">Maravillas</button>
     </nav>
     <div class="acciones">
       <button class="btn icono" id="btn-sonido" aria-pressed="true" title="Sonido"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="on" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg></button>
@@ -329,6 +330,29 @@
       <h3>Fuentes consultadas</h3>
       <ul class="fuentes" id="fuentes-sabores"></ul>
     </section>
+    <section class="panel-capa" data-capa="maravillas" hidden>
+      <p class="sub">Capa 10 · Maravillas naturales</p>
+      <h2>¿Por qué existe este lugar?</h2>
+      <p class="solo-exploradores nino">México tiene islas que son volcanes, bosques llenos de mariposas y pozos de agua que podrían venir de un asteroide. ¡Toca cada símbolo del mapa y adivina por qué existe!</p>
+      <p class="solo-descubridores avanzado">Cada maravilla une un proceso de la Tierra (vulcanismo, tectónica, corrientes oceánicas, un impacto) con la vida que hoy la habita. Los textos resumen las fichas oficiales de la UNESCO; los cenotes se apoyan en dos artículos científicos y se presentan como hipótesis.</p>
+      <p>Aquí están los 8 sitios naturales y mixtos de México en la Lista del Patrimonio Mundial de la UNESCO, sus 2 Geoparques Mundiales y el Anillo de Cenotes de Yucatán. En cada uno, primero adivina por qué existe y luego descubre la respuesta.</p>
+
+      <h3>Tu expedición</h3>
+      <div class="expedicion">
+        <div class="exp-pista"><i id="expedicion-barra"></i></div>
+        <span><b id="expedicion-num">0 de 11</b> maravillas descubiertas</span>
+      </div>
+
+      <h3>Las maravillas</h3>
+      <ul class="lista-maravillas" id="lista-maravillas"></ul>
+
+      <div class="politica">
+        <b>Cómo cuidamos este módulo</b>
+        <p>Solo incluimos lugares con reconocimiento oficial de la UNESCO o con estudios científicos que pudimos consultar. México tiene muchas más áreas naturales protegidas; agregarlas requiere verificar sus fuentes (CONANP). Los geositios siguen en la capa Volcanes y las especies en Biodiversidad: desde aquí puedes ir a ellos.</p>
+      </div>
+      <h3>Fuentes consultadas</h3>
+      <ul class="fuentes" id="fuentes-maravillas"></ul>
+    </section>
 
   </aside>
 
@@ -365,7 +389,7 @@
         <button class="btn grande" id="btn-empezar">Explorar libremente</button>
         <button class="btn grande" id="btn-empezar-ar">Realidad aumentada</button>
       </div>
-      <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a> · Teclas 1–9 para cambiar de capa</p>
+      <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a> · Teclas 1–9 y 0 para cambiar de capa</p>
     </div>
   </div>
 

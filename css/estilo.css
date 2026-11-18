@@ -493,7 +493,8 @@ body:not(.modo-ar) .axo { bottom: auto; top: 92px; }
   .btn.icono { width: 38px; height: 38px; }
 }
 @media (max-width: 1150px) and (min-width: 901px) {
-  .capas button { padding: 8px 6px; font-size: 12px; }
+  .capas { gap: 2px; }
+  .capas button { padding: 8px 5px; font-size: 12px; }
   .btn.pasaporte .cuenta { display: none; }
 }
 @media (max-width: 900px) {
@@ -641,3 +642,23 @@ body.sencillo #efectos-nixtamal { grid-template-columns: 1fr; }
 body.sencillo .efecto small, body.sencillo .linea-sabores small { display: none; }
 @media (max-width: 420px) { #efectos-nixtamal { grid-template-columns: 1fr; } }
 body.sencillo .no-exploradores { display: none; }
+
+/* ---------- Maravillas naturales ---------- */
+.expedicion { display: grid; gap: 6px; font-size: 13px; }
+.exp-pista { height: 10px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+.exp-pista i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #2fae7a, #ffc21a); transition: width .5s; }
+.lista-maravillas, .lista-maravillas ul { list-style: none; margin: 0; padding: 0; }
+.m-grupo { margin: 0 0 10px; }
+.m-grupo > span { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--texto-2); margin-bottom: 4px; }
+.m-grupo > span i { width: 10px; height: 10px; border-radius: 3px; }
+.lista-maravillas li[data-id] { display: grid; gap: 1px; padding: 7px 10px; margin: 0 0 4px; border-radius: 9px; background: var(--vidrio-2); border: 1px solid var(--linea); cursor: pointer; font-size: 13px; }
+.lista-maravillas li[data-id]:hover { border-color: #2fae7a; }
+.lista-maravillas li[data-id] small { color: var(--texto-2); font-size: 11.5px; }
+.lista-maravillas li.vista b::after { content: ' ✓'; color: #3ddc97; }
+.m-pregunta { font-size: 14.5px; }
+.m-opciones { display: grid; gap: 6px; margin: 6px 0 10px; }
+.m-opciones .btn { text-align: left; justify-content: flex-start; }
+.m-opciones .btn.correcta { border-color: #3ddc97; background: rgba(61,220,151,.16); }
+.m-opciones .btn.incorrecta { border-color: #ff6b6b; background: rgba(255,107,107,.14); }
+.m-opciones .btn:disabled { opacity: 1; cursor: default; }
+.m-resultado { font-weight: 700; color: var(--oro); }
