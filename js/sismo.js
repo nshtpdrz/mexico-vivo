@@ -149,7 +149,7 @@ export class SimuladorSismo {
       this._evento(tAlerta - T_PROCESO_ALERTA, `📡 Sensor «${sensorDetecta.nombre}» detecta la onda P`, 'sensor');
       this._evento(tAlerta, `🚨 ALERTA SÍSMICA emitida por radio (t = ${tAlerta.toFixed(1)} s)`, 'alerta', () => {
         this.cb.onAlerta?.(true);
-        if (this.alertaActiva && esc && esc.aviso > 0) audio.alerta(8);
+        if (this.alertaActiva && esc && esc.aviso > 0) audio.alertaSismica();
       });
     } else {
       this._evento(0.1, this.cfg.mag < 5.5 ? 'ℹ️ Magnitud menor a 5.5: el sistema no emite alerta pública.' : 'ℹ️ Ningún sensor está cerca del epicentro: no hay alerta temprana.', 'info');

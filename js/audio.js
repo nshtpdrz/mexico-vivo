@@ -234,6 +234,15 @@ export function alerta(repeticiones = 6) {
   }
 }
 
+// Alerta del simulador: si el equipo agregó una grabación autorizada
+// (clave "alerta-sismica" en sonidos.json) se usa esa; si no, el tono genérico.
+export async function alertaSismica() {
+  if (!ctx) return;
+  await cargarManifiesto();
+  if (tieneGrabacion('alerta-sismica') && (await reproducirGrabacion('alerta-sismica'))) return;
+  alerta(8);
+}
+
 // Erupción: explosión + retumbo + lluvia de piroclastos
 export function erupcion(pan = 0) {
   if (!ctx) return;

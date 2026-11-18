@@ -501,3 +501,12 @@ body:not(.modo-ar) .axo { bottom: auto; top: 92px; }
   .btn.pasaporte { width: 38px; padding: 0; }
   .btn.pasaporte .cuenta { display: none; }
 }
+@media (max-width: 900px) {
+  /* pestañas con su ancho natural y desplazables, sin encimarse */
+  .capas { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 2px; padding-bottom: 2px; }
+  .capas button { flex: none; padding: 8px 11px; font-size: 13px; }
+  .vista { top: 104px; }
+  /* Axo arriba a la izquierda, lejos de la leyenda */
+  body:not(.modo-ar) .axo, body.panel-plegado:not(.modo-ar) .axo { top: 112px; bottom: auto; left: 8px; }
+  .axo-cara { width: 44px; height: 44px; }
+}

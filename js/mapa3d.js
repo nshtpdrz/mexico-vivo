@@ -77,33 +77,48 @@ function emojiSprite(emoji, tam = 0.03) {
 function geometriaVolcan(v, h) {
   const R = 0.006 + h * 0.5;
   const escudo = /escudo/i.test(v.tipo), escoria = /escoria/i.test(v.tipo);
-  const perfil = [];
-  const pasos = 14;
-  for (let k = 0; k <= pasos; k++) {
-    const t = k / pasos; // 0 base → 1 cima
-    const forma = escudo ? Math.pow(1 - t, 0.6) : escoria ? 1 - t * 0.78 : Math.pow(1 - t, 1.35);
-    perfil.push(new THREE.Vector2(Math.max(R * 0.13, R * forma + R * 0.13 * (1 - t)), t * h));
+  // "Ruido" periódico determinista: cada volcán tiene su propia forma irregular
+  let semillaN = 0;
+  for (const ch of v.nombre) semillaN = (semillaN * 31 + ch.charCodeAt(0)) % 9973;
+  const rnd = (k) => { const x = Math.sin(semillaN * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+  const ondas = Array.from({ length: 6 }, (_, k) => ({ f: [2, 3, 5, 7, 11, 13][k], a: [0.04, 0.03, 0.022, 0.016, 0.012, 0.01][k], fase: rnd(k) * 6.28, giro: (rnd(k + 9) - 0.5) * 3 }));
+  const ruido = (ang, t) => ondas.reduce((s, o) => s + o.a * Math.sin(o.f * ang + o.fase + o.giro * t), 0);
+
+  // perfil: faldón que se funde con el suelo, laderas cóncavas, borde y fondo del cráter
+  const perfil = [new THREE.Vector2(R * 1.18, 0), new THREE.Vector2(R * 1.06, h * 0.02)];
+  const pasos = 22;
+  for (let k = 1; k <= pasos; k++) {
+    const t = 0.03 + (k / pasos) * 0.9;
+    const forma = escudo ? Math.pow(1 - t, 0.55) : escoria ? 1 - t * 0.8 : Math.pow(1 - t, 1.4);
+    perfil.push(new THREE.Vector2(Math.max(R * 0.12, R * forma + R * 0.12 * (1 - t)), t * h));
   }
-  // borde y fondo del cráter
-  perfil.push(new THREE.Vector2(R * 0.1, h * 0.96), new THREE.Vector2(0.0001, h * 0.9));
-  const geo = new THREE.LatheGeometry(perfil, 40);
+  perfil.push(new THREE.Vector2(R * 0.115, h * 0.955), new THREE.Vector2(R * 0.075, h * 0.94), new THREE.Vector2(0.0001, h * 0.88));
+  const geo = new THREE.LatheGeometry(perfil, 72);
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
-  const cBos = new THREE.Color('#3f6b35'), cRoca = new THREE.Color('#6b5446'), cOsc = new THREE.Color('#3b2b24'), cNieve = new THREE.Color('#f4f7ff');
+  const cBos = new THREE.Color('#3d6a34'), cBos2 = new THREE.Color('#5a7a3a'), cPasto = new THREE.Color('#8a8455');
+  const cRoca = new THREE.Color('#6e5a4c'), cOsc = new THREE.Color('#33261f'), cNieve = new THREE.Color('#f3f6fb');
   const c = new THREE.Color();
+  const mezcla = (a, b, x) => c.copy(a).lerp(b, Math.max(0, Math.min(1, x)));
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
     const t = y / h;
     const ang = Math.atan2(z, x);
-    // surcos (barrancas) radiales
-    const surco = 1 - 0.07 * Math.max(0, Math.sin(ang * 9)) * t * (1 - t) * 4;
-    pos.setX(i, x * surco); pos.setZ(i, z * surco);
-    const altM = (v.alt * 0.35) + t * v.alt * 0.65; // altitud aprox. de ese punto
-    if (altM > 4800 && t < 0.95) c.copy(cNieve);
-    else if (altM > 3900) c.copy(cRoca).lerp(cOsc, 0.3);
-    else if (altM > 3000) c.copy(cBos).lerp(cRoca, (altM - 3000) / 900);
-    else c.copy(cBos);
-    if (t >= 0.95) c.copy(cOsc);
+    const n = ruido(ang, t);
+    // barrancas radiales que se hacen más profundas a media ladera
+    const barranca = 0.09 * Math.pow(Math.max(0, Math.sin(ang * 11 + n * 6)), 6) * Math.sin(Math.PI * Math.min(1, t * 1.1));
+    const f = Math.max(0.6, 1 + n * (1 - t * 0.7) - barranca);
+    pos.setX(i, x * f); pos.setZ(i, z * f);
+    pos.setY(i, y * (1 + n * 0.25 * t * (1 - t)));
+    // color por piso de altitud, con límites irregulares (no líneas rectas)
+    const altM = v.alt * (0.3 + 0.7 * t) + n * 450;
+    if (t > 0.935) mezcla(cOsc, cRoca, 0.25);
+    else if (altM > 4750) mezcla(cRoca, cNieve, (altM - 4750) / 150);
+    else if (altM > 3950) mezcla(cPasto, cRoca, (altM - 3950) / 400);
+    else if (altM > 3300) mezcla(cBos2, cPasto, (altM - 3300) / 650);
+    else mezcla(cBos, cBos2, (altM - 2200) / 1100);
+    // las barrancas se ven más oscuras
+    c.multiplyScalar(1 - barranca * 2.2);
     col.set([c.r, c.g, c.b], i * 3);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -391,6 +406,8 @@ export class MapaMexico {
       const grupo = new THREE.Group();
       const cono = new THREE.Mesh(geometriaVolcan(v, h), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }));
       cono.rotation.x = Math.PI / 2;
+      // el Iztaccíhuatl es una sierra alargada de norte a sur ("la mujer dormida")
+      if (v.nombre === 'Iztaccíhuatl') cono.scale.set(0.8, 0.85, 2.1);
       cono.castShadow = true;
       grupo.add(cono);
       const lbl = crearEtiqueta(v.nombre.split(' (')[0], { prioridad: 2 + v.alt / 2000, tam: 0.0075, color: '#ffe3cc', fondo: 'rgba(40,12,0,0.7)', negrita: false });
