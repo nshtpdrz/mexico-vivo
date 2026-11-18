@@ -71,7 +71,7 @@ export function montarGuia() {
   return el;
 }
 
-export function decir(texto, { acciones = [], ms = 9000, voz = true } = {}) {
+export function decir(texto, { acciones = [], ms = 9000 } = {}) {
   if (!el) return;
   const g = el.querySelector('.axo-globo');
   g.hidden = false;
@@ -86,7 +86,6 @@ export function decir(texto, { acciones = [], ms = 9000, voz = true } = {}) {
     ac.appendChild(b);
   });
   el.classList.remove('salta'); void el.offsetWidth; el.classList.add('salta');
-  if (voz) hablar(texto);
   clearTimeout(timer);
   timer = setTimeout(() => { g.hidden = true; }, ms);
 }

@@ -223,12 +223,9 @@ function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], 
     <h2>${titulo}</h2>
     ${chips.length ? `<div class="chips">${chips.map((c) => `<span class="chip">${c}</span>`).join('')}</div>` : ''}
     <div class="cuerpo">${cuerpo}</div>
-    <div class="acciones-ficha">${acciones.map((a, i) => `<button class="btn ${a.clase || ''}" data-i="${i}">${a.texto}</button>`).join('')}<button class="btn sec leer" title="Leer en voz alta">🔈 Leer</button></div>`;
+    <div class="acciones-ficha">${acciones.map((a, i) => `<button class="btn ${a.clase || ''}" data-i="${i}">${a.texto}</button>`).join('')}</div>`;
   $('.cerrar', ficha).onclick = cerrarFicha;
   $$('.acciones-ficha button[data-i]', ficha).forEach((b) => (b.onclick = () => acciones[b.dataset.i].fn()));
-  const leer = () => guia.hablar(`${titulo.replace(/<[^>]+>/g, '')}. ${$('.cuerpo', ficha).innerText}`, true);
-  $('.leer', ficha).onclick = leer;
-  if (guia.vozEncendida()) leer();
   ficha.classList.remove('entra');
   void ficha.offsetWidth;
   ficha.classList.add('entra');
@@ -1116,15 +1113,8 @@ function iniciarSimulacro(ciudad) {
 }
 
 // ---------------------------------------------------------------------
-// Encabezado: voz, pasaporte, créditos
+// Encabezado: pasaporte y créditos
 // ---------------------------------------------------------------------
-$('#btn-voz').hidden = !guia.vozDisponible();
-$('#btn-voz').addEventListener('click', (e) => {
-  const on = !guia.vozEncendida();
-  guia.setVoz(on);
-  e.currentTarget.setAttribute('aria-pressed', String(on));
-  if (on) guia.hablar('Voz activada. Leeré cada ficha en voz alta.');
-});
 $('#btn-pasaporte').addEventListener('click', () => guia.abrirPasaporte());
 guia.montarGuia();
 guia.onProgreso((n, total) => { $('#btn-pasaporte span:last-child').textContent = `${n}/${total}`; });
