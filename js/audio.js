@@ -54,6 +54,14 @@ export async function cargarManifiesto() {
   if (manifiesto) return manifiesto;
   try {
     manifiesto = await (await fetch('assets/sonidos/sonidos.json')).json();
+    // solo cuentan los archivos que de verdad están en la carpeta
+    await Promise.all(Object.entries(manifiesto).map(async ([k, v]) => {
+      if (k.startsWith('_') || !v?.archivo) return;
+      try {
+        const r = await fetch(`assets/sonidos/${v.archivo}`, { method: 'HEAD' });
+        if (!r.ok) v.archivo = null;
+      } catch (_) { v.archivo = null; }
+    }));
   } catch (_) { manifiesto = {}; }
   return manifiesto;
 }

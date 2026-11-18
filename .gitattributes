@@ -1,0 +1,6 @@
+* text=auto
+*.mseed binary
+*.mind binary
+*.mp3 binary
+*.ogg binary
+*.wav binary

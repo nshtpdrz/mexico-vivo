@@ -1131,7 +1131,7 @@ guia.onProgreso((n, total) => { $('#btn-pasaporte span:last-child').textContent 
 audio.cargarManifiesto().then(() => {
   const cr = audio.creditos();
   $('#creditos-sonido').innerHTML = cr.length
-    ? cr.map((c) => `<li><b>${c.clave}</b>: ${c.autor || '¿autor?'}, ${c.licencia || '¿licencia?'}${c.fuente ? ` · <a href="${c.fuente}" target="_blank" rel="noopener">fuente</a>` : ''}</li>`).join('')
+    ? cr.map((c) => `<li><b>${c.titulo || c.clave}</b>: ${c.autor || '¿autor?'}, ${c.licencia || '¿licencia?'}${c.fuente ? ` · <a href="${c.fuente}" target="_blank" rel="noopener">fuente</a>` : ''}</li>`).join('')
     : '<li>Todos los sonidos actuales están sintetizados por la aplicación (Web Audio API).</li>';
 });
 
