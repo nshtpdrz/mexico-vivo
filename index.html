@@ -35,6 +35,7 @@
       <button role="tab" data-capa="historia">Historia</button>
       <button role="tab" data-capa="cultura">Cultura</button>
       <button role="tab" data-capa="lenguas">Lenguas</button>
+      <button role="tab" data-capa="sabores">Sabores</button>
     </nav>
     <div class="acciones">
       <button class="btn icono" id="btn-sonido" aria-pressed="true" title="Sonido"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="on" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg></button>
@@ -282,6 +283,45 @@
       <h3>Fuentes consultadas</h3>
       <ul class="fuentes" id="fuentes-lenguas"></ul>
     </section>
+    <section class="panel-capa" data-capa="sabores" hidden>
+      <p class="sub">Capa 9 · Sabores de México</p>
+      <h2>Del teocintle a la tortilla</h2>
+      <p class="solo-exploradores nino">El maíz, la calabaza y el chile se cultivan en esta tierra desde hace miles de años. ¡Toca las vasijas del mapa para descubrir dónde se encontraron sus rastros más antiguos!</p>
+      <p class="solo-descubridores avanzado">La arqueobotánica combina restos visibles (semillas, mazorcas), microfósiles (almidones, fitolitos), residuos químicos en cerámica y ADN antiguo. Cada línea de evidencia tiene límites: el uso de una planta no prueba que ya estuviera domesticada.</p>
+      <p>Las vasijas del mapa marcan sitios donde se encontró evidencia antigua de alimentos. Muestran <b>dónde hay pruebas</b>, no «el único lugar de origen»: varias plantas se domesticaron en regiones amplias, y algunas, como el cacao, tienen su evidencia más antigua fuera de México.</p>
+
+      <h3>Descubre: la línea del tiempo</h3>
+      <ol class="linea-sabores" id="linea-sabores"></ol>
+
+      <h3>Experimenta: laboratorio de nixtamalización</h3>
+      <p class="solo-exploradores nino">Nixtamalizar es cocer el maíz con agua y cal. ¡Así se hace la masa de las tortillas!</p>
+      <div class="lab-nixtamal" id="lab-nixtamal">
+        <div class="lab-olla" aria-hidden="true"><div class="lab-agua"></div><div class="lab-granos"></div><div class="lab-vapor"></div></div>
+        <div class="lab-pasos" id="lab-pasos" role="list"></div>
+        <p class="lab-texto" id="lab-texto" aria-live="polite"></p>
+        <div class="lab-botones">
+          <button class="btn sec" id="lab-atras">Anterior</button>
+          <button class="btn primario" id="lab-sig">Siguiente paso</button>
+        </div>
+        <label class="lab-cal"><input type="checkbox" id="lab-sin-cal"> <span>Comparar: ¿y si cocemos el maíz <b>sin cal</b>?</span></label>
+        <p class="lab-compara" id="lab-compara" hidden></p>
+      </div>
+      <p class="nota">Los pasos son generales: tiempos, cantidades y temperaturas cambian según la comunidad y la receta, por eso no los indicamos.</p>
+
+      <h3>Comprende: ¿por qué funciona?</h3>
+      <div id="efectos-nixtamal"></div>
+
+      <h3>Una cocina viva</h3>
+      <p>En 2010, la UNESCO inscribió la cocina tradicional mexicana (con el paradigma de Michoacán) en su Lista del Patrimonio Cultural Inmaterial. Destaca el maíz, el frijol y el chile como base, técnicas como la milpa, la chinampa y la nixtamalización, y el papel de las cocineras tradicionales que guardan ese conocimiento.</p>
+      <button class="btn" id="btn-ir-platillos">Ver platillos regionales (capa Cultura)</button>
+
+      <div class="politica">
+        <b>Cómo cuidamos este módulo</b>
+        <p>Solo usamos datos de artículos científicos y organismos oficiales, con su fecha de consulta. No decimos que un alimento «es de» un solo estado o pueblo cuando la evidencia apunta a varias regiones. Las ubicaciones en el mapa son aproximadas.</p>
+      </div>
+      <h3>Fuentes consultadas</h3>
+      <ul class="fuentes" id="fuentes-sabores"></ul>
+    </section>
 
   </aside>
 
@@ -318,7 +358,7 @@
         <button class="btn grande" id="btn-empezar">Explorar libremente</button>
         <button class="btn grande" id="btn-empezar-ar">Realidad aumentada</button>
       </div>
-      <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a> · Teclas 1–5 para cambiar de capa</p>
+      <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a> · Teclas 1–9 para cambiar de capa</p>
     </div>
   </div>
 

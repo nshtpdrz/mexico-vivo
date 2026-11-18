@@ -602,3 +602,41 @@ details.familia p { margin: 8px 0 0; font-size: 12.5px; color: #d6deef; }
 .fuentes small { color: var(--texto-2); }
 .politica { background: rgba(47,143,107,0.1); border-left: 3px solid #2f8f6b; padding: 10px 12px; border-radius: 8px; margin: 14px 0; font-size: 13px; }
 .politica p { margin: 4px 0 0; }
+
+/* ---------- Sabores de México ---------- */
+.linea-sabores { list-style: none; margin: 8px 0 14px; padding: 0 0 0 14px; border-left: 2px solid #c7ab84; }
+.linea-sabores li { position: relative; margin: 0 0 10px; font-size: 13px; display: grid; gap: 1px; }
+.linea-sabores li::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #c7ab84; }
+.linea-sabores li b { color: var(--oro); font-size: 12px; }
+.linea-sabores li small { color: var(--texto-2); font-size: 11px; }
+.lab-nixtamal { background: var(--vidrio-2); border: 1px solid var(--linea); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.lab-olla { position: relative; height: 92px; width: 130px; margin: 0 auto; border-radius: 10px 10px 48px 48px; background: linear-gradient(#8c4a2b, #5e2f1a); overflow: hidden; box-shadow: inset 0 -6px 12px rgba(0,0,0,.35); }
+.lab-agua { position: absolute; inset: auto 8px 8px; height: 0; border-radius: 0 0 40px 40px; background: #7fb6d6; transition: height .6s, background .6s; }
+.lab-granos { position: absolute; left: 22px; right: 22px; bottom: 12px; height: 30px; border-radius: 50%;
+  background: radial-gradient(circle at 20% 60%, #f2c23a 6px, transparent 7px), radial-gradient(circle at 45% 40%, #f2c23a 6px, transparent 7px),
+    radial-gradient(circle at 70% 65%, #f2c23a 6px, transparent 7px), radial-gradient(circle at 85% 35%, #f2c23a 6px, transparent 7px), radial-gradient(circle at 32% 25%, #f2c23a 6px, transparent 7px);
+  transition: filter .6s, opacity .6s, border-radius .6s; }
+.lab-vapor { position: absolute; top: -4px; left: 0; right: 0; height: 30px; opacity: 0; background: radial-gradient(ellipse at 30% 100%, rgba(255,255,255,.5), transparent 60%), radial-gradient(ellipse at 70% 100%, rgba(255,255,255,.4), transparent 60%); transition: opacity .6s; }
+.lab-nixtamal[data-paso="cal"] .lab-agua, .lab-nixtamal[data-paso="reposo"] .lab-agua { height: 52px; background: #d9e4e8; }
+.lab-nixtamal[data-paso="coccion"] .lab-agua { height: 56px; background: #e8e2c8; }
+.lab-nixtamal[data-paso="coccion"] .lab-vapor { opacity: 1; animation: vapor 1.6s ease-in-out infinite; }
+.lab-nixtamal[data-paso="reposo"] .lab-granos, .lab-nixtamal[data-paso="lavado"] .lab-granos { filter: saturate(.7) brightness(1.15); }
+.lab-nixtamal[data-paso="lavado"] .lab-agua { height: 30px; background: #9cc9e0; }
+.lab-nixtamal[data-paso="molienda"] .lab-granos { background: #f1dfa6; border-radius: 40% 40% 50% 50%; height: 34px; }
+.lab-nixtamal.sin-cal[data-paso="cal"] .lab-agua, .lab-nixtamal.sin-cal[data-paso="coccion"] .lab-agua, .lab-nixtamal.sin-cal[data-paso="reposo"] .lab-agua { background: #7fb6d6; }
+@keyframes vapor { 50% { transform: translateY(-6px); opacity: .6; } }
+.lab-pasos { display: flex; flex-wrap: wrap; gap: 4px; font-size: 11.5px; }
+.lab-pasos span { padding: 3px 7px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--texto-2); }
+.lab-pasos span.hecho { color: var(--texto); background: rgba(199,171,132,.25); }
+.lab-pasos span.actual { color: #1b1206; background: var(--oro); font-weight: 600; }
+.lab-texto { margin: 0; font-size: 14px; min-height: 3em; }
+.lab-botones { display: flex; gap: 8px; justify-content: flex-end; }
+.lab-cal { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.lab-compara { margin: 0; font-size: 13px; background: rgba(255,154,26,.12); border-left: 3px solid var(--oro-2); padding: 8px 10px; border-radius: 6px; }
+#efectos-nixtamal { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.efecto { background: var(--vidrio-2); border: 1px solid var(--linea); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; }
+.efecto p { margin: 4px 0; }
+.efecto small { color: var(--texto-2); font-size: 11px; }
+body.sencillo #efectos-nixtamal { grid-template-columns: 1fr; }
+body.sencillo .efecto small, body.sencillo .linea-sabores small { display: none; }
+@media (max-width: 420px) { #efectos-nixtamal { grid-template-columns: 1fr; } }

@@ -11,6 +11,7 @@ import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
 import { crearRecorrido } from './recorrido.js';
 import { LENGUA_ESTADOS, RESUMEN_LENGUAS, TOP_LENGUAS, FAMILIAS, FUENTES_LENGUAS } from './lenguas.js';
+import { FUENTES_SABORES, ORIGENES, LINEA_SABORES, PASOS_NIXTAMAL, EFECTOS_NIXTAMAL } from './sabores.js';
 import { colorLenguas } from './mapa3d.js';
 import { desproyectar, distanciaKm, proyectar } from './geo.js';
 import * as audio from './audio.js';
@@ -229,6 +230,7 @@ const LEYENDAS = {
   historia: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
   lenguas: () => [0.2, 2, 8, 16, 31.2].map((p) => [colorLenguas(p), `${p} %`]),
   cultura: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#e2b8a0', 'Cada tradición indica su región o comunidad']]),
+  sabores: () => [['#f2c23a', 'Maíz'], ['#e2873a', 'Calabaza'], ['#d23a2a', 'Chile'], ['#7a4a2a', 'Cacao'], ['#c7ab84', 'Ubicación aproximada de la evidencia']],
 };
 
 function cambiarCapa(capa) {
@@ -371,6 +373,21 @@ function fichaEstado(id) {
     });
     return;
   }
+  if (app.capa === 'sabores') {
+    // sitios a menos de 250 km de la capital; los platillos viven en la capa Cultura
+    const cerca = ORIGENES.filter((o) => distanciaKm(o.lat, o.lon, e.lat, e.lon) < 250);
+    const k = CULTURA_ESTADOS[id] || {};
+    abrirFicha({
+      ...base, revision: false, color: '#c7ab84',
+      cuerpo: `${cerca.length
+        ? `<p>Cerca de aquí hay evidencia arqueológica de alimentos antiguos:</p><ul class="lista-sp lista-origen-ficha">${cerca.map((o) => `<li data-id="${o.id}"><b>${o.alimento}</b> · ${o.nombre}</li>`).join('')}</ul>`
+        : '<p>En esta capa todavía no hay sitios con evidencia verificada cerca de este estado. Eso no significa que aquí no haya historia alimentaria: solo que aún no la documentamos con fuentes.</p>'}
+        ${k.platillo ? '<p class="nota">Los platillos de la región están en la capa Cultura.</p>' : ''}`,
+      acciones: k.platillo ? [{ texto: 'Ver su platillo en Cultura', fn: () => { cambiarCapa('cultura'); fichaEstado(id); } }] : [],
+    });
+    $$('.lista-origen-ficha li', ficha).forEach((li) => (li.onclick = () => fichaObjeto({ tipo: 'origen', data: ORIGENES.find((o) => o.id === li.dataset.id) })));
+    return;
+  }
   if (app.capa === 'cultura') {
     const k = CULTURA_ESTADOS[id] || {};
     if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
@@ -472,6 +489,20 @@ function fichaObjeto(ud) {
       if (d.id === 'tula') guia.completar('tula');
       audio.clic(800);
       break;
+    case 'origen': {
+      const citas = d.fuentes.map((k) => FUENTES_SABORES[k]);
+      abrirFicha({
+        titulo: d.nombre, sub: `${d.alimento} · ${d.lugar}`, color: d.color, revision: false,
+        chips: [d.alimento, d.hace ? `Hace unos ${fmt(d.hace)} años` : 'Fecha pendiente de verificar', 'Ubicación aproximada'],
+        cuerpo: `<p class="solo-exploradores">${d.nino}</p>
+          <p class="no-exploradores">${d.texto}</p>
+          <p class="solo-descubridores">${d.avanzado}</p>
+          <p class="nota">Fuente${citas.length > 1 ? 's' : ''}: ${citas.map((c) => `<a href="${c.url}" target="_blank" rel="noopener">${c.cita.match(/^[\p{L}'-]+/u)[0]}${/^[^.]*,/.test(c.cita) ? ' et al.' : ''} ${(c.cita.match(/(19|20)\d\d/) || [''])[0]}</a> (nivel ${c.nivel})`).join('; ')}. Consulta: ${citas[0].consulta}.</p>`,
+      });
+      guia.completar('sabores');
+      audio.clic(720);
+      break;
+    }
     case 'geositio':
       abrirFicha({ titulo: d.nombre, sub: 'Sitio geológico', cuerpo: `<p>${d.dato}</p>`, color: '#7fa3ff' });
       break;
@@ -1206,6 +1237,44 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
       <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
 }
 
+// ---------------------------------------------------------------------
+// Sabores: línea del tiempo, laboratorio de nixtamalización y fuentes
+// ---------------------------------------------------------------------
+{
+  const autor = (k) => FUENTES_SABORES[k].cita.match(/^[\p{L}'-]+/u)[0];
+  const anio = (k) => (FUENTES_SABORES[k].cita.match(/(19|20)\d\d/) || [''])[0];
+  $('#linea-sabores').innerHTML = LINEA_SABORES.map((l) => `
+    <li><b>${l.hace > 100 ? `Hace ~${fmt(l.hace)} años` : 'Hoy'}</b><span>${l.texto}</span><small>${autor(l.fuente)} ${anio(l.fuente)}</small></li>`).join('');
+  $('#efectos-nixtamal').innerHTML = EFECTOS_NIXTAMAL.map((x) => `
+    <div class="efecto"><b>${x.titulo}</b><p>${x.texto}</p><small>Fuente: ${autor(x.fuente)} ${anio(x.fuente)} (nivel ${FUENTES_SABORES[x.fuente].nivel})</small></div>`).join('');
+  $('#fuentes-sabores').innerHTML = Object.values(FUENTES_SABORES).map((s) => `
+    <li><a href="${s.url}" target="_blank" rel="noopener">${s.cita}</a> Consulta: ${s.consulta}. Nivel ${s.nivel}.
+      <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
+  $('#btn-ir-platillos').onclick = () => cambiarCapa('cultura');
+
+  // Laboratorio: el visitante avanza paso a paso y la olla cambia de estado
+  const lab = $('#lab-nixtamal');
+  let paso = 0;
+  const pintarLab = () => {
+    const p = PASOS_NIXTAMAL[paso];
+    lab.dataset.paso = p.id;
+    $('#lab-pasos').innerHTML = PASOS_NIXTAMAL.map((q, i) => `<span role="listitem" class="${i < paso ? 'hecho' : i === paso ? 'actual' : ''}">${i + 1}. ${q.titulo}</span>`).join('');
+    $('#lab-texto').innerHTML = `<b>${p.titulo}.</b> ${p.texto}`;
+    $('#lab-atras').disabled = paso === 0;
+    $('#lab-sig').textContent = paso === PASOS_NIXTAMAL.length - 1 ? 'Empezar de nuevo' : 'Siguiente paso';
+    if (paso === PASOS_NIXTAMAL.length - 1) guia.completar('nixtamal');
+  };
+  $('#lab-sig').onclick = () => { paso = (paso + 1) % PASOS_NIXTAMAL.length; pintarLab(); audio.clic(600 + paso * 60); };
+  $('#lab-atras').onclick = () => { if (paso > 0) { paso--; pintarLab(); audio.clic(520); } };
+  $('#lab-sin-cal').onchange = (e) => {
+    lab.classList.toggle('sin-cal', e.target.checked);
+    const c = $('#lab-compara');
+    c.hidden = !e.target.checked;
+    c.innerHTML = 'Sin cal no hay nixtamalización: el agua no se vuelve alcalina, el grano no gana el calcio de la cal y no se obtienen los beneficios que describe «Comprende». Esta comparación es cualitativa: no simula cantidades reales.';
+  };
+  pintarLab();
+}
+
 function slug(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1408,7 +1477,7 @@ $('#btn-empezar-ar').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.matches?.('input, select, textarea')) return;
-  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura', 8: 'lenguas' };
+  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura', 8: 'lenguas', 9: 'sabores' };
   if (mapaTeclas[e.key]) cambiarCapa(mapaTeclas[e.key]);
   if (e.key === ' ' && app.capa === 'tectonica') { e.preventDefault(); $('#btn-sismo').click(); }
   if (e.key === 'Escape') cerrarFicha();

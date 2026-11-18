@@ -10,6 +10,7 @@ import {
 } from './datos.js';
 import { SITIOS } from './cultura.js';
 import { LENGUA_ESTADOS } from './lenguas.js';
+import { ORIGENES } from './sabores.js';
 
 // Escala para el % de hablantes de lengua indígena (de menos a más)
 export const ESCALA_LENGUAS = ['#f3e7c9', '#a9d8b8', '#3fa38a', '#2a6f86', '#1e3f73'];
@@ -160,6 +161,7 @@ export class MapaMexico {
     this._volcanes();
     this._biodiversidad();
     this._cultura();
+    this._sabores();
     this.capas.clima = new THREE.Group();
     this.capas.sismo = new THREE.Group();
     this.capas.usgs = new THREE.Group();
@@ -620,6 +622,46 @@ export class MapaMexico {
     });
   }
 
+  // Sitios con evidencia arqueológica de alimentos: una vasija de barro con
+  // el color del alimento encima (mazorca, calabaza, chile o cacao estilizados).
+  _sabores() {
+    const g = new THREE.Group();
+    this.capas.sabores = g;
+    const barro = new THREE.MeshStandardMaterial({ color: 0xa8603a, roughness: 0.85 });
+    const bordeMat = new THREE.MeshStandardMaterial({ color: 0x7d4227, roughness: 0.9 });
+    for (const o of ORIGENES) {
+      const m = new THREE.Group();
+      // vasija: perfil torneado
+      const perfil = [[0.0001, 0], [0.004, 0.0004], [0.0062, 0.003], [0.0064, 0.0055], [0.0048, 0.0085], [0.0042, 0.0098], [0.0052, 0.0108]]
+        .map(([r, z]) => new THREE.Vector2(r, z));
+      const vasija = new THREE.Mesh(new THREE.LatheGeometry(perfil, 28), barro);
+      vasija.rotation.x = Math.PI / 2;
+      const aro = new THREE.Mesh(new THREE.TorusGeometry(0.0047, 0.0007, 8, 24), bordeMat);
+      aro.position.z = 0.0105;
+      // el alimento: forma alargada (maíz, chile, cacao) o redonda (calabaza)
+      const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.55 });
+      const fruto = new THREE.Mesh(new THREE.SphereGeometry(0.0034, 16, 12), mat);
+      const forma = { Maíz: [0.75, 0.75, 2.2], Calabaza: [1.25, 1.25, 1], Chile: [0.6, 0.6, 2.4], Cacao: [0.95, 0.95, 1.7] }[o.alimento] || [1, 1, 1];
+      fruto.scale.set(...forma);
+      fruto.position.z = 0.012 + 0.0034 * forma[2] * 0.7;
+      if (o.alimento === 'Chile') fruto.rotation.y = 0.5;
+      m.add(vasija, aro, fruto);
+      const zona = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.03), new THREE.MeshBasicMaterial({ visible: false }));
+      zona.position.z = 0.014;
+      zona.userData = { tipo: 'origen', data: o };
+      m.add(zona);
+      this.pickables.push(zona);
+      const lbl = crearEtiqueta(`${o.alimento}\n${o.nombre}`, { prioridad: 3, tam: 0.016, color: '#fff6e6', fondo: 'rgba(90,40,15,0.82)', negrita: false });
+      lbl.position.z = 0.032;
+      m.add(lbl);
+      m.position.copy(V(o.lon, o.lat, 0.012));
+      m.scale.setScalar(1.4);
+      g.add(m);
+      const fase = o.lat;
+      this.animables.push((t) => { if (g.visible) fruto.rotation.z = Math.sin(t * 1.5 + fase) * 0.25; });
+    }
+  }
+
   // Resalta los sitios que existían en el año elegido (null = todos)
   setAnio(anio) {
     for (const r of this.sitios || []) r.objetivo = anio === null || (anio >= r.s.desde && anio <= r.s.hasta) ? 1 : 0;
@@ -637,6 +679,7 @@ export class MapaMexico {
       historia: ['comun', 'cultura'], // el grupo «cultura» contiene los sitios históricos
       cultura: ['comun'],
       lenguas: ['comun'],
+      sabores: ['comun', 'sabores'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     this.setSubsuelo(this.subsueloActivo ?? true);
@@ -675,6 +718,11 @@ export class MapaMexico {
           h = d ? 0.004 + (d.pct2020 / 31.2) * 0.045 : 0.004;
           break;
         }
+        case 'sabores':
+          // tono neutro: los sitios son puntos, no estados «de origen»
+          color = '#c7ab84';
+          h = 0.008;
+          break;
         case 'cultura':
           // tonos por región: recuerda que cada tradición es de una región, no de un estado
           color = new THREE.Color(REGIONES[info.region].color).lerp(new THREE.Color('#e2b8a0'), 0.35).getStyle();

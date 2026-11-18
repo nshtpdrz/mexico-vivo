@@ -176,3 +176,14 @@ Librerías: Three.js (MIT), MindAR (MIT).
   - **INEGI, Censo 2020, resultados de cada entidad (32 PDF):** porcentaje de hablantes 2010 y 2020 por entidad. Coinciden con la gráfica nacional. El número de personas solo se muestra en 17 entidades; en las demás el PDF no permitía leerlo sin ambigüedad.
 - **Qué muestra:** mapa por porcentaje de hablantes; ficha de cada entidad con su lugar, el cambio desde 2010 y la fuente; definiciones de familia, agrupación y variante; gráfica de las 10 lenguas con más hablantes; las 11 familias con sus agrupaciones; la lista de fuentes.
 - **Qué NO hace, por diseño:** traducir, inventar pronunciaciones, usar voces sintetizadas, mezclar variantes o asignar una lengua a un solo estado. No muestra qué lenguas se hablan en cada entidad, porque ese dato aún no se ha verificado.
+
+## P2: Sabores de México (capa 9, tecla 9)
+- **Datos verificados** (consulta: 18 nov 2026) en `js/sabores.js`, cada uno con DOI, nivel y limitaciones. Se consultaron los resúmenes (Europe PMC / Crossref), no siempre el artículo completo:
+  - Maíz: Piperno et al. 2009, PNAS (Xihuatoxtla, valle del Balsas central, 8,700 años) y Matsuoka et al. 2002, PNAS (una sola domesticación en el sur de México, ~9,000 años).
+  - Calabaza: Smith 1997, Science (Guilá Naquitz, Oaxaca, 10,000–8,000 años).
+  - Chile: Kraft et al. 2014, PNAS (dos regiones candidatas: noreste y centro-este; restos precerámicos en Tehuacán).
+  - Cacao: Powis et al. 2011, PNAS (uso en San Lorenzo, 1800–1000 a. C.; menciona Paso de la Amada y El Manatí) y Zarrillo et al. 2018, Nature Ecology & Evolution (uso y domesticación más antiguos en la Amazonia alta de Ecuador, ~5,300 años).
+  - Nixtamalización: UNESCO 2010 (cocina tradicional mexicana, nivel A); Schaarschmidt y Fauhl-Hassek 2019 (micotoxinas); Glesener et al. 2026 (calcio); DeBoer et al. 2026 (niacina).
+- **Qué muestra:** vasijas en 5 sitios con evidencia (ubicación aproximada), ficha de cada sitio en tres niveles, línea del tiempo, laboratorio de nixtamalización en 6 pasos con comparación «sin cal», efectos con su fuente, enlace a los platillos de la capa Cultura (no se duplican) y 2 misiones nuevas (15 en total).
+- **Qué NO hace, por diseño:** atribuir un origen exclusivo cuando hay disputa (chile) o evidencia fuera de México (cacao); dar tiempos, temperaturas o porcentajes de nixtamalización (varían según la receta); mostrar la fecha de Paso de la Amada (no se pudo consultar el artículo original).
+- **Pendiente:** frijol (no se verificó una fuente primaria en esta sesión), aguacate, vainilla y jitomate.

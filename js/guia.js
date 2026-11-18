@@ -15,6 +15,8 @@ export const MISIONES = [
   { id: 'tula', icono: '🗿', titulo: 'Conoce a los Atlantes', pista: 'En Historia, toca Tula: la capital tolteca está en Hidalgo.' },
   { id: 'tenochtitlan', icono: '🦅', titulo: 'Viaja a 1325', pista: 'En Historia, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
   { id: 'tsunami', icono: '🌊', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
+  { id: 'sabores', icono: '🌽', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
+  { id: 'nixtamal', icono: '🫓', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
@@ -102,6 +104,7 @@ const PISTAS_CAPA = {
   historia: 'Mueve la línea del tiempo y mira cómo aparecen las ciudades de cada época.',
   cultura: '¡Toca un estado para conocer su comida, su artesanía y su música!',
   lenguas: 'En 2020, más de 7 millones de personas hablaban una lengua indígena. Toca un estado para ver qué porcentaje de su población la habla.',
+  sabores: 'Las vasijas marcan dónde se encontraron rastros antiguos de maíz, calabaza, chile y cacao. En el panel puedes hacer nixtamal paso a paso.',
 };
 const yaDicho = new Set();
 export function alEntrarCapa(capa) {
