@@ -243,6 +243,26 @@ export async function alertaSismica() {
   alerta(8);
 }
 
+// Llegada de un tsunami: oleaje que crece y revienta
+export function ola(intensidad = 0.6, pan = 0) {
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const src = fuenteRuido(ruidoMarron);
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(200, t);
+  lp.frequency.linearRampToValueAtTime(1400, t + 1.6);
+  lp.frequency.exponentialRampToValueAtTime(250, t + 4);
+  const g = ctx.createGain();
+  const a = Math.min(1, 0.2 + intensidad);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(a, t + 1.5);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 4.5);
+  src.connect(lp).connect(g).connect(paneo(pan)).connect(master);
+  src.start(t);
+  src.stop(t + 4.6);
+}
+
 // Erupción: explosión + retumbo + lluvia de piroclastos
 export function erupcion(pan = 0) {
   if (!ctx) return;

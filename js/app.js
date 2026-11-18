@@ -8,6 +8,7 @@ import { SimuladorSismo, dibujarCorte, ROMANOS, DESC_MMI, energia } from './sism
 import { obtenerClima, obtenerSismosUSGS, regresion } from './apis.js';
 import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js';
 import { abrirVolcan } from './volcan3d.js';
+import { Tsunami } from './tsunami.js';
 import { desproyectar, distanciaKm } from './geo.js';
 import * as audio from './audio.js';
 import * as ev from './evaluacion.js';
@@ -133,6 +134,7 @@ const sim = new SimuladorSismo(mapa, {
   },
 
   onInicio() {
+    if ($('#chk-tsunami').checked) tsunami.iniciar(sim.cfg); else { tsunami.detener(); $('#tsunami-res').innerHTML = ''; }
     app.prediccion = +$('#rng-pred').value;
     $('#poe-res').hidden = true;
     log.innerHTML = '';
@@ -163,6 +165,30 @@ const sim = new SimuladorSismo(mapa, {
   },
   onResultados(res, cfg) {
     pintarResultados(res, cfg);
+  },
+});
+
+// ---------------------------------------------------------------------
+// Tsunami (sismos en el mar)
+// ---------------------------------------------------------------------
+const minutos = (h) => (h < 1 ? `${fmt(h * 60)} min` : `${Math.floor(h)} h ${fmt((h % 1) * 60)} min`);
+const tsunami = new Tsunami(mapa, {
+  onResultado(res) {
+    const el = $('#tsunami-res');
+    if (!res.genera) { el.innerHTML = `<b>Sin tsunami.</b> ${res.razon}`; return; }
+    el.innerHTML = `<b>¡Tsunami en el ${res.oceano === 'golfo' ? 'Golfo de México y el Caribe' : 'Pacífico'}!</b> Llegada estimada y altura aproximada de la ola:
+      <table class="tabla-tsunami"><thead><tr><th>Puerto</th><th>km</th><th>Llega en</th><th>Ola</th></tr></thead><tbody>
+      ${res.ciudades.slice(0, 7).map((c) => `<tr><td>${c.nombre}</td><td>${fmt(c.d)}</td><td>${minutos(c.horas)}</td><td><span class="ola ${c.altura >= 3 ? 'alta' : c.altura >= 1 ? 'media' : ''}">~${fmt(c.altura, 1)} m</span></td></tr>`).join('')}
+      </tbody></table>
+      <span class="nota">Si estás en la playa y sientes un sismo fuerte, no esperes la alerta: aléjate del mar y sube a una zona alta.</span>`;
+  },
+  onLlegada(c) {
+    const li = document.createElement('li');
+    li.className = 'ev-tsunami';
+    li.innerHTML = `<span class="t">${minutos(c.horas)}</span>Tsunami llega a ${c.nombre}: ola de ~${fmt(c.altura, 1)} m`;
+    log.prepend(li);
+    audio.ola(Math.min(1, c.altura / 4), (c.lon + 102.5) / 15);
+    guia.completar('tsunami');
   },
 });
 
@@ -211,7 +237,7 @@ function cambiarCapa(capa) {
   cerrarFicha();
   audio.detenerAmbiente();
   audio.detenerGrabacion();
-  if (capa !== 'tectonica') { sim.detener(); }
+  if (capa !== 'tectonica') { sim.detener(); tsunami.detener(); }
   if (capa === 'tectonica') { sim._calcular(); }
   if (capa === 'clima' && !app.clima) cargarClima();
   if (capa === 'cultura') ponerAnio(app.anio ?? null);
@@ -468,7 +494,11 @@ function lanzarRayo(ev, cam, el) {
   const pl = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
   const p = new THREE.Vector3();
   const enPapel = r.intersectPlane(pl, p) ? p : null;
-  return { hit: hits[0]?.object || null, enPapel };
+  // Las franjas grandes y translúcidas (Eje Neovolcánico, placa) no deben tapar lo que
+  // está encima o dentro de ellas: un volcán, un sensor o un estado tienen prioridad.
+  const fondo = new Set(['eje', 'placa']);
+  const hit = (hits.find((h) => !fondo.has(h.object.userData?.tipo)) || hits[0])?.object || null;
+  return { hit, enPapel };
 }
 
 function alClic(ev, cam, el) {
@@ -538,7 +568,7 @@ selEsc.addEventListener('change', () => ponerEscucha(selEsc.value));
 $('#rng-pred').addEventListener('input', (e) => { $('#val-pred').textContent = `${e.target.value} s`; });
 $('#btn-sismo').addEventListener('click', () => {
   audio.iniciarAudio();
-  if (sim.corriendo) { sim.detener(); sim.cb.onFin(); return; }
+  if (sim.corriendo) { tsunami.detener(); sim.detener(); sim.cb.onFin(); return; }
   sim.iniciar();
 });
 $('#historicos').innerHTML = SISMOS_HISTORICOS.map((s, i) => `<button class="btn mini" data-i="${i}" title="${s.nota}">${s.nombre}<small>M${s.mag}</small></button>`).join('');
@@ -998,6 +1028,7 @@ let acumEtiq = 1;
 function frame(dt) {
   mapa.update(dt);
   sim.update(dt);
+  tsunami.update(dt, sim.velocidad * 0.02); // horas de tsunami por segundo
   acumEtiq += dt;
   if (acumEtiq > 0.12) {
     acumEtiq = 0;
@@ -1241,6 +1272,27 @@ audio.cargarManifiesto().then(() => {
 });
 
 // ---------------------------------------------------------------------
+// Barra superior: si las pestañas no caben en una fila, pasan a una segunda.
+// Se mide de verdad, así funciona con cualquier ancho y con la escala de Windows.
+// ---------------------------------------------------------------------
+function acomodarBarra() {
+  const barra = $('.barra');
+  const estilo = getComputedStyle(barra);
+  const natural = (el) => [...el.children].reduce((s, h) => s + h.offsetWidth, 0) + 12; // sin estiramiento
+  const necesario = natural($('.marca')) + natural($('.acciones'))
+    + $$('.capas button').reduce((s, b) => s + b.offsetWidth + 4, 0)
+    + parseFloat(estilo.paddingLeft) + parseFloat(estilo.paddingRight) + 32;
+  document.body.classList.toggle('barra-doble', necesario > barra.clientWidth);
+}
+// se vuelve a medir si cambia la ventana, el zoom (Ctrl +) o el tamaño de letra
+const obsBarra = new ResizeObserver(() => setTimeout(acomodarBarra, 0));
+['body', '.barra', '.marca', '.capas', '.acciones'].forEach((s) => obsBarra.observe($(s)));
+addEventListener('resize', acomodarBarra);
+setInterval(acomodarBarra, 1500); // respaldo por si el navegador no avisa del cambio de letra
+document.fonts?.ready.then(acomodarBarra);
+acomodarBarra();
+
+// ---------------------------------------------------------------------
 // Inicio
 // ---------------------------------------------------------------------
 document.body.dataset.capa = '';
@@ -1264,4 +1316,4 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Exponer para depuración
-window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom };
+window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom, tsunami };

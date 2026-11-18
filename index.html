@@ -100,6 +100,7 @@
         <label class="switch"><input type="checkbox" id="chk-alerta" checked><span></span>Alerta sísmica</label>
       </div>
       <label class="switch"><input type="checkbox" id="chk-simulacro" checked><span></span>Simulacro al sonar la alerta (agáchate, cúbrete, sujétate)</label>
+      <label class="switch"><input type="checkbox" id="chk-tsunami" checked><span></span>Simular tsunami si el sismo es en el mar</label>
       <p class="nota">Epicentro: <b id="epi-texto">—</b></p>
       <div class="fila">
         <button class="btn primario grande" id="btn-sismo">▶ Simular sismo</button>
@@ -112,6 +113,7 @@
       <h3>Corte de la zona de subducción</h3>
       <canvas id="corte" class="corte"></canvas>
       <div class="resumen" id="sismo-resumen"></div>
+      <p class="resultado" id="tsunami-res"></p>
       <div class="tabla-wrap">
         <table id="sismo-tabla">
           <thead><tr><th>Ciudad</th><th>km</th><th>P (s)</th><th>S (s)</th><th>Aviso</th><th>Int.</th></tr></thead>
@@ -150,6 +152,7 @@
         <p>La <b>onda P</b> (primaria) comprime y estira la roca, como un resorte, a ~6.5 km/s. La <b>onda S</b> (secundaria) la mueve de lado a lado a ~3.6 km/s y causa la mayor parte del daño.</p>
         <p>Como la P llega primero, la diferencia de tiempo <b>S − P</b> sirve para saber a qué distancia ocurrió el sismo: <i>d = Δt / (1/v<sub>S</sub> − 1/v<sub>P</sub>)</i>.</p>
         <p>La <b>magnitud</b> mide la energía: cada punto más libera unas <b>32 veces</b> más energía (log₁₀E = 1.5M + 4.8). La <b>intensidad</b> (escala de Mercalli, I–XII) mide qué tan fuerte se siente en cada lugar, y baja con la distancia.</p>
+        <p><b>Tsunami:</b> si un sismo grande y somero levanta el fondo del mar, toda la columna de agua se mueve. La ola viaja a <i>v = √(g·h)</i>: en mar abierto (4 km de profundidad) va a unos 710 km/h, como un avión. Cerca de la costa se frena y crece. El 22 de junio de 1932 un tsunami arrasó Cuyutlán, Colima. Las alturas que muestra la app son estimaciones didácticas.</p>
       </details>
       <details>
         <summary>Límites del modelo (léelo antes de confiar en los números)</summary>

@@ -510,3 +510,19 @@ body:not(.modo-ar) .axo { bottom: auto; top: 92px; }
   body:not(.modo-ar) .axo, body.panel-plegado:not(.modo-ar) .axo { top: 112px; bottom: auto; left: 8px; }
   .axo-cara { width: 44px; height: 44px; }
 }
+
+/* ---------- barra en dos filas cuando no cabe (lo decide app.js midiendo) ---------- */
+.capas button { flex-shrink: 0; } /* nunca se aplastan: si no caben, la barra pasa a dos filas */
+body.barra-doble .barra { flex-wrap: wrap; height: auto; row-gap: 6px; }
+body.barra-doble .marca { flex: 1 1 auto; }
+body.barra-doble .capas { order: 3; flex: 1 1 100%; width: 100%; justify-content: flex-start; overflow-x: auto; }
+body.barra-doble .capas button { flex: none; }
+body.barra-doble:not(.modo-ar) .axo { top: 130px; }
+
+/* ---------- tsunami ---------- */
+.tabla-tsunami { margin: 8px 0; }
+.tabla-tsunami td, .tabla-tsunami th { padding: 4px; }
+.ola { padding: 1px 6px; border-radius: 5px; background: rgba(127,227,255,0.18); color: #bff2ff; font-weight: 600; }
+.ola.media { background: rgba(255,176,46,0.22); color: #ffd28a; }
+.ola.alta { background: rgba(255,77,77,0.25); color: #ffb3b3; }
+.log .ev-tsunami { background: rgba(79,195,255,0.16); }

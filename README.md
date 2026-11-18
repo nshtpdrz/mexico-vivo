@@ -148,3 +148,6 @@ Librerías: Three.js (MIT), MindAR (MIT).
 - **Capa 6 · Cultura e historia:** línea del tiempo de 1500 a.C. a hoy. Los sitios de cada época se encienden en el mapa (26 lugares: zonas arqueológicas, ciudades virreinales e historia moderna, con énfasis en Hidalgo: Tula, Real del Monte, Acueducto del Padre Tembleque y Pachuca). Cada estado muestra su platillo, artesanía y tradición, y algunos suenan con su música (marimba, son jarocho, son huasteco).
 - **12 misiones** en el pasaporte, incluidas «Conoce a los Atlantes» y «Viaja a 1325».
 - **Más sonidos (opcionales):** `sonidos.json` trae 9 grabaciones nuevas con su enlace de descarga y licencia. La app usa las que encuentre en `assets/sonidos/`.
+
+- **Tsunami:** si el epicentro está en el mar, con M7 o más y a menos de 70 km de profundidad, un anillo de ola avanza por el océano y la app estima la llegada y la altura de la ola en 20 puertos del Pacífico y del Golfo. Usa v = √(g·h): unos 713 km/h en mar profundo y unos 113 km/h en la plataforma costera. Las alturas son estimaciones didácticas.
+- **Barra superior adaptable:** si las pestañas no caben (pantalla chica, zoom o letra grande), pasan solas a una segunda fila.

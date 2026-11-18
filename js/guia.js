@@ -14,6 +14,7 @@ export const MISIONES = [
   { id: 'relieve', icono: '🏔️', titulo: 'Explora un volcán real', pista: 'En Volcanes, toca el Popocatépetl o el Pico de Orizaba y abre «Explorar su relieve real».' },
   { id: 'tula', icono: '🗿', titulo: 'Conoce a los Atlantes', pista: 'En Cultura, toca Tula: la capital tolteca está en Hidalgo.' },
   { id: 'tenochtitlan', icono: '🦅', titulo: 'Viaja a 1325', pista: 'En Cultura, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
+  { id: 'tsunami', icono: '🌊', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
