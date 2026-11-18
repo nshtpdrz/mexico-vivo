@@ -217,3 +217,10 @@ Medimos el panel y era demasiado: Sabores tenía unas 1,300 palabras en una sola
 - **Mide distancias:** dos toques en el mapa dan los kilómetros y el tiempo que tardarían la onda P, la onda S y un tsunami en mar abierto (velocidades del modelo de la app).
 - **Barra de capas:** un desvanecido avisa cuando hay más pestañas fuera de la vista.
 - Resultado medido para Exploradores en Sabores: Descubre ~90 palabras, Experimenta ~60, Comprende ~160 (antes, 1,323 en una sola columna).
+
+## Rendimiento y responsividad (18 nov 2026)
+- **Rendimiento medido (laptop):** menos de 4 ms por cuadro en las 10 capas; como máximo unas 300 llamadas de dibujo (Historia) y 70,000 triángulos (Volcanes).
+- **Calidad automática:** si el equipo no sostiene unos 40 cuadros por segundo, la app baja sola la resolución y las sombras, y después apaga las sombras. `?ligero` en la URL fuerza la calidad baja desde el inicio.
+- **Responsividad revisada** en 375×812, 768×1024, 1024×768, 1366×768 y 1920×1080, en los tres niveles, con las 10 capas y todas sus pestañas, más el pasaporte, el reto, las fichas y el recorrido: sin desbordes horizontales ni textos cortados. Se corrigió: pestañas de capa de 31 a 38 px de alto, botones de cierre a 40 px y la pestaña para plegar el panel, que se encimaba con la leyenda en tablet vertical y celular.
+- `herramientas/auditoria-ui.js` repite la revisión: se carga en la consola y `auditarUI()` lista desbordes, botones pequeños, elementos encimados y textos cortados.
+- **Día del concurso:** ver `CHECKLIST-CONCURSO.md`.

@@ -710,3 +710,17 @@ body.sencillo .tc-opciones .btn { font-size: 16px; padding: 12px 10px; }
 /* Exploradores: listas solo con el nombre (el detalle está en la ficha) */
 body.sencillo .lista li small, body.sencillo .lista-maravillas li small, body.sencillo .linea-sabores li small { display: none; }
 .pestanas .pt[hidden] { display: none; }
+
+/* ---------- Revisión de responsividad (18 nov): tamaños táctiles y encimados ---------- */
+/* Pestañas de capa y botones de cierre: al menos 38–40 px para el dedo */
+.capas button { min-height: 38px; }
+dialog .cerrar, #reto-x, .ficha .cerrar { min-width: 40px; min-height: 40px; }
+.btn-panel { width: 30px; }
+@media (pointer: coarse) and (min-width: 901px) { .btn-panel { width: 36px; } }
+@media (max-width: 900px) {
+  /* la pestaña para plegar el panel y la leyenda ya no se enciman */
+  .btn-panel { width: 76px; height: 36px; }
+  .leyenda { bottom: calc(42vh + 40px); }
+  body.panel-plegado .leyenda { bottom: 42px; }
+  body.modo-ar .leyenda { bottom: calc(34vh + 40px); }
+}

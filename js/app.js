@@ -1278,8 +1278,41 @@ function aplicarVuelo() {
   camara.position.lerpVectors(vuelo.desdeP, vuelo.haciaP, s);
   if (k >= 1) vuelo = null;
 }
+// Calidad automática: si el equipo no sostiene ~40 cuadros por segundo, baja
+// primero la resolución y las sombras, y después apaga las sombras. Nunca sube
+// de nuevo (evita parpadeos). «?ligero» en la URL fuerza la calidad baja.
+const calidad = { nivel: 0, muestras: [], ultimo: 0 };
+function bajarCalidad() {
+  calidad.nivel++;
+  if (calidad.nivel === 1) {
+    renderer.setPixelRatio(Math.min(1.25, window.devicePixelRatio));
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+    sol.shadow.mapSize.set(1024, 1024);
+    sol.shadow.map?.dispose(); sol.shadow.map = null;
+  } else if (calidad.nivel === 2) {
+    renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = false;
+    escena.traverse((o) => { if (o.material) o.material.needsUpdate = true; });
+  }
+  redimensionar();
+  console.info('Calidad ajustada al nivel', calidad.nivel);
+}
+if (new URLSearchParams(location.search).has('ligero')) setTimeout(() => { bajarCalidad(); bajarCalidad(); }, 0);
+function vigilarCalidad(dtReal) {
+  if (calidad.nivel >= 2 || document.hidden || app.modoAR) { calidad.muestras = []; return; }
+  if (dtReal > 0.25) return; // pausa (pestaña oculta, alerta del sistema): no cuenta
+  calidad.muestras.push(dtReal);
+  if (calidad.muestras.length < 120) return;
+  const orden = calidad.muestras.slice().sort((a, b) => a - b);
+  const mediana = orden[orden.length >> 1];
+  calidad.muestras = [];
+  if (mediana > 1 / 40) bajarCalidad();
+}
+
 function bucle() {
-  const dt = Math.min(0.05, reloj.getDelta());
+  const dtReal = reloj.getDelta();
+  vigilarCalidad(dtReal);
+  const dt = Math.min(0.05, dtReal);
   frame(dt);
   aplicarZoom(dt);
   aplicarVuelo();
