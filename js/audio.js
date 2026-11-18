@@ -454,6 +454,19 @@ export function ambienteClima(vientoKmh, llueve, pan = 0) {
   const nodos = [];
   const nivel = Math.min(0.5, 0.04 + vientoKmh / 80);
   viento(salida, nodos, nivel, 250 + vientoKmh * 12);
+  ambiente = { nodos, timers: [], salida, tipo: 'clima' };
+  if (llueve && tieneGrabacion('clima-lluvia')) {
+    decodificar('clima-lluvia').then((audio) => {
+      if (!ambiente || ambiente.salida !== salida) return;
+      const s = ctx.createBufferSource();
+      s.buffer = audio;
+      s.loop = true;
+      s.connect(salida);
+      s.start();
+      nodos.push(s);
+    }).catch(() => {});
+    return;
+  }
   if (llueve) {
     const src = fuenteRuido(ruidoBlanco);
     const hp = ctx.createBiquadFilter();

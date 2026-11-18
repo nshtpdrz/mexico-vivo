@@ -8,6 +8,7 @@ import {
   ESTADOS, REGIONES, ZONAS_SISMICAS, BIOMAS, LIMITES_PLACAS, PLACAS, VOLCANES,
   EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, MUSEO,
 } from './datos.js';
+import { SITIOS } from './cultura.js';
 import { dibujarMarcador } from './marcador.js';
 
 export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgba(10,14,22,0.78)', borde = null, negrita = true } = {}) {
@@ -69,6 +70,45 @@ function emojiSprite(emoji, tam = 0.03) {
   return s;
 }
 
+// Volcán con perfil cóncavo (como los estratovolcanes reales), cráter en la
+// cima, surcos de erosión y colores por piso de altitud: bosque, roca y nieve.
+function geometriaVolcan(v, h) {
+  const R = 0.013 + h * 0.42;
+  const escudo = /escudo/i.test(v.tipo), escoria = /escoria/i.test(v.tipo);
+  const perfil = [];
+  const pasos = 14;
+  for (let k = 0; k <= pasos; k++) {
+    const t = k / pasos; // 0 base → 1 cima
+    const forma = escudo ? Math.pow(1 - t, 0.6) : escoria ? 1 - t * 0.78 : Math.pow(1 - t, 1.35);
+    perfil.push(new THREE.Vector2(Math.max(R * 0.13, R * forma + R * 0.13 * (1 - t)), t * h));
+  }
+  // borde y fondo del cráter
+  perfil.push(new THREE.Vector2(R * 0.1, h * 0.96), new THREE.Vector2(0.0001, h * 0.9));
+  const geo = new THREE.LatheGeometry(perfil, 40);
+  const pos = geo.attributes.position;
+  const col = new Float32Array(pos.count * 3);
+  const cBos = new THREE.Color('#3f6b35'), cRoca = new THREE.Color('#6b5446'), cOsc = new THREE.Color('#3b2b24'), cNieve = new THREE.Color('#f4f7ff');
+  const c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const t = y / h;
+    const ang = Math.atan2(z, x);
+    // surcos (barrancas) radiales
+    const surco = 1 - 0.07 * Math.max(0, Math.sin(ang * 9)) * t * (1 - t) * 4;
+    pos.setX(i, x * surco); pos.setZ(i, z * surco);
+    const altM = (v.alt * 0.35) + t * v.alt * 0.65; // altitud aprox. de ese punto
+    if (altM > 4800 && t < 0.95) c.copy(cNieve);
+    else if (altM > 3900) c.copy(cRoca).lerp(cOsc, 0.3);
+    else if (altM > 3000) c.copy(cBos).lerp(cRoca, (altM - 3000) / 900);
+    else c.copy(cBos);
+    if (t >= 0.95) c.copy(cOsc);
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.computeVertexNormals();
+  return geo;
+}
+
 const V = (lon, lat, z = 0) => {
   const [x, y] = proyectar(lon, lat);
   return new THREE.Vector3(x, y, z);
@@ -93,6 +133,7 @@ export class MapaMexico {
     this._tectonica();
     this._volcanes();
     this._biodiversidad();
+    this._cultura();
     this.capas.clima = new THREE.Group();
     this.capas.sismo = new THREE.Group();
     this.capas.usgs = new THREE.Group();
@@ -346,19 +387,10 @@ export class MapaMexico {
     for (const v of VOLCANES) {
       const h = 0.012 + (v.alt / 5636) * 0.05;
       const grupo = new THREE.Group();
-      const cono = new THREE.Mesh(
-        new THREE.ConeGeometry(0.0085 + h * 0.18, h, 24, 1, true),
-        new THREE.MeshStandardMaterial({ color: 0x5b3a2a, roughness: 0.9, flatShading: true }),
-      );
+      const cono = new THREE.Mesh(geometriaVolcan(v, h), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }));
       cono.rotation.x = Math.PI / 2;
-      cono.position.z = h / 2;
+      cono.castShadow = true;
       grupo.add(cono);
-      if (v.alt > 4400) {
-        const nieve = new THREE.Mesh(new THREE.ConeGeometry((0.0085 + h * 0.18) * 0.33, h * 0.33, 24), new THREE.MeshStandardMaterial({ color: 0xf4f7ff, roughness: 0.6 }));
-        nieve.rotation.x = Math.PI / 2;
-        nieve.position.z = h - h * 0.165 + 0.0004;
-        grupo.add(nieve);
-      }
       const lbl = crearEtiqueta(v.nombre.split(' (')[0], { tam: 0.012, color: '#ffe3cc', fondo: 'rgba(40,12,0,0.7)', negrita: false });
       lbl.position.z = h + 0.006;
       grupo.add(lbl);
@@ -468,6 +500,76 @@ export class MapaMexico {
     }
   }
 
+  // Sitios de cultura e historia: pirámides escalonadas (prehispánicos),
+  // templos con cúpula (virreinales) y estrellas (historia moderna).
+  _cultura() {
+    const g = new THREE.Group();
+    this.capas.cultura = g;
+    this.sitios = [];
+    const piedra = new THREE.MeshStandardMaterial({ color: 0xc9b48a, roughness: 0.85 });
+    const cantera = new THREE.MeshStandardMaterial({ color: 0xe0b9a0, roughness: 0.7 });
+    const oro = new THREE.MeshStandardMaterial({ color: 0xffc21a, emissive: 0x7a5200, emissiveIntensity: 0.5 });
+    for (const s of SITIOS) {
+      const m = new THREE.Group();
+      if (s.tipo === 'arqueologico') {
+        // pirámide de 4 cuerpos con templo en la cima
+        for (let k = 0; k < 4; k++) {
+          const lado = 0.016 - k * 0.0035;
+          const caja = new THREE.Mesh(new THREE.BoxGeometry(lado, lado, 0.0032), piedra);
+          caja.position.z = 0.0016 + k * 0.0032;
+          caja.castShadow = true;
+          m.add(caja);
+        }
+        const templo = new THREE.Mesh(new THREE.BoxGeometry(0.0035, 0.0035, 0.003), cantera);
+        templo.position.z = 0.0143;
+        m.add(templo);
+      } else if (s.tipo === 'virreinal') {
+        const nave = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.013, 0.007), cantera);
+        nave.position.z = 0.0035;
+        const cupula = new THREE.Mesh(new THREE.SphereGeometry(0.004, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), cantera);
+        cupula.rotation.x = Math.PI / 2;
+        cupula.position.set(0, -0.002, 0.007);
+        const torre = new THREE.Mesh(new THREE.BoxGeometry(0.0035, 0.0035, 0.013), cantera);
+        torre.position.set(0, 0.0065, 0.0065);
+        m.add(nave, cupula, torre);
+      } else {
+        const estrella = new THREE.Mesh(new THREE.OctahedronGeometry(0.0055), oro);
+        estrella.position.z = 0.012;
+        const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.0007, 0.0007, 0.012, 6), oro);
+        palo.rotation.x = Math.PI / 2;
+        palo.position.z = 0.006;
+        m.add(estrella, palo);
+        this.animables.push((t) => { if (g.visible) estrella.rotation.z = t * 1.5; });
+      }
+      const caja = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.018, 0.02), new THREE.MeshBasicMaterial({ visible: false }));
+      caja.position.z = 0.01;
+      caja.userData = { tipo: 'sitio', data: s };
+      m.add(caja);
+      this.pickables.push(caja);
+      const lbl = crearEtiqueta(s.nombre, { tam: 0.011, color: '#fff3dc', fondo: 'rgba(60,30,10,0.78)', negrita: false });
+      lbl.position.z = 0.03;
+      m.add(lbl);
+      m.position.copy(V(s.lon, s.lat, 0.012));
+      m.userData.sitio = s;
+      g.add(m);
+      this.sitios.push({ s, m, lbl, objetivo: 1, actual: 1 });
+    }
+    this.animables.push((t, dt) => {
+      if (!g.visible) return;
+      for (const r of this.sitios) {
+        r.actual += (r.objetivo - r.actual) * Math.min(1, dt * 6);
+        r.m.scale.setScalar((0.35 + 0.65 * r.actual) * 1.7);
+        r.lbl.visible = r.actual > 0.6;
+        r.m.position.z = 0.012 + (r.objetivo > 0.5 ? Math.sin(t * 2 + r.s.lat) * 0.0015 : 0);
+      }
+    });
+  }
+
+  // Resalta los sitios que existían en el año elegido (null = todos)
+  setAnio(anio) {
+    for (const r of this.sitios || []) r.objetivo = anio === null || (anio >= r.s.desde && anio <= r.s.hasta) ? 1 : 0;
+  }
+
   // ------------------------------------------------------------------
   setCapa(capa) {
     this.capa = capa;
@@ -477,6 +579,7 @@ export class MapaMexico {
       volcanes: ['comun', 'volcanes'],
       biodiversidad: ['comun', 'biodiversidad'],
       clima: ['comun', 'clima'],
+      cultura: ['comun', 'cultura'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     this.setSubsuelo(this.subsueloActivo ?? true);
@@ -504,6 +607,10 @@ export class MapaMexico {
         case 'clima':
           color = r.climaColor || '#5a6b80';
           h = r.climaAltura ?? 0.01;
+          break;
+        case 'cultura':
+          color = r.id === 'MX-HID' ? '#e0a21b' : '#b98a5e';
+          h = 0.012;
           break;
       }
       r.colorObj.set(color);

@@ -32,11 +32,12 @@
       <button role="tab" data-capa="tectonica"><span>📈</span>Sismos</button>
       <button role="tab" data-capa="volcanes"><span>🌋</span>Volcanes</button>
       <button role="tab" data-capa="biodiversidad"><span>🦋</span>Biodiversidad</button>
-      <button role="tab" data-capa="clima"><span>🌦️</span>Clima en vivo</button>
+      <button role="tab" data-capa="clima"><span>🌦️</span>Clima</button>
+      <button role="tab" data-capa="cultura"><span>🏛️</span>Cultura</button>
     </nav>
     <div class="acciones">
       <button class="btn icono" id="btn-sonido" aria-pressed="true" title="Sonido"><span>🔊</span></button>
-      <button class="btn pasaporte" id="btn-pasaporte" title="Pasaporte de misiones"><span>🎒</span><span>0/9</span></button>
+      <button class="btn pasaporte" id="btn-pasaporte" title="Pasaporte de misiones"><span>🎒</span><span>0/12</span></button>
       <button class="btn icono" id="btn-sencillo" aria-pressed="false" title="Modo sencillo: menos texto, botones grandes"><span>Aa</span></button>
       <button class="btn icono" id="btn-reto" title="Reto y evaluación"><span>🏆</span></button>
       <button class="btn primario" id="btn-ar"><span>📷</span><span>Realidad aumentada</span></button>
@@ -206,6 +207,25 @@
         <summary>¿Por qué pasa?</summary>
         <p>El aire que sube se expande porque hay menos presión, y al expandirse se enfría (enfriamiento adiabático). Por eso Toluca (2,660 m) es mucho más fría que Villahermosa (10 m), aunque están casi a la misma latitud.</p>
       </details>
+    </section>
+    <section class="panel-capa" data-capa="cultura" hidden>
+      <p class="sub">Capa 6 · Historia y cultura</p>
+      <h2>3,500 años de historia en un mapa</h2>
+      <p>De los olmecas a hoy. Mueve la línea del tiempo: los lugares que existían en esa época se encienden. Toca un estado para conocer su comida, su artesanía y su música.</p>
+      <div class="linea-tiempo">
+        <div class="lt-cab"><b id="anio-texto">Todas las épocas</b><button class="btn mini" id="btn-todas-epocas">Ver todas</button></div>
+        <input type="range" id="rng-anio" min="-1500" max="2026" step="1" value="1325" aria-label="Año">
+        <div class="lt-marcas"><span>1500 a.C.</span><span>0</span><span>1521</span><span>hoy</span></div>
+      </div>
+      <p class="resultado" id="era-texto"></p>
+      <ul class="lista eventos" id="eventos-cerca"></ul>
+      <h3>Épocas</h3>
+      <div class="historicos" id="eras"></div>
+      <h3>Lugares</h3>
+      <ul class="lista" id="lista-sitios"></ul>
+      <h3>Patrimonio Cultural Inmaterial (UNESCO)</h3>
+      <ul class="lista" id="inmaterial"></ul>
+      <p class="nota">Fechas aproximadas. Fuentes sugeridas: INAH, UNESCO, Secretaría de Cultura.</p>
     </section>
   </aside>
 

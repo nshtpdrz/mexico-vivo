@@ -181,13 +181,13 @@ export const ESTACION_UNM = { codigo: 'G.UNM', nombre: 'Ciudad Universitaria, UN
 // Volcanes y geología
 // --------------------------------------------------------------------
 export const VOLCANES = [
-  { nombre: 'Pico de Orizaba (Citlaltépetl)', lat: 19.03, lon: -97.27, alt: 5636, estado: 'Dormido · última erupción 1846', tipo: 'Estratovolcán', dato: 'Es la montaña más alta de México y el volcán más alto de Norteamérica.' },
-  { nombre: 'Popocatépetl', lat: 19.02, lon: -98.62, alt: 5393, estado: 'Activo', tipo: 'Estratovolcán', dato: 'Unos 25 millones de personas viven a menos de 100 km. El CENAPRED lo vigila las 24 horas.', activo: true },
-  { nombre: 'Iztaccíhuatl', lat: 19.18, lon: -98.64, alt: 5230, estado: 'Inactivo', tipo: 'Estratovolcán', dato: 'Su forma de «mujer dormida» la dan varios conos que se erosionaron.' },
-  { nombre: 'Nevado de Toluca (Xinantécatl)', lat: 19.11, lon: -99.76, alt: 4680, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'En su cráter están la Laguna del Sol y la Laguna de la Luna.' },
-  { nombre: 'La Malinche (Matlalcuéyetl)', lat: 19.23, lon: -98.03, alt: 4461, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'Su última actividad fue hace unos 3,000 años.' },
-  { nombre: 'Volcán de Colima', lat: 19.51, lon: -103.62, alt: 3820, estado: 'Muy activo', tipo: 'Estratovolcán', dato: 'Hace erupciones explosivas y flujos piroclásticos con frecuencia.', activo: true },
-  { nombre: 'Paricutín', lat: 19.49, lon: -102.25, alt: 2800, estado: 'Extinto · activo 1943–1952', tipo: 'Cono de escoria', dato: 'Nació en 1943 en la milpa de Dionisio Pulido y creció 336 m en su primer año. Su lava sepultó San Juan Parangaricutiro.' },
+  { nombre: 'Pico de Orizaba (Citlaltépetl)', relieve: 'orizaba', lat: 19.03, lon: -97.27, alt: 5636, estado: 'Dormido · última erupción 1846', tipo: 'Estratovolcán', dato: 'Es la montaña más alta de México y el volcán más alto de Norteamérica.' },
+  { nombre: 'Popocatépetl', relieve: 'popo-izta', lat: 19.02, lon: -98.62, alt: 5393, estado: 'Activo', tipo: 'Estratovolcán', dato: 'Unos 25 millones de personas viven a menos de 100 km. El CENAPRED lo vigila las 24 horas.', activo: true },
+  { nombre: 'Iztaccíhuatl', relieve: 'popo-izta', lat: 19.18, lon: -98.64, alt: 5230, estado: 'Inactivo', tipo: 'Estratovolcán', dato: 'Su forma de «mujer dormida» la dan varios conos que se erosionaron.' },
+  { nombre: 'Nevado de Toluca (Xinantécatl)', relieve: 'toluca', lat: 19.11, lon: -99.76, alt: 4680, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'En su cráter están la Laguna del Sol y la Laguna de la Luna.' },
+  { nombre: 'La Malinche (Matlalcuéyetl)', relieve: 'malinche', lat: 19.23, lon: -98.03, alt: 4461, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'Su última actividad fue hace unos 3,000 años.' },
+  { nombre: 'Volcán de Colima', relieve: 'colima', lat: 19.51, lon: -103.62, alt: 3820, estado: 'Muy activo', tipo: 'Estratovolcán', dato: 'Hace erupciones explosivas y flujos piroclásticos con frecuencia.', activo: true },
+  { nombre: 'Paricutín', relieve: 'paricutin', lat: 19.49, lon: -102.25, alt: 2800, estado: 'Extinto · activo 1943–1952', tipo: 'Cono de escoria', dato: 'Nació en 1943 en la milpa de Dionisio Pulido y creció 336 m en su primer año. Su lava sepultó San Juan Parangaricutiro.' },
   { nombre: 'Ceboruco', lat: 21.12, lon: -104.51, alt: 2280, estado: 'Activo · erupción 1870', tipo: 'Estratovolcán', dato: 'Tiene fumarolas activas.' },
   { nombre: 'El Chichón', lat: 17.36, lon: -93.23, alt: 1150, estado: 'Activo · erupción 1982', tipo: 'Domo / estratovolcán', dato: 'Su erupción de 1982 mató a unas 2,000 personas y bajó la temperatura global por las cenizas en la estratósfera.', activo: true },
   { nombre: 'Tacaná', lat: 15.13, lon: -92.11, alt: 4060, estado: 'Activo', tipo: 'Estratovolcán', dato: 'Está en la frontera con Guatemala.' },
@@ -222,7 +222,10 @@ export const ESPECIES = [
   { nombre: 'Berrendo peninsular', cientifico: 'Antilocapra americana peninsularis', emoji: '🦌', lat: 27.6, lon: -113.6, estado: 'En peligro crítico', bioma: 'desierto', dato: 'Puede correr a más de 80 km/h. Sobrevive en el Desierto de El Vizcaíno.' },
   { nombre: 'Cactus «viejito»', cientifico: 'Cephalocereus senilis', emoji: '🌵', lat: 20.6, lon: -98.75, estado: 'Amenazada', bioma: 'semiarido', dato: 'Es endémico de la Barranca de Metztitlán, Hidalgo. Sus «canas» lo protegen del sol intenso.' },
   { nombre: 'Flamenco americano', cientifico: 'Phoenicopterus ruber', emoji: '🦩', lat: 20.85, lon: -90.38, estado: 'Amenazada', bioma: 'humedal', dato: 'Su color rosa viene de los carotenoides de los crustáceos que come en Celestún y Ría Lagartos.' },
-  { nombre: 'Manatí', cientifico: 'Trichechus manatus', emoji: '🐋', lat: 18.6, lon: -88.2, estado: 'En peligro', bioma: 'humedal', dato: 'Es herbívoro y come hasta el 10 % de su peso al día en pastos marinos.' },
+  { nombre: 'Manatí', cientifico: 'Trichechus manatus', emoji: '🌊', lat: 18.6, lon: -88.2, estado: 'En peligro', bioma: 'humedal', dato: 'Es herbívoro y come hasta el 10 % de su peso al día en pastos marinos.' },
+  { nombre: 'Mono aullador de manto', cientifico: 'Alouatta palliata', emoji: '🐒', lat: 18.45, lon: -95.05, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Su rugido se oye a más de un kilómetro: un hueso del cuello agrandado (el hioides) funciona como caja de resonancia. Vive en Los Tuxtlas y las selvas del sureste.' },
+  { nombre: 'Tucán real', cientifico: 'Ramphastos sulfuratus', emoji: '🐦', lat: 17.55, lon: -92.2, estado: 'Amenazada (NOM-059)', bioma: 'selvaHumeda', dato: 'Su pico enorme es hueco y ligero. Además de alcanzar frutas, le sirve para soltar calor y regular su temperatura.' },
+  { nombre: 'Ballena jorobada', cientifico: 'Megaptera novaeangliae', emoji: '🐋', lat: 20.7, lon: -105.6, estado: 'Protegida en México', bioma: 'humedal', dato: 'Cada invierno viaja miles de kilómetros desde Alaska y Canadá para tener a sus crías en el Pacífico mexicano (Bahía de Banderas, Los Cabos). Los machos cantan canciones que cambian de un año a otro.' },
 ];
 
 // --------------------------------------------------------------------

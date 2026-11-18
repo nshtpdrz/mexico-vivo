@@ -6,6 +6,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { MapaMexico, crearEtiqueta, vec } from './mapa3d.js';
 import { SimuladorSismo, dibujarCorte, ROMANOS, DESC_MMI, energia } from './sismo.js';
 import { obtenerClima, obtenerSismosUSGS, regresion } from './apis.js';
+import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js';
+import { abrirVolcan } from './volcan3d.js';
 import { desproyectar, distanciaKm } from './geo.js';
 import * as audio from './audio.js';
 import * as ev from './evaluacion.js';
@@ -160,6 +162,7 @@ const LEYENDAS = {
   volcanes: () => [['#5b3a2a', 'Volcán (altura proporcional)'], ['#ff7a1a', 'Eje Neovolcánico'], ['#2b2f3a', 'Sitio geológico']],
   biodiversidad: () => Object.values(BIOMAS).map((b) => [b.color, b.nombre]),
   clima: () => escalaLeyenda(),
+  cultura: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
 };
 
 function cambiarCapa(capa) {
@@ -175,6 +178,7 @@ function cambiarCapa(capa) {
   if (capa !== 'tectonica') { sim.detener(); }
   if (capa === 'tectonica') { sim._calcular(); }
   if (capa === 'clima' && !app.clima) cargarClima();
+  if (capa === 'cultura') ponerAnio(app.anio ?? null);
   pintarLeyenda();
   audio.clic(660);
   guia.alEntrarCapa(capa);
@@ -250,6 +254,19 @@ function fichaEstado(id) {
     sub: `Capital: ${e.capital} · ${REGIONES[e.region].nombre}`,
     color: REGIONES[e.region].color,
   };
+  if (app.capa === 'cultura') {
+    const k = CULTURA_ESTADOS[id] || {};
+    const sitios = SITIOS.filter((s) => distanciaKm(s.lat, s.lon, e.lat, e.lon) < 200);
+    if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
+    abrirFicha({
+      ...base,
+      chips: [`🍽️ ${k.platillo}`, `🎨 ${k.artesania}`, `🎶 ${k.tradicion}`],
+      cuerpo: `<p class="dato">💡 ${e.dato}</p>${sitios.length ? `<h3>Sitios cercanos</h3><ul class="lista-sp">${sitios.map((s) => `<li>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} <b>${s.nombre}</b> <i>${fechaAnio(s.desde)}</i></li>`).join('')}</ul>` : ''}${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">🎶 Escuchando música tradicional de la región.</p>' : ''}`,
+      acciones: k.sonido ? [{ texto: '🎶 Escuchar su música', fn: () => audio.reproducirGrabacion(k.sonido, pan) }] : [],
+    });
+    if (id === 'MX-HID') guia.completar('hidalgo');
+    return;
+  }
   if (app.capa === 'biodiversidad') {
     const b = BIOMAS[e.bioma];
     const sp = ESPECIES.filter((s) => {
@@ -318,11 +335,26 @@ function fichaObjeto(ud) {
         titulo: d.nombre, sub: d.tipo, color: '#e2622b',
         chips: [`⛰️ ${fmt(d.alt)} m`, d.estado],
         cuerpo: `<p>${d.dato}</p><p class="nota">Los volcanes del Eje Neovolcánico se forman porque la placa de Cocos, al hundirse a ~100 km, libera agua. El agua funde el manto y el magma sube.</p>`,
-        acciones: [{ texto: '🌋 Simular erupción', clase: 'peligro', fn: () => { mapa.erupcion(reg); audio.erupcion((d.lon + 102.5) / 15); if (d.activo) guia.completar('erupcion'); } }],
+        acciones: [
+          ...(d.relieve ? [{ texto: '🏔️ Explorar su relieve real', clase: 'primario', fn: () => { abrirVolcan(d, VOLCANES.filter((o) => o !== d && o.relieve === d.relieve)); guia.completar('relieve'); } }] : []),
+          { texto: '🌋 Simular erupción', clase: 'peligro', fn: () => { mapa.erupcion(reg); audio.erupcion((d.lon + 102.5) / 15); if (d.activo) guia.completar('erupcion'); } },
+          ...(d.nombre === 'Popocatépetl' ? [{ texto: '🔊 ¿Cómo se pronuncia?', fn: () => audio.reproducirGrabacion('nombre-popocatepetl') }] : []),
+        ],
       });
       audio.clic(500);
       break;
     }
+    case 'sitio':
+      abrirFicha({
+        titulo: d.nombre, sub: `${d.cultura ? d.cultura + ' · ' : ''}${fechaAnio(d.desde)}${d.hasta < 2026 ? ' – ' + fechaAnio(d.hasta) : ''}`,
+        color: d.tipo === 'arqueologico' ? '#c9b48a' : d.tipo === 'virreinal' ? '#e0b9a0' : '#ffc21a',
+        chips: [d.tipo === 'arqueologico' ? '🛕 Zona arqueológica' : d.tipo === 'virreinal' ? '⛪ Virreinato' : '⭐ Historia moderna', ...(d.unesco ? [`🌐 Patrimonio Mundial UNESCO (${d.unesco})`] : [])],
+        cuerpo: `<p>${d.dato}</p>`,
+        acciones: [{ texto: '🕰️ Viajar a esa época', fn: () => { const a = Math.round((d.desde + Math.min(d.hasta, 2026)) / 2); $('#rng-anio').value = a; ponerAnio(a); } }],
+      });
+      if (d.id === 'tula') guia.completar('tula');
+      audio.clic(800);
+      break;
     case 'geositio':
       abrirFicha({ titulo: d.nombre, sub: 'Sitio geológico', cuerpo: `<p>${d.dato}</p>`, color: '#7fa3ff' });
       break;
@@ -961,6 +993,40 @@ new ResizeObserver(redimensionar).observe(vista);
 redimensionar();
 renderer.setAnimationLoop(bucle);
 
+// ---------------------------------------------------------------------
+// Cultura e historia: línea del tiempo
+// ---------------------------------------------------------------------
+function fechaAnio(a) {
+  if (a < 0) return `${Math.abs(a).toLocaleString('es-MX')} a.C.`;
+  return a >= 2026 ? 'hoy' : `${a}${a < 1000 ? ' d.C.' : ''}`;
+}
+function ponerAnio(anio) {
+  app.anio = anio;
+  mapa.setAnio(anio);
+  if (anio === null) {
+    $('#anio-texto').textContent = 'Todas las épocas';
+    $('#era-texto').innerHTML = 'Mueve la línea del tiempo para viajar al pasado: los sitios que existían en esa época se encienden en el mapa.';
+    $('#eventos-cerca').innerHTML = '';
+    return;
+  }
+  const era = ERAS.filter((e) => anio >= e.desde && anio <= e.hasta).at(-1) || ERAS[0];
+  const activos = SITIOS.filter((s) => anio >= s.desde && anio <= s.hasta);
+  $('#anio-texto').textContent = fechaAnio(anio);
+  $('#era-texto').innerHTML = `<b>${era.nombre}.</b> ${era.texto}`;
+  const cerca = EVENTOS.filter((e) => Math.abs(e.anio - anio) <= 60).slice(0, 4);
+  $('#eventos-cerca').innerHTML = (cerca.length ? cerca.map((e) => `<li><b>${fechaAnio(e.anio)}</b> ${e.texto}</li>`).join('') : '')
+    + `<li class="nota">${activos.length} sitio(s) en el mapa en esa época.</li>`;
+  if (anio === 1325) guia.completar('tenochtitlan');
+}
+$('#rng-anio').addEventListener('input', (e) => { ponerAnio(+e.target.value); });
+$('#btn-todas-epocas').addEventListener('click', () => ponerAnio(null));
+$('#eras').innerHTML = ERAS.map((e) => `<button class="btn mini" data-a="${Math.round((e.desde + e.hasta) / 2)}">${e.nombre}<small>${fechaAnio(e.desde)} – ${fechaAnio(e.hasta)}</small></button>`).join('');
+$$('#eras button').forEach((b) => b.addEventListener('click', () => { $('#rng-anio').value = b.dataset.a; ponerAnio(+b.dataset.a); audio.clic(700); }));
+$('#lista-sitios').innerHTML = SITIOS.slice().sort((a, b) => a.desde - b.desde)
+  .map((s, i) => `<li data-id="${s.id}"><span>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} ${s.nombre}</span><small>${fechaAnio(s.desde)}</small></li>`).join('');
+$$('#lista-sitios li').forEach((li) => li.addEventListener('click', () => fichaObjeto({ tipo: 'sitio', data: SITIOS.find((s) => s.id === li.dataset.id) })));
+$('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><small>${a}</small></li>`).join('');
+
 function slug(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1142,7 +1208,7 @@ $('#btn-empezar-ar').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.matches('input, select, textarea')) return;
-  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima' };
+  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'cultura' };
   if (mapaTeclas[e.key]) cambiarCapa(mapaTeclas[e.key]);
   if (e.key === ' ' && app.capa === 'tectonica') { e.preventDefault(); $('#btn-sismo').click(); }
   if (e.key === 'Escape') cerrarFicha();

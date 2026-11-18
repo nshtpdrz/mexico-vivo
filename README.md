@@ -138,3 +138,13 @@ vendor/             Three.js 0.160 y MindAR 1.2.5 (funciona sin internet)
 - INEGI, Marco Geoestadístico. Límites estatales del repositorio `angelnmara/geojson` (GitHub).
 
 Librerías: Three.js (MIT), MindAR (MIT).
+
+## Novedades: relieve real, cultura y más sonidos
+- **Relieve real de 6 volcanes** (Popocatépetl–Iztaccíhuatl, Pico de Orizaba, Colima, Nevado de Toluca, Paricutín, La Malinche): en Volcanes, toca uno y elige «Explorar su relieve real». El modelo 3D se construye con miles de mediciones de elevación de **Terrain Tiles** (AWS Open Data: SRTM, GMTED y otros). Tiene pisos de vegetación por altitud, control de exageración vertical y erupción. Para regenerar o agregar volcanes:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File herramientas\relieve.ps1 -Id orizaba -Lat 19.03 -Lon -97.27 -Medio 0.13 -N 61
+  ```
+- **Volcanes del mapa rediseñados:** perfil cóncavo, cráter, barrancas y colores por altitud (bosque, roca y nieve).
+- **Capa 6 · Cultura e historia:** línea del tiempo de 1500 a.C. a hoy. Los sitios de cada época se encienden en el mapa (26 lugares: zonas arqueológicas, ciudades virreinales e historia moderna, con énfasis en Hidalgo: Tula, Real del Monte, Acueducto del Padre Tembleque y Pachuca). Cada estado muestra su platillo, artesanía y tradición, y algunos suenan con su música (marimba, son jarocho, son huasteco).
+- **12 misiones** en el pasaporte, incluidas «Conoce a los Atlantes» y «Viaja a 1325».
+- **Más sonidos (opcionales):** `sonidos.json` trae 9 grabaciones nuevas con su enlace de descarga y licencia. La app usa las que encuentre en `assets/sonidos/`.

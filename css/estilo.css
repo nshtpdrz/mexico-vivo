@@ -439,3 +439,39 @@ body:not(.modo-ar) .axo { bottom: auto; top: 92px; }
 @media (max-width: 480px) {
   .marca strong { display: none; }
 }
+
+/* ---------- cultura: línea del tiempo ---------- */
+.linea-tiempo { background: rgba(201,180,138,0.08); border: 1px solid rgba(201,180,138,0.35); border-radius: 14px; padding: 12px 14px; margin: 12px 0; }
+.lt-cab { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.lt-cab b { font-family: var(--display); font-size: 22px; color: #f0d9a8; }
+.lt-marcas { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--texto-2); }
+#rng-anio { accent-color: #e0a21b; }
+.lista.eventos li { cursor: default; display: block; padding: 6px 10px; }
+
+/* ---------- visor de volcán con relieve real ---------- */
+.volcan-vista {
+  position: fixed; inset: 0; z-index: 55; display: grid; grid-template-rows: auto 1fr; grid-template-columns: 1fr 320px;
+  background: radial-gradient(ellipse at 50% 20%, #1c2c50, #070b16 70%);
+}
+.vv-barra { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--linea); }
+.vv-barra h2 { margin: 0; }
+.vv-barra .cerrar { position: static; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.1); color: var(--texto); font-size: 22px; cursor: pointer; }
+.vv-lienzo { position: relative; min-height: 0; }
+.vv-lienzo canvas { width: 100%; height: 100%; display: block; touch-action: none; }
+.vv-panel { padding: 16px; border-left: 1px solid var(--linea); overflow-y: auto; background: rgba(8,12,24,0.8); }
+.vv-leyenda { display: grid; gap: 4px; font-size: 12px; margin: 14px 0; }
+.vv-leyenda div { display: flex; gap: 8px; align-items: center; }
+.vv-leyenda i { width: 14px; height: 14px; border-radius: 4px; }
+@media (max-width: 900px) {
+  .volcan-vista { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  .vv-panel { border-left: 0; border-top: 1px solid var(--linea); max-height: 34vh; }
+  .capas button { min-width: 64px; }
+}
+@media (max-width: 1560px) and (min-width: 901px) {
+  .capas button { padding: 8px 9px; font-size: 12.5px; gap: 4px; }
+  .barra { gap: 8px; }
+}
+@media (max-width: 1250px) and (min-width: 901px) {
+  .marca strong { display: none; }
+  .capas button span { display: none; }
+}

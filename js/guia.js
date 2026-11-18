@@ -11,6 +11,9 @@ export const MISIONES = [
   { id: 'erupcion', icono: '🌋', titulo: 'Despierta un volcán', pista: 'En Volcanes, toca un volcán activo 🔥 y simula su erupción.' },
   { id: 'selva', icono: '🦜', titulo: 'Escucha la selva', pista: 'En Biodiversidad, toca Chiapas o Campeche y escucha.' },
   { id: 'frio', icono: '🥶', titulo: 'La capital más fría', pista: 'En Clima en vivo, busca la capital con la temperatura más baja y tócala.' },
+  { id: 'relieve', icono: '🏔️', titulo: 'Explora un volcán real', pista: 'En Volcanes, toca el Popocatépetl o el Pico de Orizaba y abre «Explorar su relieve real».' },
+  { id: 'tula', icono: '🗿', titulo: 'Conoce a los Atlantes', pista: 'En Cultura, toca Tula: la capital tolteca está en Hidalgo.' },
+  { id: 'tenochtitlan', icono: '🦅', titulo: 'Viaja a 1325', pista: 'En Cultura, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
@@ -95,6 +98,7 @@ const PISTAS_CAPA = {
   volcanes: 'Los volcanes con fuego están activos. ¡Toca uno y hazlo hacer erupción!',
   biodiversidad: 'Toca un estado y cierra los ojos: escucha cómo suena su ecosistema.',
   clima: 'Estos datos son de hace unos minutos. ¿Cuál capital está más fría? ¿Por qué crees?',
+  cultura: 'Mueve la línea del tiempo y mira cómo aparecen las ciudades de cada época. ¡Toca un estado para conocer su comida y su música!',
 };
 const yaDicho = new Set();
 export function alEntrarCapa(capa) {
