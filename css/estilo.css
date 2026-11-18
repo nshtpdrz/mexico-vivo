@@ -534,3 +534,52 @@ body.exhibicion { user-select: none; -webkit-user-select: none; }
 
 .revision { font-size: 12px; color: #ffd9a8; background: rgba(255,154,26,0.1); border-left: 3px solid var(--oro-2); padding: 6px 10px; border-radius: 6px; margin: 10px 0 0; }
 .rasgo { margin: 0 0 6px; }
+
+/* ---------- niveles de explicación ---------- */
+.solo-exploradores, .solo-descubridores { display: none; }
+body.nivel-exploradores .solo-exploradores, body.nivel-descubridores .solo-descubridores { display: block; }
+.nino { font-size: 18px; line-height: 1.45; background: rgba(61,220,151,0.1); border-left: 4px solid var(--verde); padding: 10px 12px; border-radius: 10px; }
+.avanzado { font-size: 12.5px; color: #cfd8ea; background: rgba(79,195,255,0.08); border-left: 3px solid var(--azul); padding: 8px 10px; border-radius: 8px; font-variant-numeric: tabular-nums; }
+#btn-sencillo { position: relative; }
+#btn-sencillo::after { content: attr(data-nivel); position: absolute; right: 3px; bottom: 2px; font: 700 9px var(--display); color: var(--oro); }
+#btn-sencillo[aria-pressed='true']::after { color: #1b1200; }
+.niveles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.niveles p { width: 100%; margin: 0; color: var(--texto-2); font-size: 14px; }
+.btn.nivel { flex-direction: column; gap: 2px; padding: 10px 16px; min-width: 150px; }
+.btn.nivel small { font-weight: 500; color: var(--texto-2); font-size: 11.5px; }
+.btn.nivel[aria-checked='true'] { border-color: var(--oro); background: rgba(242,162,27,0.18); }
+
+/* ---------- recorrido guiado ---------- */
+.recorrido {
+  position: fixed; left: 16px; right: calc(var(--panel-ancho) + 16px); bottom: 16px; z-index: 35;
+  max-width: 560px; margin: 0 auto; padding: 16px 18px;
+  background: rgba(14, 17, 22, 0.94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(242,162,27,0.45); border-radius: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  animation: aparece 0.35s ease;
+}
+.rec-cab { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--oro); font-weight: 600; }
+.rec-salir { width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.08); color: var(--texto); font-size: 18px; cursor: pointer; }
+.rec-puntos { display: flex; gap: 4px; margin: 8px 0 10px; }
+.rec-puntos i { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.15); }
+.rec-puntos i.hecho { background: rgba(242,162,27,0.6); }
+.rec-puntos i.actual { background: var(--oro); }
+.recorrido h3 { font-size: 20px; color: var(--texto); text-transform: none; letter-spacing: 0; margin: 0 0 6px; }
+.recorrido p { margin: 0 0 12px; color: #d6deef; line-height: 1.5; }
+.rec-botones { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+body.en-recorrido .axo, body.en-recorrido .leyenda { display: none; }
+.resaltar { outline: 2px solid var(--oro); outline-offset: 4px; animation: latido-suave 1.2s ease-in-out infinite alternate; }
+@keyframes latido-suave { to { outline-color: rgba(242,162,27,0.3); } }
+#btn-recorrido-panel { margin-top: 12px; width: 100%; }
+body.nivel-exploradores .recorrido p { font-size: 17px; }
+@media (max-width: 900px) {
+  .recorrido { left: 8px; right: 8px; bottom: calc(42vh + 8px); padding: 12px 14px; }
+  body.panel-plegado .recorrido { bottom: 40px; }
+  .recorrido p { font-size: 14px; }
+}
+@media (max-width: 900px) {
+  .recorrido { max-height: 36vh; overflow-y: auto; padding: 10px 12px; }
+  .recorrido h3 { font-size: 16px; }
+  .recorrido p, body.nivel-exploradores .recorrido p { font-size: 13.5px; margin-bottom: 8px; }
+  .rec-puntos { margin: 6px 0 6px; }
+  body.en-recorrido.panel-plegado .recorrido { bottom: 34px; }
+}

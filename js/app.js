@@ -9,7 +9,8 @@ import { obtenerClima, obtenerSismosUSGS, regresion } from './apis.js';
 import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js';
 import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
-import { desproyectar, distanciaKm } from './geo.js';
+import { crearRecorrido } from './recorrido.js';
+import { desproyectar, distanciaKm, proyectar } from './geo.js';
 import * as audio from './audio.js';
 import * as ev from './evaluacion.js';
 import * as guia from './guia.js';
@@ -266,21 +267,42 @@ $('#btn-panel').addEventListener('click', () => plegarPanel(!document.body.class
 // Ver bajo la superficie (placa de Cocos)
 $('#chk-subsuelo').addEventListener('change', (e) => mapa.setSubsuelo(e.target.checked));
 
-// Modo sencillo: menos texto, botones grandes (visitantes jóvenes)
-function modoSencillo(on) {
-  document.body.classList.toggle('sencillo', on);
-  $('#btn-sencillo').setAttribute('aria-pressed', String(on));
-  try { localStorage.setItem('mv-sencillo', on ? '1' : '0'); } catch (_) {}
+// Niveles de explicación (evolución del antiguo «modo sencillo"):
+//  · exploradores (6–11): letra grande, poco texto, una frase sencilla por capa
+//  · aventureros (12–17): la vista normal
+//  · descubridores (adultos): además, ecuaciones, supuestos y límites de los modelos
+// Los tres usan los MISMOS hechos: cambia la profundidad, no la exactitud.
+const NIVELES = { exploradores: 'Exploradores', aventureros: 'Aventureros', descubridores: 'Descubridores' };
+function ponerNivel(nivel, avisar = false) {
+  if (!NIVELES[nivel]) nivel = 'aventureros';
+  app.nivel = nivel;
+  document.body.classList.remove('nivel-exploradores', 'nivel-aventureros', 'nivel-descubridores');
+  document.body.classList.add('nivel-' + nivel);
+  document.body.classList.toggle('sencillo', nivel === 'exploradores'); // reutiliza los estilos del modo sencillo
+  $$('.panel details').forEach((d) => { d.open = nivel === 'descubridores'; });
+  $$('.niveles .nivel').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.nivel === nivel)));
+  const b = $('#btn-sencillo');
+  b.setAttribute('aria-pressed', String(nivel !== 'aventureros'));
+  b.title = `Nivel: ${NIVELES[nivel]} (toca para cambiar)`;
+  b.dataset.nivel = nivel[0].toUpperCase();
+  try { sessionStorage.setItem('mv-nivel', nivel); } catch (_) {}
+  if (avisar) guia.decir(`Nivel ${NIVELES[nivel]}: ${nivel === 'exploradores' ? 'explicaciones cortas y botones grandes.' : nivel === 'descubridores' ? 'con ecuaciones, supuestos y límites de los modelos.' : 'la vista completa.'}`, { ms: 4000 });
 }
-$('#btn-sencillo').addEventListener('click', () => modoSencillo(!document.body.classList.contains('sencillo')));
-try { if (localStorage.getItem('mv-sencillo') === '1') modoSencillo(true); } catch (_) {}
+$('#btn-sencillo').addEventListener('click', () => {
+  const orden = Object.keys(NIVELES);
+  ponerNivel(orden[(orden.indexOf(app.nivel) + 1) % orden.length], true);
+});
+$$('.niveles .nivel').forEach((b) => b.addEventListener('click', () => { ponerNivel(b.dataset.nivel); audio.clic(880); }));
+let nivelGuardado = null;
+try { nivelGuardado = sessionStorage.getItem('mv-nivel') || (localStorage.getItem('mv-sencillo') === '1' ? 'exploradores' : null); } catch (_) {}
+ponerNivel(nivelGuardado || 'aventureros');
 
 // ---------------------------------------------------------------------
 // Ficha de información
 // ---------------------------------------------------------------------
 const ficha = $('#ficha');
 function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], color = null, revision = true }) {
-  plegarPanel(false);
+  if (!(document.body.classList.contains("en-recorrido") && innerWidth <= 900)) plegarPanel(false);
   ficha.hidden = false;
   ficha.style.setProperty('--acento', color || 'var(--oro)');
   ficha.innerHTML = `
@@ -1046,10 +1068,33 @@ function frame(dt) {
     dibujarCorte(corte, sim.cfg, sim.t, sim.corriendo);
   }
 }
+// Vuelo suave de la cámara hacia un lugar (lo usa el recorrido guiado).
+// El mapa está acostado: el punto (x, y) del mapa queda en (x, 0, −y) del mundo.
+let vuelo = null;
+function volarA(lon, lat, dist = 0.5, ms = 1600) {
+  if (app.modoAR) return; // en AR manda la cámara del visitante
+  const [x, y] = proyectar(lon, lat);
+  const haciaT = new THREE.Vector3(x, 0, -y);
+  const dir = new THREE.Vector3(0, 0.8, 0.6).normalize();
+  vuelo = {
+    t0: performance.now(), ms,
+    desdeT: controles.target.clone(), desdeP: camara.position.clone(),
+    haciaT, haciaP: haciaT.clone().addScaledVector(dir, dist),
+  };
+}
+function aplicarVuelo() {
+  if (!vuelo) return;
+  const k = Math.min(1, (performance.now() - vuelo.t0) / vuelo.ms);
+  const s = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; // suave al inicio y al final
+  controles.target.lerpVectors(vuelo.desdeT, vuelo.haciaT, s);
+  camara.position.lerpVectors(vuelo.desdeP, vuelo.haciaP, s);
+  if (k >= 1) vuelo = null;
+}
 function bucle() {
   const dt = Math.min(0.05, reloj.getDelta());
   frame(dt);
   aplicarZoom(dt);
+  aplicarVuelo();
   controles.update();
   renderer.render(escena, camara);
 }
@@ -1317,6 +1362,63 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ---------------------------------------------------------------------
+// Recorrido guiado (4 minutos)
+// ---------------------------------------------------------------------
+let simulacroAntes = true;
+const limpiarPaso = () => {
+  sim.detener(); sim.cb.onFin(); tsunami.detener();
+  detenerSonido(); audio.detenerAmbiente(); audio.detenerGrabacion();
+  cerrarFicha();
+  $$('.resaltar').forEach((x) => x.classList.remove('resaltar'));
+};
+const recorrido = crearRecorrido({
+  cambiarCapa, fichaEstado, volarA, ponerAnio,
+  abrirPasaporte: () => guia.abrirPasaporte(),
+  clic: () => audio.clic(700),
+  verSubsuelo(on) { $('#chk-subsuelo').checked = on; mapa.setSubsuelo(on); },
+  prepararPrediccion() {
+    plegarPanel(false);
+    ponerEscucha('MX-HID');
+    sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 });
+    sincronizarControles();
+    const poe = $('.poe');
+    poe.classList.add('resaltar');
+    poe.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  },
+  simularAcapulco() {
+    $('#chk-simulacro').checked = false; // el simulacro interrumpiría la explicación
+    ponerEscucha('MX-HID');
+    sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 });
+    sim.iniciar();
+    volarA(-99.3, 18.2, 0.75);
+  },
+  async escucharReal(archivo) {
+    plegarPanel(false);
+    const k = REALES.findIndex((s) => s.archivo === archivo);
+    await mostrarReal(REALES[k], $$('#reales button')[k]);
+    $('#sismograma').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    $('#btn-escuchar').click();
+  },
+  erupcion(nombre) {
+    const reg = mapa.volcanes.find((r) => r.v.nombre === nombre);
+    if (reg) { mapa.erupcion(reg); audio.erupcion(0); }
+  },
+  antesDePaso: limpiarPaso,
+  alSalir() { $('#chk-simulacro').checked = simulacroAntes; },
+});
+function empezarRecorrido() {
+  audio.iniciarAudio();
+  simulacroAntes = $('#chk-simulacro').checked;
+  if (innerWidth <= 900) plegarPanel(true); // en celular, que se vea el mapa
+  inicio.classList.add('fuera');
+  setTimeout(() => (inicio.hidden = true), 600);
+  recorrido.iniciar();
+}
+$('#btn-recorrido').addEventListener('click', empezarRecorrido);
+$('#btn-recorrido-panel').addEventListener('click', empezarRecorrido);
+renderer.domElement.addEventListener('pointerdown', () => { vuelo = null; }); // el visitante toma el control
+
+// ---------------------------------------------------------------------
 // Modo sin conexión: service worker (no se activa con ?dev, para desarrollar)
 // ---------------------------------------------------------------------
 const params = new URLSearchParams(location.search);
@@ -1348,7 +1450,9 @@ function volverAlInicio() {
   detenerSensor(); detenerSonido();
   audio.detenerAmbiente(); audio.detenerGrabacion();
   if (app.modoAR) salirAR();
+  if (recorrido.activo()) recorrido.salir();
   guia.reiniciar();
+  ponerNivel('aventureros');
   cambiarCapa('estados');
   encuadrado = false; redimensionar();
   inicio.hidden = false;

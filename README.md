@@ -158,3 +158,11 @@ Librerías: Three.js (MIT), MindAR (MIT).
 - **Modo exhibición:** abre la app con `?exhibicion`, por ejemplo `https://nshtpdrz.github.io/mexico-vivo/?exhibicion`. Tras 90 s sin uso vuelve a la pantalla de inicio, cierra todo, detiene los sonidos y reinicia el pasaporte. La pantalla de inicio cambia de pregunta cada 10 s, se desactiva el menú contextual y se ocultan las herramientas de depuración. Se puede instalar como app desde el navegador («Instalar» o «Agregar a pantalla de inicio»).
 - **Contenido en revisión:** toda ficha cuyos datos aún no tienen fuente registrada lo indica. Las tradiciones y platillos ahora dicen de qué región o comunidad son, y se quitaron entradas dudosas.
 - **Verificador:** `verificador.html` lista todas las afirmaciones de la app con su fuente sugerida y descarga un CSV para repartir la verificación en el equipo.
+
+## P1: niveles de edad y recorrido guiado
+- **Tres niveles de explicación** (en la portada o con el botón «A+» de la barra):
+  - **Exploradores (6–11 años):** letra grande, una frase sencilla por capa y sin tablas.
+  - **Aventureros (12–17):** la vista normal.
+  - **Descubridores (adultos):** muestra las ecuaciones, los supuestos y los límites de cada modelo, con las secciones avanzadas abiertas.
+  Los tres usan los mismos hechos; solo cambia la profundidad. Sustituye al antiguo «modo sencillo».
+- **Recorrido guiado de 4 minutos** (botón en la portada y en la capa Estados): 10 pasos, de las placas a la cultura. Hidalgo → placa de Cocos → predicción → ondas y alerta → sismo real de 2017 → volcanes → selva → clima → Tula en el año 950 → exploración libre. El visitante avanza con «Siguiente»; la cámara vuela sola a cada lugar. En celular pliega el panel para que se vea el mapa. En modo exhibición se cierra al reiniciar.
