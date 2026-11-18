@@ -145,7 +145,7 @@ Librerías: Three.js (MIT), MindAR (MIT).
   powershell -ExecutionPolicy Bypass -File herramientas\relieve.ps1 -Id orizaba -Lat 19.03 -Lon -97.27 -Medio 0.13 -N 61
   ```
 - **Volcanes del mapa rediseñados:** perfil cóncavo, cráter, barrancas y colores por altitud (bosque, roca y nieve).
-- **Capa 6 · Cultura e historia:** línea del tiempo de 1500 a.C. a hoy. Los sitios de cada época se encienden en el mapa (26 lugares: zonas arqueológicas, ciudades virreinales e historia moderna, con énfasis en Hidalgo: Tula, Real del Monte, Acueducto del Padre Tembleque y Pachuca). Cada estado muestra su platillo, artesanía y tradición, y algunos suenan con su música (marimba, son jarocho, son huasteco).
+- **Capas 6 y 7 · Historia y Cultura (antes una sola capa):** línea del tiempo de 1500 a.C. a hoy. Los sitios de cada época se encienden en el mapa (26 lugares: zonas arqueológicas, ciudades virreinales e historia moderna, con énfasis en Hidalgo: Tula, Real del Monte, Acueducto del Padre Tembleque y Pachuca). Cada estado muestra su platillo, artesanía y tradición, y algunos suenan con su música (marimba, son jarocho, son huasteco).
 - **12 misiones** en el pasaporte, incluidas «Conoce a los Atlantes» y «Viaja a 1325».
 - **Más sonidos (opcionales):** `sonidos.json` trae 9 grabaciones nuevas con su enlace de descarga y licencia. La app usa las que encuentre en `assets/sonidos/`.
 
@@ -166,3 +166,5 @@ Librerías: Three.js (MIT), MindAR (MIT).
   - **Descubridores (adultos):** muestra las ecuaciones, los supuestos y los límites de cada modelo, con las secciones avanzadas abiertas.
   Los tres usan los mismos hechos; solo cambia la profundidad. Sustituye al antiguo «modo sencillo».
 - **Recorrido guiado de 4 minutos** (botón en la portada y en la capa Estados): 10 pasos, de las placas a la cultura. Hidalgo → placa de Cocos → predicción → ondas y alerta → sismo real de 2017 → volcanes → selva → clima → Tula en el año 950 → exploración libre. El visitante avanza con «Siguiente»; la cámara vuela sola a cada lugar. En celular pliega el panel para que se vea el mapa. En modo exhibición se cierra al reiniciar.
+
+- **Historia y Cultura separadas:** *Historia* (tecla 6) tiene la línea del tiempo y los 26 sitios; al tocar un estado muestra sus sitios cercanos en orden cronológico. *Cultura* (tecla 7) tiene las tradiciones vivas de cada región, la música regional y el Patrimonio Inmaterial de la UNESCO; colorea el mapa por región para recordar que cada tradición es de una región o comunidad, no de todo el estado.

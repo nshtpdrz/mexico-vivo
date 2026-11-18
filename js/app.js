@@ -224,7 +224,8 @@ const LEYENDAS = {
   volcanes: () => [['#5b3a2a', 'Volcán (altura proporcional)'], ['#ff7a1a', 'Eje Neovolcánico'], ['#2b2f3a', 'Sitio geológico']],
   biodiversidad: () => Object.values(BIOMAS).map((b) => [b.color, b.nombre]),
   clima: () => escalaLeyenda(),
-  cultura: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
+  historia: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
+  cultura: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#e2b8a0', 'Cada tradición indica su región o comunidad']]),
 };
 
 function cambiarCapa(capa) {
@@ -241,7 +242,7 @@ function cambiarCapa(capa) {
   if (capa !== 'tectonica') { sim.detener(); tsunami.detener(); }
   if (capa === 'tectonica') { sim._calcular(); }
   if (capa === 'clima' && !app.clima) cargarClima();
-  if (capa === 'cultura') ponerAnio(app.anio ?? null);
+  if (capa === 'historia') ponerAnio(app.anio ?? null);
   pintarLeyenda();
   audio.clic(660);
   guia.alEntrarCapa(capa);
@@ -340,15 +341,29 @@ function fichaEstado(id) {
     sub: `Capital: ${e.capital} · ${REGIONES[e.region].nombre}`,
     color: REGIONES[e.region].color,
   };
-  if (app.capa === 'cultura') {
-    const k = CULTURA_ESTADOS[id] || {};
-    const sitios = SITIOS.filter((s) => distanciaKm(s.lat, s.lon, e.lat, e.lon) < 200);
-    if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
+  if (app.capa === 'historia') {
+    // sitios dentro del estado o a menos de 120 km de su capital, del más antiguo al más reciente
+    const sitios = SITIOS.filter((s) => distanciaKm(s.lat, s.lon, e.lat, e.lon) < 120).sort((a, b) => a.desde - b.desde);
     abrirFicha({
       ...base,
-      chips: [],
-      cuerpo: `${[['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]].filter(([, v]) => v).map(([t, v]) => `<p class="rasgo"><b>${t}:</b> ${v}</p>`).join('')}<p class="dato">💡 ${e.dato}</p>${sitios.length ? `<h3>Sitios cercanos</h3><ul class="lista-sp">${sitios.map((s) => `<li>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} <b>${s.nombre}</b> <i>${fechaAnio(s.desde)}</i></li>`).join('')}</ul>` : ''}${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">🎶 Escuchando música tradicional de la región.</p>' : ''}`,
-      acciones: k.sonido ? [{ texto: '🎶 Escuchar su música', fn: () => audio.reproducirGrabacion(k.sonido, pan) }] : [],
+      cuerpo: `${sitios.length
+        ? `<h3>Sitios históricos cercanos</h3><ul class="lista-sp lista-sitios-ficha">${sitios.map((s) => `<li data-id="${s.id}"><b>${s.nombre}</b> <i>${fechaAnio(s.desde)}${s.hasta < 2026 ? ' – ' + fechaAnio(s.hasta) : ''}</i></li>`).join('')}</ul>`
+        : '<p>No hay sitios de la línea del tiempo cerca de este estado todavía.</p>'}
+        <p class="dato">${e.dato}</p>`,
+    });
+    $$('.lista-sitios-ficha li', ficha).forEach((li) => (li.onclick = () => fichaObjeto({ tipo: 'sitio', data: SITIOS.find((s) => s.id === li.dataset.id) })));
+    if (id === 'MX-HID') guia.completar('hidalgo');
+    return;
+  }
+  if (app.capa === 'cultura') {
+    const k = CULTURA_ESTADOS[id] || {};
+    if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
+    const rasgos = [['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]].filter(([, v]) => v);
+    abrirFicha({
+      ...base,
+      cuerpo: `${rasgos.length ? rasgos.map(([t, v]) => `<p class="rasgo"><b>${t}:</b> ${v}</p>`).join('') : '<p>Todavía no hay rasgos culturales verificados para este estado.</p>'}
+        ${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">Suena música tradicional de la región (ver Créditos para el autor y la licencia).</p>' : ''}`,
+      acciones: k.sonido ? [{ texto: 'Escuchar su música', fn: () => audio.reproducirGrabacion(k.sonido, pan) }, { texto: 'Detener', clase: 'sec', fn: () => audio.detenerGrabacion() }] : [],
     });
     if (id === 'MX-HID') guia.completar('hidalgo');
     return;
@@ -1354,8 +1369,8 @@ $('#btn-empezar-ar').addEventListener('click', () => {
   entrarAR();
 });
 document.addEventListener('keydown', (e) => {
-  if (e.target.matches('input, select, textarea')) return;
-  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'cultura' };
+  if (e.target.matches?.('input, select, textarea')) return;
+  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura' };
   if (mapaTeclas[e.key]) cambiarCapa(mapaTeclas[e.key]);
   if (e.key === ' ' && app.capa === 'tectonica') { e.preventDefault(); $('#btn-sismo').click(); }
   if (e.key === 'Escape') cerrarFicha();

@@ -327,7 +327,7 @@ body.sencillo .historicos,
 body.sencillo .tarjetas small { display: none; }
 body.sencillo .btn { padding: 13px 18px; font-size: 15px; }
 body.sencillo .capas button { font-size: 15px; padding: 11px 14px; }
-body.sencillo .ficha .cuerpo p:not(:first-child) { display: none; }
+body.sencillo .ficha .cuerpo p:not(:first-child):not(.rasgo) { display: none; }
 body.sencillo h2 { font-size: 24px; }
 
 @media (prefers-reduced-motion: reduce) {

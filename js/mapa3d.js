@@ -625,7 +625,8 @@ export class MapaMexico {
       volcanes: ['comun', 'volcanes'],
       biodiversidad: ['comun', 'biodiversidad'],
       clima: ['comun', 'clima'],
-      cultura: ['comun', 'cultura'],
+      historia: ['comun', 'cultura'], // el grupo «cultura» contiene los sitios históricos
+      cultura: ['comun'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     this.setSubsuelo(this.subsueloActivo ?? true);
@@ -654,9 +655,14 @@ export class MapaMexico {
           color = r.climaColor || '#5a6b80';
           h = r.climaAltura ?? 0.01;
           break;
-        case 'cultura':
+        case 'historia':
           color = r.id === 'MX-HID' ? '#e0a21b' : '#b98a5e';
           h = 0.012;
+          break;
+        case 'cultura':
+          // tonos por región: recuerda que cada tradición es de una región, no de un estado
+          color = new THREE.Color(REGIONES[info.region].color).lerp(new THREE.Color('#e2b8a0'), 0.35).getStyle();
+          h = r.id === 'MX-HID' ? 0.02 : 0.011;
           break;
       }
       r.colorObj.set(color);

@@ -32,6 +32,7 @@
       <button role="tab" data-capa="volcanes">Volcanes</button>
       <button role="tab" data-capa="biodiversidad">Biodiversidad</button>
       <button role="tab" data-capa="clima">Clima</button>
+      <button role="tab" data-capa="historia">Historia</button>
       <button role="tab" data-capa="cultura">Cultura</button>
     </nav>
     <div class="acciones">
@@ -222,12 +223,12 @@
         <p>El aire que sube se expande porque hay menos presión, y al expandirse se enfría (enfriamiento adiabático). Por eso Toluca (2,660 m) es mucho más fría que Villahermosa (10 m), aunque están casi a la misma latitud.</p>
       </details>
     </section>
-    <section class="panel-capa" data-capa="cultura" hidden>
-      <p class="sub">Capa 6 · Historia y cultura</p>
+    <section class="panel-capa" data-capa="historia" hidden>
+      <p class="sub">Capa 6 · Historia</p>
       <h2>3,500 años de historia en un mapa</h2>
       <p class="solo-exploradores nino">Hace miles de años ya había ciudades en México. Mueve la línea del tiempo para viajar al pasado.</p>
       <p class="solo-descubridores avanzado">Las fechas son aproximadas y algunas siguen en debate académico. Las culturas mencionadas tienen descendientes y comunidades vivas hoy.</p>
-      <p>De los olmecas a hoy. Mueve la línea del tiempo: los lugares que existían en esa época se encienden. Toca un estado para conocer su comida, su artesanía y su música.</p>
+      <p>De los olmecas a hoy. Mueve la línea del tiempo: los lugares que existían en esa época se encienden en el mapa. Toca un sitio para conocer su historia o un estado para ver los sitios que tiene cerca.</p>
       <div class="linea-tiempo">
         <div class="lt-cab"><b id="anio-texto">Todas las épocas</b><button class="btn mini" id="btn-todas-epocas">Ver todas</button></div>
         <input type="range" id="rng-anio" min="-1500" max="2026" step="1" value="1325" aria-label="Año">
@@ -239,9 +240,18 @@
       <div class="historicos" id="eras"></div>
       <h3>Lugares</h3>
       <ul class="lista" id="lista-sitios"></ul>
+      <p class="nota">Fechas aproximadas. Fuentes sugeridas: INAH, INEHRM, Archivo General de la Nación.</p>
+    </section>
+
+    <section class="panel-capa" data-capa="cultura" hidden>
+      <p class="sub">Capa 7 · Cultura viva</p>
+      <h2>Tradiciones de hoy, de cada región</h2>
+      <p class="solo-exploradores nino">En cada rincón de México se cocina, se teje y se baila distinto. Toca un estado y escucha su música.</p>
+      <p class="solo-descubridores avanzado">Una tradición pertenece a una región o comunidad, no a todo el estado: por eso cada rasgo indica su lugar. Son prácticas vivas, no reconstrucciones del pasado.</p>
+      <p>Toca un estado para conocer un platillo, una artesanía y una tradición, cada uno con la región o comunidad de donde es propio. En Chiapas, Veracruz, Hidalgo y San Luis Potosí suena su música regional.</p>
       <h3>Patrimonio Cultural Inmaterial (UNESCO)</h3>
       <ul class="lista" id="inmaterial"></ul>
-      <p class="nota">Fechas aproximadas. Fuentes sugeridas: INAH, UNESCO, Secretaría de Cultura.</p>
+      <p class="nota">Contenido en revisión. Fuentes sugeridas: Secretaría de Cultura, Sistema de Información Cultural, UNESCO.</p>
     </section>
   </aside>
 
