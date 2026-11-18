@@ -6,10 +6,9 @@
   <title>México Vivo</title>
   <meta name="description" content="Mapa interactivo de México con realidad aumentada: sismos, volcanes, biodiversidad y clima en vivo.">
   <meta name="theme-color" content="#0a0f1c">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌎</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="fonts/fuentes.css">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/estilo.css">
   <script type="importmap">
     { "imports": {
@@ -58,6 +57,7 @@
         <div><b>~80</b><small>sismos al día que registra el SSN</small></div>
         <div><b>+2,000</b><small>volcanes en el territorio</small></div>
       </div>
+      <p class="revision">Cifras en revisión: el equipo está verificando sus fuentes.</p>
       <details>
         <summary>Créditos y fuentes de datos</summary>
         <p><b>Datos en vivo:</b> Open-Meteo (clima), USGS (sismos recientes).</p>
@@ -252,6 +252,7 @@
     <div class="inicio-cont">
       <span class="logo grande" aria-hidden="true"></span>
       <h1>México Vivo</h1>
+      <p class="inicio-pregunta" id="inicio-pregunta" hidden></p>
       <p>Explora las fuerzas que mueven, sacuden y dan vida a México: placas tectónicas, ondas sísmicas, volcanes, ecosistemas y clima en tiempo real.</p>
       <div class="inicio-botones">
         <button class="btn primario grande" id="btn-empezar">Explorar en 3D</button>

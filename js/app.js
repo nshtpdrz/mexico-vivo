@@ -7,7 +7,7 @@ import { MapaMexico, crearEtiqueta, vec } from './mapa3d.js';
 import { SimuladorSismo, dibujarCorte, ROMANOS, DESC_MMI, energia } from './sismo.js';
 import { obtenerClima, obtenerSismosUSGS, regresion } from './apis.js';
 import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js';
-import { abrirVolcan } from './volcan3d.js';
+import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
 import { desproyectar, distanciaKm } from './geo.js';
 import * as audio from './audio.js';
@@ -279,7 +279,7 @@ try { if (localStorage.getItem('mv-sencillo') === '1') modoSencillo(true); } cat
 // Ficha de información
 // ---------------------------------------------------------------------
 const ficha = $('#ficha');
-function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], color = null }) {
+function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], color = null, revision = true }) {
   plegarPanel(false);
   ficha.hidden = false;
   ficha.style.setProperty('--acento', color || 'var(--oro)');
@@ -289,6 +289,7 @@ function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], 
     <h2>${titulo}</h2>
     ${chips.length ? `<div class="chips">${chips.map((c) => `<span class="chip">${c}</span>`).join('')}</div>` : ''}
     <div class="cuerpo">${cuerpo}</div>
+    ${revision ? '<p class="revision">Contenido en revisión: el equipo está verificando sus fuentes.</p>' : ''}
     <div class="acciones-ficha">${acciones.map((a, i) => `<button class="btn ${a.clase || ''}" data-i="${i}">${a.texto}</button>`).join('')}</div>`;
   $('.cerrar', ficha).onclick = cerrarFicha;
   $$('.acciones-ficha button[data-i]', ficha).forEach((b) => (b.onclick = () => acciones[b.dataset.i].fn()));
@@ -323,8 +324,8 @@ function fichaEstado(id) {
     if (k.sonido) audio.reproducirGrabacion(k.sonido, pan);
     abrirFicha({
       ...base,
-      chips: [`🍽️ ${k.platillo}`, `🎨 ${k.artesania}`, `🎶 ${k.tradicion}`],
-      cuerpo: `<p class="dato">💡 ${e.dato}</p>${sitios.length ? `<h3>Sitios cercanos</h3><ul class="lista-sp">${sitios.map((s) => `<li>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} <b>${s.nombre}</b> <i>${fechaAnio(s.desde)}</i></li>`).join('')}</ul>` : ''}${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">🎶 Escuchando música tradicional de la región.</p>' : ''}`,
+      chips: [],
+      cuerpo: `${[['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]].filter(([, v]) => v).map(([t, v]) => `<p class="rasgo"><b>${t}:</b> ${v}</p>`).join('')}<p class="dato">💡 ${e.dato}</p>${sitios.length ? `<h3>Sitios cercanos</h3><ul class="lista-sp">${sitios.map((s) => `<li>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} <b>${s.nombre}</b> <i>${fechaAnio(s.desde)}</i></li>`).join('')}</ul>` : ''}${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">🎶 Escuchando música tradicional de la región.</p>' : ''}`,
       acciones: k.sonido ? [{ texto: '🎶 Escuchar su música', fn: () => audio.reproducirGrabacion(k.sonido, pan) }] : [],
     });
     if (id === 'MX-HID') guia.completar('hidalgo');
@@ -458,10 +459,10 @@ function fichaObjeto(ud) {
       abrirFicha({ titulo: 'Eje Neovolcánico Transversal', sub: '~1,000 km de Nayarit a Veracruz', color: '#ff7a1a', cuerpo: '<p>Es una cadena de más de 8,000 estructuras volcánicas. Está inclinado respecto a la fosa porque la placa de Cocos se hunde con distintos ángulos: bajo Guerrero viaja casi plana (losa plana) antes de hundirse.</p>' });
       break;
     case 'museo':
-      abrirFicha({ titulo: 'Museo El Rehilete', sub: 'Pachuca, Hidalgo', color: '#f2b21b', cuerpo: '<p>¡Aquí estamos! Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '🌍 Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
+      abrirFicha({ revision: false, titulo: 'Museo El Rehilete', sub: 'Pachuca, Hidalgo', color: '#f2b21b', cuerpo: '<p>¡Aquí estamos! Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '🌍 Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
       break;
     case 'usgs':
-      abrirFicha({
+      abrirFicha({ revision: false,
         titulo: `M${d.mag.toFixed(1)} · ${d.lugar}`, sub: new Date(d.tiempo).toLocaleString('es-MX'), color: '#ff8a3a',
         chips: [`Profundidad ${fmt(d.prof)} km`, 'Dato real · USGS'],
         cuerpo: '<p>Sismo real registrado por la red mundial. Puedes simular cómo se propagaron sus ondas.</p>',
@@ -1315,5 +1316,59 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrarFicha();
 });
 
-// Exponer para depuración
-window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom, tsunami };
+// ---------------------------------------------------------------------
+// Modo sin conexión: service worker (no se activa con ?dev, para desarrollar)
+// ---------------------------------------------------------------------
+const params = new URLSearchParams(location.search);
+if ('serviceWorker' in navigator && location.protocol !== 'file:' && !params.has('dev')) {
+  navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Sin modo sin conexión:', e));
+}
+
+// ---------------------------------------------------------------------
+// Modo exhibición (?exhibicion): para dejar la app sola en el museo.
+// Tras 90 s sin que nadie la toque, todo vuelve al inicio para el siguiente
+// visitante: se cierran fichas y ventanas, se detienen sonidos y simulaciones
+// y se reinicia el pasaporte.
+// ---------------------------------------------------------------------
+const EXHIBICION = params.has('exhibicion');
+const INACTIVIDAD_S = 90;
+const PREGUNTAS_INICIO = [
+  '¿Cuántos segundos de aviso tendría Pachuca si tiembla en Acapulco?',
+  '¿Por qué hay volcanes en el centro de México?',
+  '¿Qué tan rápido viaja un tsunami en mar abierto?',
+  '¿Cómo suena un sismo real registrado en la UNAM?',
+  '¿Por qué hace más frío en Toluca que en Villahermosa?',
+];
+function volverAlInicio() {
+  cerrarFicha();
+  document.querySelectorAll('dialog[open]').forEach((d) => d.close());
+  $('#simulacro').hidden = true;
+  cerrarVolcan();
+  sim.detener(); sim.cb.onFin(); tsunami.detener();
+  detenerSensor(); detenerSonido();
+  audio.detenerAmbiente(); audio.detenerGrabacion();
+  if (app.modoAR) salirAR();
+  guia.reiniciar();
+  cambiarCapa('estados');
+  encuadrado = false; redimensionar();
+  inicio.hidden = false;
+  inicio.classList.remove('fuera');
+}
+if (EXHIBICION) {
+  document.body.classList.add('exhibicion');
+  let ultimo = Date.now();
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach((ev) => addEventListener(ev, () => { ultimo = Date.now(); }, { passive: true, capture: true }));
+  setInterval(() => {
+    if (inicio.hidden && Date.now() - ultimo > INACTIVIDAD_S * 1000) volverAlInicio();
+  }, 2000);
+  // pantalla de atracción: una pregunta nueva cada 10 s
+  const p = $('#inicio-pregunta');
+  let k = 0;
+  p.hidden = false;
+  p.textContent = PREGUNTAS_INICIO[0];
+  setInterval(() => { k = (k + 1) % PREGUNTAS_INICIO.length; p.textContent = PREGUNTAS_INICIO[k]; }, 10000);
+  addEventListener('contextmenu', (e) => e.preventDefault());
+} else {
+  // Exponer para depuración (no en el museo)
+  window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom, tsunami, volverAlInicio };
+}

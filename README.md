@@ -151,3 +151,10 @@ Librerías: Three.js (MIT), MindAR (MIT).
 
 - **Tsunami:** si el epicentro está en el mar, con M7 o más y a menos de 70 km de profundidad, un anillo de ola avanza por el océano y la app estima la llegada y la altura de la ola en 20 puertos del Pacífico y del Golfo. Usa v = √(g·h): unos 713 km/h en mar profundo y unos 113 km/h en la plataforma costera. Las alturas son estimaciones didácticas.
 - **Barra superior adaptable:** si las pestañas no caben (pantalla chica, zoom o letra grande), pasan solas a una segunda fila.
+
+## Modo sin conexión, modo exhibición y verificación (P0)
+- **Sin conexión:** la primera visita guarda la app completa (unos 12 MB: código, datos, relieve, sismogramas, tipografías y sonidos chicos). Los audios grandes se guardan la primera vez que suenan. Después funciona sin internet; el clima y el USGS muestran su último dato guardado. **Comprobado:** con el servidor apagado, la app abrió y cargó un sismograma real. Para desarrollar sin caché, usa `?dev` en la dirección. Cuando cambies archivos, sube `VERSION` en `sw.js`.
+- **Tipografías locales** (Inter y Space Grotesk, licencia OFL) en `fonts/`: ya no se depende de Google Fonts.
+- **Modo exhibición:** abre la app con `?exhibicion`, por ejemplo `https://nshtpdrz.github.io/mexico-vivo/?exhibicion`. Tras 90 s sin uso vuelve a la pantalla de inicio, cierra todo, detiene los sonidos y reinicia el pasaporte. La pantalla de inicio cambia de pregunta cada 10 s, se desactiva el menú contextual y se ocultan las herramientas de depuración. Se puede instalar como app desde el navegador («Instalar» o «Agregar a pantalla de inicio»).
+- **Contenido en revisión:** toda ficha cuyos datos aún no tienen fuente registrada lo indica. Las tradiciones y platillos ahora dicen de qué región o comunidad son, y se quitaron entradas dudosas.
+- **Verificador:** `verificador.html` lista todas las afirmaciones de la app con su fuente sugerida y descarga un CSV para repartir la verificación en el equipo.

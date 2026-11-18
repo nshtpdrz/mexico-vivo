@@ -526,3 +526,11 @@ body.barra-doble:not(.modo-ar) .axo { top: 130px; }
 .ola.media { background: rgba(255,176,46,0.22); color: #ffd28a; }
 .ola.alta { background: rgba(255,77,77,0.25); color: #ffb3b3; }
 .log .ev-tsunami { background: rgba(79,195,255,0.16); }
+
+/* ---------- modo exhibición ---------- */
+.inicio-pregunta { font-family: var(--display); font-size: clamp(20px, 3vw, 28px); color: var(--oro); min-height: 2.6em; max-width: 620px; animation: aparece 0.6s ease; }
+body.exhibicion .inicio .nota { display: none; }
+body.exhibicion { user-select: none; -webkit-user-select: none; }
+
+.revision { font-size: 12px; color: #ffd9a8; background: rgba(255,154,26,0.1); border-left: 3px solid var(--oro-2); padding: 6px 10px; border-radius: 6px; margin: 10px 0 0; }
+.rasgo { margin: 0 0 6px; }

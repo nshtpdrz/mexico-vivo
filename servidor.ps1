@@ -8,6 +8,7 @@ $tipos = @{
   '.html' = 'text/html; charset=utf-8'; '.js' = 'text/javascript; charset=utf-8'; '.mjs' = 'text/javascript; charset=utf-8'
   '.css' = 'text/css; charset=utf-8'; '.json' = 'application/json'; '.png' = 'image/png'; '.jpg' = 'image/jpeg'
   '.svg' = 'image/svg+xml'; '.mind' = 'application/octet-stream'; '.ico' = 'image/x-icon'; '.md' = 'text/plain; charset=utf-8'
+  '.woff2' = 'font/woff2'; '.webmanifest' = 'application/manifest+json'; '.mp3' = 'audio/mpeg'; '.mseed' = 'application/vnd.fdsn.mseed'
 }
 $l = New-Object System.Net.HttpListener
 $l.Prefixes.Add("http://localhost:$Puerto/")

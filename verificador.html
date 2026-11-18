@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verificador de contenidos</title>
+  <link rel="stylesheet" href="fonts/fuentes.css">
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: Inter, system-ui, sans-serif; margin: 0; background: #f6f3ee; color: #1b1b1b; }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+    h1 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 4px; }
+    .barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0; }
+    button, select { font: 600 14px Inter, system-ui; padding: 9px 14px; border-radius: 10px; border: 1px solid #c9c1ad; background: #fff; cursor: pointer; }
+    button.pri { background: #f2a21b; border-color: #d98a00; }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+    th, td { text-align: left; vertical-align: top; padding: 7px 8px; border-bottom: 1px solid #e7e1d6; }
+    th { position: sticky; top: 0; background: #efe8db; }
+    td.fuente { color: #5b5346; font-size: 12px; }
+    .total { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Verificador de contenidos de México Vivo</h1>
+    <p>Esta es la lista de <b>todas las afirmaciones de la app que necesitan una fuente</b>. Descárgala, repártela en el equipo y llena las columnas de fuente, URL, fecha de consulta y nivel de evidencia (A–D).
+      Lo que no tenga fuente de nivel A o B se queda marcado «en revisión» en la app.</p>
+    <div class="barra">
+      <label>Módulo <select id="filtro"><option value="">Todos</option></select></label>
+      <button class="pri" id="csv">Descargar CSV para el equipo</button>
+      <span class="total" id="total"></span>
+    </div>
+    <table>
+      <thead><tr><th>Módulo</th><th>Elemento</th><th>Afirmación</th><th>Fuente sugerida</th></tr></thead>
+      <tbody id="filas"></tbody>
+    </table>
+  </main>
+  <script src="data/mexico-estados.js"></script>
+  <script type="module">
+    import { ESTADOS, VOLCANES, ESPECIES, GEOSITIOS, SISMOS_HISTORICOS, BIOMAS } from './js/datos.js';
+    import { SITIOS, EVENTOS, ERAS, CULTURA_ESTADOS, INMATERIAL } from './js/cultura.js';
+
+    const nombreEstado = Object.fromEntries(window.MX_GEO.features.map((f) => [f.properties.id, f.properties.name]));
+    const filas = [];
+    const add = (modulo, elemento, afirmacion, fuente) => filas.push({ modulo, elemento, afirmacion, fuente });
+
+    add('Portada', 'Cifras', 'México alberga cerca del 12 % de las especies conocidas del planeta.', 'CONABIO');
+    add('Portada', 'Cifras', 'El SSN registra unos 80 sismos al día.', 'SSN-UNAM (reportes anuales)');
+    add('Portada', 'Cifras', 'Hay más de 2,000 volcanes en el territorio.', 'Instituto de Geofísica UNAM / CENAPRED');
+    for (const [id, e] of Object.entries(ESTADOS)) {
+      add('Estados', nombreEstado[id], e.dato, 'INEGI, SGM, INAH o CONABIO según el tema');
+      add('Estados', nombreEstado[id], `Zona sísmica predominante: ${e.zona}; ecosistema dominante: ${BIOMAS[e.bioma].nombre} (simplificación).`, 'CFE (regionalización sísmica); INEGI/CONABIO (vegetación)');
+    }
+    for (const v of VOLCANES) add('Volcanes', v.nombre, `${v.alt} m · ${v.tipo} · ${v.estado}. ${v.dato}`, 'Smithsonian Global Volcanism Program; CENAPRED');
+    for (const g of GEOSITIOS) add('Volcanes', g.nombre, g.dato, 'SGM; Geoparque Comarca Minera; UNESCO');
+    for (const s of SISMOS_HISTORICOS) add('Sismos', s.nombre, `${s.fecha}, M${s.mag}, ${s.prof} km, epicentro ${s.lat}, ${s.lon}. ${s.nota}`, 'SSN-UNAM (catálogo); USGS');
+    for (const s of ESPECIES) add('Biodiversidad', `${s.nombre} (${s.cientifico})`, `Categoría: ${s.estado}. ${s.dato}`, 'EncicloVida/CONABIO; NOM-059-SEMARNAT-2010; UICN');
+    for (const b of Object.values(BIOMAS)) add('Biodiversidad', b.nombre, b.texto, 'CONABIO; INEGI (uso de suelo y vegetación)');
+    for (const e of ERAS) add('Historia', e.nombre, `${e.desde} a ${e.hasta}: ${e.texto}`, 'INAH; El Colegio de México (Historia general de México)');
+    for (const e of EVENTOS) add('Historia', String(e.anio), e.texto, 'INAH; INEHRM; AGN');
+    for (const s of SITIOS) add('Historia y cultura', s.nombre, `${s.desde} a ${s.hasta}${s.unesco ? `, UNESCO ${s.unesco}` : ''}. ${s.dato}`, s.unesco ? 'INAH; UNESCO (Lista del Patrimonio Mundial)' : 'INAH');
+    for (const [n, a] of INMATERIAL) add('Cultura', n, `Inscrito en la lista de Patrimonio Cultural Inmaterial de la UNESCO en ${a}.`, 'UNESCO (ich.unesco.org)');
+    for (const [id, k] of Object.entries(CULTURA_ESTADOS)) {
+      for (const [t, v] of [['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]]) if (v) add('Cultura', `${nombreEstado[id]} · ${t}`, v, 'Secretaría de Cultura; SIC; INAH; UNESCO');
+    }
+
+    const sel = document.getElementById('filtro');
+    [...new Set(filas.map((f) => f.modulo))].forEach((m) => sel.add(new Option(m, m)));
+    const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    const pintar = () => {
+      const v = sel.value;
+      const lista = filas.filter((f) => !v || f.modulo === v);
+      document.getElementById('filas').innerHTML = lista.map((f) => `<tr><td>${f.modulo}</td><td>${esc(f.elemento)}</td><td>${esc(f.afirmacion)}</td><td class="fuente">${esc(f.fuente)}</td></tr>`).join('');
+      document.getElementById('total').textContent = `${lista.length} afirmaciones por verificar`;
+    };
+    sel.onchange = pintar;
+    pintar();
+    document.getElementById('csv').onclick = () => {
+      const c = (s) => `"${String(s ?? '').replace(/"/g, '""')}"`;
+      const cab = ['modulo', 'elemento', 'afirmacion', 'fuente_sugerida', 'fuente_consultada', 'institucion', 'url', 'fecha_consulta', 'nivel_A_D', 'estado', 'responsable', 'notas'];
+      const txt = [cab.join(','), ...filas.map((f) => [f.modulo, f.elemento, f.afirmacion, f.fuente, '', '', '', '', '', 'pendiente', '', ''].map(c).join(','))].join('\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(['﻿' + txt], { type: 'text/csv;charset=utf-8' }));
+      a.download = 'mexico-vivo-verificacion.csv';
+      a.click();
+    };
+  </script>
+</body>
+</html>
