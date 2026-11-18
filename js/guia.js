@@ -104,7 +104,7 @@ const PISTAS_CAPA = {
   historia: 'Mueve la línea del tiempo y mira cómo aparecen las ciudades de cada época.',
   cultura: '¡Toca un estado para conocer su comida, su artesanía y su música!',
   lenguas: 'En 2020, más de 7 millones de personas hablaban una lengua indígena. Toca un estado para ver qué porcentaje de su población la habla.',
-  sabores: 'Las vasijas marcan dónde se encontraron rastros antiguos de maíz, calabaza, chile y cacao. En el panel puedes hacer nixtamal paso a paso.',
+  sabores: 'Las vasijas marcan dónde se encontraron rastros antiguos de maíz, frijol, calabaza, chile y cacao. En el panel puedes hacer nixtamal paso a paso.',
 };
 const yaDicho = new Set();
 export function alEntrarCapa(capa) {

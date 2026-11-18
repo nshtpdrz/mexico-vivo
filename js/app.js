@@ -11,7 +11,7 @@ import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
 import { crearRecorrido } from './recorrido.js';
 import { LENGUA_ESTADOS, RESUMEN_LENGUAS, TOP_LENGUAS, FAMILIAS, FUENTES_LENGUAS } from './lenguas.js';
-import { FUENTES_SABORES, ORIGENES, LINEA_SABORES, PASOS_NIXTAMAL, EFECTOS_NIXTAMAL } from './sabores.js';
+import { FUENTES_SABORES, ORIGENES, LINEA_SABORES, PASOS_NIXTAMAL, EFECTOS_NIXTAMAL, OTROS_ALIMENTOS, PENDIENTES_SABORES } from './sabores.js';
 import { colorLenguas } from './mapa3d.js';
 import { desproyectar, distanciaKm, proyectar } from './geo.js';
 import * as audio from './audio.js';
@@ -230,7 +230,7 @@ const LEYENDAS = {
   historia: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
   lenguas: () => [0.2, 2, 8, 16, 31.2].map((p) => [colorLenguas(p), `${p} %`]),
   cultura: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#e2b8a0', 'Cada tradición indica su región o comunidad']]),
-  sabores: () => [['#f2c23a', 'Maíz'], ['#e2873a', 'Calabaza'], ['#d23a2a', 'Chile'], ['#7a4a2a', 'Cacao'], ['#c7ab84', 'Ubicación aproximada de la evidencia']],
+  sabores: () => [['#f2c23a', 'Maíz'], ['#e2873a', 'Calabaza'], ['#d23a2a', 'Chile'], ['#7a4a2a', 'Cacao'], ['#6a2335', 'Frijol (región genética)'], ['#c7ab84', 'Ubicación aproximada de la evidencia']],
 };
 
 function cambiarCapa(capa) {
@@ -493,7 +493,7 @@ function fichaObjeto(ud) {
       const citas = d.fuentes.map((k) => FUENTES_SABORES[k]);
       abrirFicha({
         titulo: d.nombre, sub: `${d.alimento} · ${d.lugar}`, color: d.color, revision: false,
-        chips: [d.alimento, d.hace ? `Hace unos ${fmt(d.hace)} años` : 'Fecha pendiente de verificar', 'Ubicación aproximada'],
+        chips: [d.alimento, d.hace ? `Hace unos ${fmt(d.hace)} años` : 'La fuente no da fecha', 'Ubicación aproximada'],
         cuerpo: `<p class="solo-exploradores">${d.nino}</p>
           <p class="no-exploradores">${d.texto}</p>
           <p class="solo-descubridores">${d.avanzado}</p>
@@ -1250,6 +1250,9 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
   $('#fuentes-sabores').innerHTML = Object.values(FUENTES_SABORES).map((s) => `
     <li><a href="${s.url}" target="_blank" rel="noopener">${s.cita}</a> Consulta: ${s.consulta}. Nivel ${s.nivel}.
       <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
+  $('#otros-alimentos').innerHTML = OTROS_ALIMENTOS.map((x) => `
+    <div class="efecto"><b>${x.nombre}</b><p>${x.texto}</p><small>Fuente: ${autor(x.fuente)} ${anio(x.fuente)} (nivel ${FUENTES_SABORES[x.fuente].nivel})</small></div>`).join('');
+  $('#pendientes-sabores').innerHTML = PENDIENTES_SABORES.map((p) => `<li><b>${p.nombre}:</b> ${p.referencias}</li>`).join('');
   $('#btn-ir-platillos').onclick = () => cambiarCapa('cultura');
 
   // Laboratorio: el visitante avanza paso a paso y la olla cambia de estado

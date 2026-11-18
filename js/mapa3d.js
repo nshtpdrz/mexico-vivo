@@ -641,7 +641,7 @@ export class MapaMexico {
       // el alimento: forma alargada (maíz, chile, cacao) o redonda (calabaza)
       const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.55 });
       const fruto = new THREE.Mesh(new THREE.SphereGeometry(0.0034, 16, 12), mat);
-      const forma = { Maíz: [0.75, 0.75, 2.2], Calabaza: [1.25, 1.25, 1], Chile: [0.6, 0.6, 2.4], Cacao: [0.95, 0.95, 1.7] }[o.alimento] || [1, 1, 1];
+      const forma = { Maíz: [0.75, 0.75, 2.2], Calabaza: [1.25, 1.25, 1], Chile: [0.6, 0.6, 2.4], Cacao: [0.95, 0.95, 1.7], Frijol: [1.3, 0.8, 0.85] }[o.alimento] || [1, 1, 1];
       fruto.scale.set(...forma);
       fruto.position.z = 0.012 + 0.0034 * forma[2] * 0.7;
       if (o.alimento === 'Chile') fruto.rotation.y = 0.5;

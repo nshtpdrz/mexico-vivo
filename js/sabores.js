@@ -44,6 +44,30 @@ export const FUENTES_SABORES = {
     usado: 'Uso de cacao en San Lorenzo entre 1800 y 1000 a. C.; menciona evidencia previa en Paso de la Amada y El Manatí.',
     limitaciones: 'Habla de USO de cacao (residuos en vasijas), no de domesticación. Se consultó el resumen.',
   },
+  powis2007: {
+    cita: 'Powis TG, Hurst WJ, Rodríguez MC, Ortíz C P, Blake M, Cheetham D, Coe MD, Hodgson JG. Oldest chocolate in the New World. Antiquity Project Gallery 2007;81(314).',
+    url: 'https://www.antiquity.ac.uk/projgall/powis314', nivel: 'B', consulta: CONSULTA,
+    usado: 'Teobromina en una vasija de Paso de la Amada (costa del Pacífico de Chiapas), fechada entre 1900 y 1500 a. C.',
+    limitaciones: 'Solo 2 de 22 fragmentos dieron positivo (1 de Paso de la Amada); el rango de fechas es conservador.',
+  },
+  kwak2009: {
+    cita: 'Kwak M, Kami JA, Gepts P. The putative Mesoamerican domestication center of Phaseolus vulgaris is located in the Lerma–Santiago basin of Mexico. Crop Science 2009;49:554-563.',
+    url: 'https://doi.org/10.2135/cropsci2008.07.0421', nivel: 'B', consulta: CONSULTA,
+    usado: 'El frijol mesoamericano domesticado proviene de una región restringida de la cuenca Lerma–Santiago, en el centro-occidente de México.',
+    limitaciones: 'Inferencia genética, no hallazgo arqueológico; no da fecha. Se consultó el resumen.',
+  },
+  bitocchi2012: {
+    cita: 'Bitocchi E, Nanni L, Bellucci E, et al. Mesoamerican origin of the common bean (Phaseolus vulgaris L.) is revealed by sequence data. PNAS 2012;109(14):E788-E796.',
+    url: 'https://doi.org/10.1073/pnas.1108973109', nivel: 'B', consulta: CONSULTA,
+    usado: 'La especie del frijol común se originó en Mesoamérica; los acervos de Sudamérica (Andes, norte de Perú-Ecuador) surgieron por migraciones desde poblaciones del centro de México.',
+    limitaciones: 'Habla del origen de la ESPECIE silvestre, no de dónde se domesticó. Se consultó el resumen.',
+  },
+  razifard2020: {
+    cita: 'Razifard H, Ramos A, Della Valle AL, et al. Genomic evidence for complex domestication history of the cultivated tomato in Latin America. Mol Biol Evol 2020;37(4):1118-1132.',
+    url: 'https://doi.org/10.1093/molbev/msz297', nivel: 'B', consulta: CONSULTA,
+    usado: 'El jitomate tuvo una domesticación en dos etapas: formas semidomesticadas en Sudamérica y la transición al jitomate plenamente domesticado en Mesoamérica.',
+    limitaciones: 'No señala un sitio ni una fecha en México. Se consultó el resumen.',
+  },
   zarrillo2018: {
     cita: 'Zarrillo S, et al. The use and domestication of Theobroma cacao during the mid-Holocene in the upper Amazon. Nature Ecology & Evolution 2018;2:1879-1888.',
     url: 'https://doi.org/10.1038/s41559-018-0697-x', nivel: 'B', consulta: CONSULTA,
@@ -108,11 +132,33 @@ export const ORIGENES = [
   },
   {
     id: 'pasoamada', nombre: 'Paso de la Amada', lugar: 'Costa del Pacífico, Chiapas',
-    lon: -92.45, lat: 14.86, alimento: 'Cacao', color: '#7a4a2a', hace: null, fuentes: ['powis2011'],
-    nino: 'En esta aldea de la costa también se encontraron rastros de cacao muy antiguos.',
-    texto: 'El estudio de San Lorenzo cita evidencia aún más temprana de uso de cacao aquí, en la costa del Pacífico. Esto muestra que el cacao se usaba en varias regiones de Mesoamérica, no en un solo lugar.',
-    avanzado: 'La app no muestra la fecha de este sitio porque no se pudo consultar el artículo original que la reporta; queda pendiente de verificación.',
+    lon: -92.45, lat: 14.86, alimento: 'Cacao', color: '#7a4a2a', hace: 3900, fuentes: ['powis2007', 'powis2011'],
+    nino: 'En esta aldea de la costa de Chiapas, el pueblo mokaya ya tomaba cacao hace casi 4,000 años.',
+    texto: 'En una vasija de esta aldea mokaya, en la costa del Pacífico de Chiapas, se detectó teobromina, una sustancia del cacao. La vasija se fechó entre 1900 y 1500 a. C. Junto con San Lorenzo, muestra que el cacao se usaba en varias regiones de Mesoamérica, no en un solo lugar.',
+    avanzado: 'Powis et al. (2007) analizaron 22 fragmentos de vasijas (16 de Paso de la Amada y 6 de El Manatí) con cromatografía de líquidos y espectrometría de masas: solo 2 dieron positivo, uno de cada sitio. El rango 1900–1500 a. C. abarca dos fases (Barra y Locona) para ser conservador.',
   },
+  {
+    id: 'lermasantiago', nombre: 'Cuenca Lerma–Santiago', lugar: 'Centro-occidente de México (región)',
+    lon: -102.2, lat: 20.35, alimento: 'Frijol', color: '#6a2335', hace: null, fuentes: ['kwak2009', 'bitocchi2012'],
+    nino: 'Los científicos compararon el ADN de muchos frijoles y encontraron que el frijol mesoamericano se domesticó en esta región.',
+    texto: 'No es un sitio arqueológico, sino una región: comparando la genética de frijoles silvestres y cultivados, un estudio ubicó el centro de domesticación del frijol mesoamericano en la cuenca de los ríos Lerma y Grande de Santiago. Los autores proponen que las domesticaciones en Mesoamérica pudieron ser difusas, en varias regiones, y no un solo punto. La especie silvestre se originó en Mesoamérica y desde ahí llegó a Sudamérica, donde existe otro acervo de frijol.',
+    avanzado: 'Kwak et al. (2009) usaron marcadores genéticos de poblaciones silvestres y cultivadas; Bitocchi et al. (2012) usaron secuencias de ADN y concluyen un origen mesoamericano de la especie, con poblaciones características del centro de México. El estudio genético no da fecha; la vasija marca una región amplia, no un lugar exacto.',
+  },
+];
+
+// Alimentos con fuente verificada pero sin un sitio puntual en México
+export const OTROS_ALIMENTOS = [
+  {
+    nombre: 'Jitomate', fuente: 'razifard2020',
+    texto: 'Su domesticación ocurrió en dos etapas: primero, formas pequeñas semidomesticadas en Sudamérica; después, al llegar al norte, la transición al jitomate plenamente domesticado en Mesoamérica. Es un ejemplo de alimento que comparten dos regiones del continente.',
+  },
+];
+
+// Pendientes: hay referencias identificadas, pero no se pudo leer su resumen
+// o su texto para confirmar lo que dicen. No se muestran como hechos.
+export const PENDIENTES_SABORES = [
+  { nombre: 'Aguacate', referencias: 'Smith CE. Archeological evidence for selection in avocado. Economic Botany 1966;20:169-175 (doi:10.1007/BF02904012).' },
+  { nombre: 'Vainilla', referencias: 'Lubinsky P, et al. Origins and dispersal of cultivated vanilla (Vanilla planifolia). Economic Botany 2008;62:127-138 (doi:10.1007/s12231-008-9014-y).' },
 ];
 
 // Línea del tiempo (solo fechas presentes en las fuentes)
@@ -121,6 +167,7 @@ export const LINEA_SABORES = [
   { hace: 9000, texto: 'Domesticación del maíz en el sur de México (estimación genética)', fuente: 'matsuoka2002' },
   { hace: 8700, texto: 'Maíz en Xihuatoxtla, Guerrero', fuente: 'piperno2009' },
   { hace: 5300, texto: 'Cacao en la Amazonia alta (Ecuador)', fuente: 'zarrillo2018' },
+  { hace: 3900, texto: 'Cacao en Paso de la Amada, Chiapas (1900–1500 a. C.)', fuente: 'powis2007' },
   { hace: 3800, texto: 'Cacao en San Lorenzo, Veracruz (1800–1000 a. C.)', fuente: 'powis2011' },
   { hace: 16, texto: 'La cocina tradicional mexicana, Patrimonio Inmaterial (2010)', fuente: 'unesco2010' },
 ];
