@@ -72,6 +72,27 @@ export function montarGuia() {
   el.className = 'axo';
   el.innerHTML = `<button class="axo-cara" aria-label="Axo, tu guía">${AXO_SVG}</button><div class="axo-globo" role="status" hidden><p></p><div class="axo-acciones"></div></div>`;
   document.body.appendChild(el);
+  // Axo siempre justo debajo de la barra superior, mida lo que mida (dos
+  // renglones, letra grande, celular): así nunca tapa las pestañas.
+  const barra = document.querySelector('header');
+  const fijarAltura = () => {
+    if (!barra) return;
+    const abajo = Math.round(barra.getBoundingClientRect().bottom + 8);
+    document.documentElement.style.setProperty('--axo-top', `${abajo}px`);
+  };
+  if (barra && 'ResizeObserver' in window) new ResizeObserver(fijarAltura).observe(barra);
+  addEventListener('resize', fijarAltura);
+  setInterval(fijarAltura, 2000);
+  fijarAltura();
+  // En pantallas chicas el globo muestra 3 renglones: un toque lo abre completo
+  // y otro toque lo cierra.
+  const globo = el.querySelector('.axo-globo');
+  globo.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    const p = globo.querySelector('p');
+    if (!globo.classList.contains('completo') && p.scrollHeight > p.clientHeight + 2) globo.classList.add('completo');
+    else globo.hidden = true;
+  });
   el.querySelector('.axo-cara').onclick = () => {
     const pend = MISIONES.find((m) => !hechas[m.id]);
     decir(pend ? `Misión: ${pend.titulo}. ${pend.pista}` : '¡Completaste todas las misiones! Eres un experto de México Vivo.', {
@@ -85,6 +106,7 @@ export function decir(texto, { acciones = [], ms = 9000 } = {}) {
   if (!el) return;
   const g = el.querySelector('.axo-globo');
   g.hidden = false;
+  g.classList.remove('completo');
   g.querySelector('p').textContent = texto;
   const ac = g.querySelector('.axo-acciones');
   ac.innerHTML = '';

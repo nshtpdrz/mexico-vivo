@@ -724,3 +724,17 @@ dialog .cerrar, #reto-x, .ficha .cerrar { min-width: 40px; min-height: 40px; }
   body.panel-plegado .leyenda { bottom: 42px; }
   body.modo-ar .leyenda { bottom: calc(34vh + 40px); }
 }
+
+/* ---------- Axo: siempre debajo de la barra (altura medida en vivo) ---------- */
+body:not(.modo-ar) .axo, body.barra-doble:not(.modo-ar) .axo, body.panel-plegado:not(.modo-ar) .axo {
+  top: var(--axo-top, 92px); bottom: auto; align-items: flex-start;
+}
+.axo-globo { cursor: pointer; }
+@media (max-width: 900px) {
+  body:not(.modo-ar) .axo, body.barra-doble:not(.modo-ar) .axo, body.panel-plegado:not(.modo-ar) .axo { left: 8px; right: 8px; }
+  .axo-cara { width: 40px; height: 40px; padding: 4px; }
+  .axo-globo { max-width: none; flex: 1; font-size: 12.5px; line-height: 1.35; padding: 7px 10px; border-radius: 12px 12px 12px 4px; opacity: 0.96; }
+  .axo-globo p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .axo-globo.completo p { display: block; -webkit-line-clamp: unset; overflow: visible; }
+  .axo-acciones { margin-top: 6px; }
+}
