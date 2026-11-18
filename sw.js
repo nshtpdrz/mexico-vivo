@@ -6,7 +6,7 @@
 //   abre al instante y la siguiente visita trae la versión nueva.
 // - Las APIs externas (clima, USGS) no pasan por aquí: la app ya guarda su
 //   último dato con fecha en el navegador.
-const VERSION = 'mexico-vivo-v4';
+const VERSION = 'mexico-vivo-v5';
 const PRECARGA = [
   './',
   'manifest.webmanifest',
@@ -59,6 +59,7 @@ const PRECARGA = [
   'js/sensor.js',
   'js/sismo.js',
   'js/recorrido.js',
+  'js/lenguas.js',
   'js/sismograma.js',
   'js/tsunami.js',
   'js/volcan3d.js',

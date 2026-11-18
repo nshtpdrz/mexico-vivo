@@ -10,6 +10,8 @@ import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js
 import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
 import { Tsunami } from './tsunami.js';
 import { crearRecorrido } from './recorrido.js';
+import { LENGUA_ESTADOS, RESUMEN_LENGUAS, TOP_LENGUAS, FAMILIAS, FUENTES_LENGUAS } from './lenguas.js';
+import { colorLenguas } from './mapa3d.js';
 import { desproyectar, distanciaKm, proyectar } from './geo.js';
 import * as audio from './audio.js';
 import * as ev from './evaluacion.js';
@@ -225,6 +227,7 @@ const LEYENDAS = {
   biodiversidad: () => Object.values(BIOMAS).map((b) => [b.color, b.nombre]),
   clima: () => escalaLeyenda(),
   historia: () => [['#c9b48a', 'Zona arqueológica'], ['#e0b9a0', 'Ciudad virreinal'], ['#ffc21a', 'Historia moderna'], ['#e0a21b', 'Hidalgo']],
+  lenguas: () => [0.2, 2, 8, 16, 31.2].map((p) => [colorLenguas(p), `${p} %`]),
   cultura: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#e2b8a0', 'Cada tradición indica su región o comunidad']]),
 };
 
@@ -353,6 +356,19 @@ function fichaEstado(id) {
     });
     $$('.lista-sitios-ficha li', ficha).forEach((li) => (li.onclick = () => fichaObjeto({ tipo: 'sitio', data: SITIOS.find((s) => s.id === li.dataset.id) })));
     if (id === 'MX-HID') guia.completar('hidalgo');
+    return;
+  }
+  if (app.capa === 'lenguas') {
+    const d = LENGUA_ESTADOS[id];
+    const rango = Object.values(LENGUA_ESTADOS).filter((x) => x.pct2020 > d.pct2020).length + 1;
+    const cambio = d.pct2020 - d.pct2010;
+    abrirFicha({
+      ...base, revision: false, color: colorLenguas(d.pct2020),
+      chips: [`${fmt(d.pct2020, 1)} % en 2020`, `Lugar ${rango} de 32`],
+      cuerpo: `<p>En 2020, el <b>${fmt(d.pct2020, 1)} %</b> de la población de 3 años y más de ${r.nombre} hablaba alguna lengua indígena${d.hab2020 ? ` (<b>${fmt(d.hab2020)}</b> personas)` : ''}. En 2010 era el ${fmt(d.pct2010, 1)} %${d.hab2010 ? ` (${fmt(d.hab2010)} personas)` : ''}.</p>
+        <p>${Math.abs(cambio) < 0.05 ? 'El porcentaje se mantuvo igual.' : cambio > 0 ? `El porcentaje subió ${fmt(cambio, 1)} puntos.` : `El porcentaje bajó ${fmt(-cambio, 1)} puntos.`} Un porcentaje menor no siempre significa menos hablantes: también cambia el total de la población.</p>
+        <p class="nota">Fuente: INEGI, Censo de Población y Vivienda 2020, presentación de resultados de la entidad (consulta: 18 nov 2026). Este dato no indica qué lenguas se hablan en la entidad.</p>`,
+    });
     return;
   }
   if (app.capa === 'cultura') {
@@ -1168,6 +1184,28 @@ $('#lista-sitios').innerHTML = SITIOS.slice().sort((a, b) => a.desde - b.desde)
 $$('#lista-sitios li').forEach((li) => li.addEventListener('click', () => fichaObjeto({ tipo: 'sitio', data: SITIOS.find((s) => s.id === li.dataset.id) })));
 $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><small>${a}</small></li>`).join('');
 
+// ---------------------------------------------------------------------
+// Lenguas: gráfica de las 10 con más hablantes, familias y fuentes
+// ---------------------------------------------------------------------
+{
+  const max = TOP_LENGUAS[0][1];
+  const colorFam = Object.fromEntries(FAMILIAS.map((f) => [f.nombre.toLowerCase(), f.color]));
+  $('#barras-lenguas').innerHTML = TOP_LENGUAS.map(([n, h, fam]) => `
+    <div class="barra-l" title="Familia ${fam}">
+      <span class="bl-nom">${n}</span>
+      <span class="bl-pista"><i style="width:${(h / max) * 100}%;background:${colorFam[fam]}"></i></span>
+      <span class="bl-num">${fmt(h)}</span>
+    </div>`).join('') + '<p class="nota">Personas de 3 años y más. Fuente: INEGI, Censo 2020. El color indica la familia lingüística.</p>';
+  $('#familias-lenguas').innerHTML = FAMILIAS.map((f) => `
+    <details class="familia">
+      <summary><i style="background:${f.color}"></i>${f.num}. ${f.nombre} <small>${f.agrupaciones.length} ${f.agrupaciones.length === 1 ? 'agrupación' : 'agrupaciones'}</small></summary>
+      <p>${f.agrupaciones.join(' · ')}</p>
+    </details>`).join('') + '<p class="nota">Nombres de las agrupaciones como aparecen en el Catálogo del INALI (2008). Cada agrupación puede tener varias variantes y autodenominaciones.</p>';
+  $('#fuentes-lenguas').innerHTML = Object.values(FUENTES_LENGUAS).map((s) => `
+    <li><a href="${s.url}" target="_blank" rel="noopener">${s.titulo}</a>. ${s.institucion}, ${s.fecha}. Consulta: ${s.consulta}. Nivel ${s.nivel}.
+      <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
+}
+
 function slug(s) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -1370,7 +1408,7 @@ $('#btn-empezar-ar').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.matches?.('input, select, textarea')) return;
-  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura' };
+  const mapaTeclas = { 1: 'estados', 2: 'tectonica', 3: 'volcanes', 4: 'biodiversidad', 5: 'clima', 6: 'historia', 7: 'cultura', 8: 'lenguas' };
   if (mapaTeclas[e.key]) cambiarCapa(mapaTeclas[e.key]);
   if (e.key === ' ' && app.capa === 'tectonica') { e.preventDefault(); $('#btn-sismo').click(); }
   if (e.key === 'Escape') cerrarFicha();

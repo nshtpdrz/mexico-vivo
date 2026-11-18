@@ -9,6 +9,15 @@ import {
   EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, MUSEO,
 } from './datos.js';
 import { SITIOS } from './cultura.js';
+import { LENGUA_ESTADOS } from './lenguas.js';
+
+// Escala para el % de hablantes de lengua indígena (de menos a más)
+export const ESCALA_LENGUAS = ['#f3e7c9', '#a9d8b8', '#3fa38a', '#2a6f86', '#1e3f73'];
+export function colorLenguas(pct) {
+  const t = Math.max(0, Math.min(1, Math.sqrt(pct / 31.2))); // raíz: distingue mejor los valores bajos
+  const n = ESCALA_LENGUAS.length - 1, i = Math.min(n - 1, Math.floor(t * n));
+  return new THREE.Color(ESCALA_LENGUAS[i]).lerp(new THREE.Color(ESCALA_LENGUAS[i + 1]), t * n - i).getStyle();
+}
 import { dibujarMarcador } from './marcador.js';
 
 export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgba(10,14,22,0.78)', borde = null, negrita = true, prioridad = 1 } = {}) {
@@ -627,6 +636,7 @@ export class MapaMexico {
       clima: ['comun', 'clima'],
       historia: ['comun', 'cultura'], // el grupo «cultura» contiene los sitios históricos
       cultura: ['comun'],
+      lenguas: ['comun'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     this.setSubsuelo(this.subsueloActivo ?? true);
@@ -659,6 +669,12 @@ export class MapaMexico {
           color = r.id === 'MX-HID' ? '#e0a21b' : '#b98a5e';
           h = 0.012;
           break;
+        case 'lenguas': {
+          const d = LENGUA_ESTADOS[r.id];
+          color = d ? colorLenguas(d.pct2020) : '#666';
+          h = d ? 0.004 + (d.pct2020 / 31.2) * 0.045 : 0.004;
+          break;
+        }
         case 'cultura':
           // tonos por región: recuerda que cada tradición es de una región, no de un estado
           color = new THREE.Color(REGIONES[info.region].color).lerp(new THREE.Color('#e2b8a0'), 0.35).getStyle();

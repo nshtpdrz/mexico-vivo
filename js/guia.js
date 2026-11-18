@@ -101,6 +101,7 @@ const PISTAS_CAPA = {
   clima: 'Estos datos son de hace unos minutos. ¿Cuál capital está más fría? ¿Por qué crees?',
   historia: 'Mueve la línea del tiempo y mira cómo aparecen las ciudades de cada época.',
   cultura: '¡Toca un estado para conocer su comida, su artesanía y su música!',
+  lenguas: 'En 2020, más de 7 millones de personas hablaban una lengua indígena. Toca un estado para ver qué porcentaje de su población la habla.',
 };
 const yaDicho = new Set();
 export function alEntrarCapa(capa) {

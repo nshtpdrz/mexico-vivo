@@ -168,3 +168,11 @@ Librerías: Three.js (MIT), MindAR (MIT).
 - **Recorrido guiado de 4 minutos** (botón en la portada y en la capa Estados): 10 pasos, de las placas a la cultura. Hidalgo → placa de Cocos → predicción → ondas y alerta → sismo real de 2017 → volcanes → selva → clima → Tula en el año 950 → exploración libre. El visitante avanza con «Siguiente»; la cámara vuela sola a cada lugar. En celular pliega el panel para que se vea el mapa. En modo exhibición se cierra al reiniciar.
 
 - **Historia y Cultura separadas:** *Historia* (tecla 6) tiene la línea del tiempo y los 26 sitios; al tocar un estado muestra sus sitios cercanos en orden cronológico. *Cultura* (tecla 7) tiene las tradiciones vivas de cada región, la música regional y el Patrimonio Inmaterial de la UNESCO; colorea el mapa por región para recordar que cada tradición es de una región o comunidad, no de todo el estado.
+
+## P2: Atlas de lenguas (capa 8, tecla 8)
+- **Datos verificados** (consulta: 18 nov 2026), con fuente, nivel y limitaciones en `js/lenguas.js` y en el panel:
+  - **Catálogo de las Lenguas Indígenas Nacionales (INALI, DOF 14/01/2008):** 11 familias, 68 agrupaciones, 364 variantes y 475 autodenominaciones, y la familia de cada agrupación. El triqui aparece con la numeración «VI» por una errata del propio catálogo; se usa su familia, oto-mangue.
+  - **INEGI, Censo 2020, resultados nacionales:** 7,364,645 hablantes de 3 años y más (6.1 %); 865,972 no hablan español; número de hablantes de las 10 lenguas principales.
+  - **INEGI, Censo 2020, resultados de cada entidad (32 PDF):** porcentaje de hablantes 2010 y 2020 por entidad. Coinciden con la gráfica nacional. El número de personas solo se muestra en 17 entidades; en las demás el PDF no permitía leerlo sin ambigüedad.
+- **Qué muestra:** mapa por porcentaje de hablantes; ficha de cada entidad con su lugar, el cambio desde 2010 y la fuente; definiciones de familia, agrupación y variante; gráfica de las 10 lenguas con más hablantes; las 11 familias con sus agrupaciones; la lista de fuentes.
+- **Qué NO hace, por diseño:** traducir, inventar pronunciaciones, usar voces sintetizadas, mezclar variantes o asignar una lengua a un solo estado. No muestra qué lenguas se hablan en cada entidad, porque ese dato aún no se ha verificado.

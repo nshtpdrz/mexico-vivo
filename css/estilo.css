@@ -583,3 +583,22 @@ body.nivel-exploradores .recorrido p { font-size: 17px; }
   .rec-puntos { margin: 6px 0 6px; }
   body.en-recorrido.panel-plegado .recorrido { bottom: 34px; }
 }
+
+/* ---------- lenguas ---------- */
+.terminos { padding-left: 18px; margin: 0 0 8px; }
+.terminos li { margin-bottom: 6px; }
+.barras-lenguas { display: grid; gap: 5px; margin: 8px 0; }
+.barra-l { display: grid; grid-template-columns: 84px 1fr 78px; gap: 8px; align-items: center; font-size: 12.5px; }
+.bl-pista { height: 12px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; }
+.bl-pista i { display: block; height: 100%; border-radius: 6px; }
+.bl-num { text-align: right; font-variant-numeric: tabular-nums; color: var(--texto-2); }
+details.familia { margin: 6px 0; padding: 8px 12px; }
+details.familia summary { display: flex; align-items: center; gap: 8px; }
+details.familia summary i { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+details.familia summary small { margin-left: auto; color: var(--texto-2); font-weight: 500; }
+details.familia p { margin: 8px 0 0; font-size: 12.5px; color: #d6deef; }
+.fuentes { padding-left: 18px; font-size: 12.5px; }
+.fuentes li { margin-bottom: 8px; }
+.fuentes small { color: var(--texto-2); }
+.politica { background: rgba(47,143,107,0.1); border-left: 3px solid #2f8f6b; padding: 10px 12px; border-radius: 8px; margin: 14px 0; font-size: 13px; }
+.politica p { margin: 4px 0 0; }

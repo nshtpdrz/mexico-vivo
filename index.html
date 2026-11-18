@@ -34,6 +34,7 @@
       <button role="tab" data-capa="clima">Clima</button>
       <button role="tab" data-capa="historia">Historia</button>
       <button role="tab" data-capa="cultura">Cultura</button>
+      <button role="tab" data-capa="lenguas">Lenguas</button>
     </nav>
     <div class="acciones">
       <button class="btn icono" id="btn-sonido" aria-pressed="true" title="Sonido"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="on" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l5 6M21 9l-5 6"/></svg></button>
@@ -253,6 +254,35 @@
       <ul class="lista" id="inmaterial"></ul>
       <p class="nota">Contenido en revisión. Fuentes sugeridas: Secretaría de Cultura, Sistema de Información Cultural, UNESCO.</p>
     </section>
+    <section class="panel-capa" data-capa="lenguas" hidden>
+      <p class="sub">Capa 8 · Lenguas de México</p>
+      <h2>Lenguas vivas: 68 agrupaciones, 364 variantes</h2>
+      <p class="solo-exploradores nino">En México se hablan muchas lenguas además del español. ¡Millones de personas las hablan hoy en su casa, en la escuela y en su comunidad!</p>
+      <p class="solo-descubridores avanzado">El mapa muestra el porcentaje de la población de 3 años y más que <i>habla</i> alguna lengua indígena en cada entidad (Censo 2020). No mide la autoadscripción indígena: en 2020, 11,800,247 personas vivían en hogares indígenas según el INEGI, una cifra mayor que la de hablantes.</p>
+      <p>En 2020, <b>7,364,645 personas</b> de 3 años y más hablaban alguna lengua indígena: el <b>6.1 %</b> de esa población (INEGI). El mapa muestra en qué entidades hay más hablantes en proporción. Las lenguas no siguen las fronteras estatales: una misma lengua puede hablarse en varias entidades.</p>
+      <div class="tarjetas">
+        <div><b>11</b><small>familias lingüísticas</small></div>
+        <div><b>68</b><small>agrupaciones lingüísticas</small></div>
+        <div><b>364</b><small>variantes lingüísticas</small></div>
+      </div>
+      <h3>Cómo las organiza el INALI</h3>
+      <ul class="terminos">
+        <li><b>Familia lingüística:</b> lenguas con un origen común, como la familia maya o la oto-mangue.</li>
+        <li><b>Agrupación lingüística:</b> el conjunto de variantes que lleva el nombre con que históricamente se conoce a un pueblo, como «náhuatl» o «zapoteco».</li>
+        <li><b>Variante lingüística:</b> cada forma de hablar que tiene diferencias de estructura y vocabulario respecto de otras de la misma agrupación, y que para sus hablantes implica una identidad propia. Por eso no todas las personas que hablan una misma agrupación hablan igual.</li>
+      </ul>
+      <h3>Las 10 con más hablantes (2020)</h3>
+      <div class="barras-lenguas" id="barras-lenguas"></div>
+      <h3>Las 11 familias</h3>
+      <div id="familias-lenguas"></div>
+      <div class="politica">
+        <b>Cómo cuidamos este módulo</b>
+        <p>No traducimos palabras, no inventamos pronunciaciones y no usamos voces sintetizadas. Tampoco mezclamos variantes ni asignamos una lengua a un solo estado. Si en el futuro se agregan audios, serán grabaciones auténticas, con permiso de quienes hablan y con su crédito.</p>
+      </div>
+      <h3>Fuentes consultadas</h3>
+      <ul class="fuentes" id="fuentes-lenguas"></ul>
+    </section>
+
   </aside>
 
   <div class="leyenda" id="leyenda"></div>
