@@ -175,6 +175,7 @@ function cambiarCapa(capa) {
   $$('.panel-capa').forEach((s) => (s.hidden = s.dataset.capa !== capa));
   cerrarFicha();
   audio.detenerAmbiente();
+  audio.detenerGrabacion();
   if (capa !== 'tectonica') { sim.detener(); }
   if (capa === 'tectonica') { sim._calcular(); }
   if (capa === 'clima' && !app.clima) cargarClima();
@@ -237,6 +238,7 @@ function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], 
 }
 function cerrarFicha() {
   ficha.hidden = true;
+  audio.detenerGrabacion();
   mapa.seleccionar(null);
   app.seleccion = null;
 }

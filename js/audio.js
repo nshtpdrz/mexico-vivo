@@ -79,6 +79,17 @@ async function decodificar(clave) {
   return audio;
 }
 let grabacionUnica = null;
+// Detiene la grabación en curso (música o canto) con un desvanecimiento corto
+export function detenerGrabacion() {
+  const s = grabacionUnica;
+  grabacionUnica = null;
+  if (!s) return;
+  try {
+    const g = s._ganancia;
+    if (g) { g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.15); setTimeout(() => { try { s.stop(); } catch (_) {} }, 600); }
+    else s.stop();
+  } catch (_) {}
+}
 // Reproduce una grabación corta (canto de una especie). Devuelve false si no hay archivo.
 export async function reproducirGrabacion(clave, pan = 0) {
   if (!ctx) return false;
@@ -86,11 +97,12 @@ export async function reproducirGrabacion(clave, pan = 0) {
   if (!tieneGrabacion(clave)) return false;
   try {
     const audio = await decodificar(clave);
-    try { grabacionUnica?.stop(); } catch (_) {}
+    detenerGrabacion();
     const s = ctx.createBufferSource();
     s.buffer = audio;
     const g = ctx.createGain();
     g.gain.value = manifiesto[clave].volumen ?? 0.9;
+    s._ganancia = g;
     s.connect(g).connect(paneo(pan)).connect(master);
     s.start();
     grabacionUnica = s;
