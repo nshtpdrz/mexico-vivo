@@ -475,3 +475,29 @@ body:not(.modo-ar) .axo { bottom: auto; top: 92px; }
   .marca strong { display: none; }
   .capas button span { display: none; }
 }
+
+/* ---------- barra superior sin emojis: íconos de línea ---------- */
+.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+#btn-sonido .off { display: none; }
+#btn-sonido.apagado .on { display: none; }
+#btn-sonido.apagado .off { display: inline; }
+#btn-sonido.apagado { color: var(--texto-2); }
+.btn.pasaporte .cuenta { font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.capas { flex: 1 1 auto; min-width: 0; justify-content: center; }
+.capas button { padding: 9px 12px; letter-spacing: 0.01em; }
+.acciones { flex: none; }
+.marca { flex: none; }
+@media (max-width: 1400px) and (min-width: 901px) {
+  :root { --panel-ancho: 340px; }
+  .capas button { padding: 8px 9px; font-size: 12.5px; }
+  .btn.icono { width: 38px; height: 38px; }
+}
+@media (max-width: 1150px) and (min-width: 901px) {
+  .capas button { padding: 8px 6px; font-size: 12px; }
+  .btn.pasaporte .cuenta { display: none; }
+}
+@media (max-width: 900px) {
+  .capas button { font-size: 12.5px; padding: 9px 4px; min-width: 0; }
+  .btn.pasaporte { width: 38px; padding: 0; }
+  .btn.pasaporte .cuenta { display: none; }
+}

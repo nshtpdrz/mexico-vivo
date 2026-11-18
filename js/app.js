@@ -641,7 +641,7 @@ function pintarClima() {
     mapa.setClimaEstado(id, colorEscala(v, esc), 0.004 + t * 0.04);
     const e = ESTADOS[id];
     const [ico] = describeTiempo(c.codigo);
-    const lbl = crearEtiqueta(`${ico} ${fmt(v, app.climaVar === 'temp' || app.climaVar === 'sensacion' ? 0 : 0)}${esc.unidad === '°C' ? '°' : esc.unidad === '%' ? '%' : ''}`, { tam: 0.016, fondo: 'rgba(8,12,20,0.72)' });
+    const lbl = crearEtiqueta(`${ico} ${fmt(v, app.climaVar === 'temp' || app.climaVar === 'sensacion' ? 0 : 0)}${esc.unidad === '°C' ? '°' : esc.unidad === '%' ? '%' : ''}`, { prioridad: id === 'MX-HID' ? 4 : 2, tam: 0.016, fondo: 'rgba(8,12,20,0.72)' });
     lbl.position.copy(vec(e.lon, e.lat, 0.055));
     g.add(lbl);
     // flecha de viento (apunta hacia donde va el viento)
@@ -921,7 +921,7 @@ $('#btn-sonido').addEventListener('click', (e) => {
   const on = !audio.sonidoActivo();
   audio.setSonido(on);
   e.currentTarget.setAttribute('aria-pressed', on);
-  e.currentTarget.querySelector('span').textContent = on ? '🔊' : '🔇';
+  e.currentTarget.classList.toggle('apagado', !on);
 });
 
 // ---------------------------------------------------------------------
@@ -954,7 +954,7 @@ async function entrarAR() {
     });
     arEstado.hidden = true;
     $('#ar-guia').hidden = false;
-    $('#btn-ar span:last-child').textContent = 'Salir de AR';
+    $('#btn-ar .etq').textContent = 'Salir de AR';
     const el = $('#ar-contenedor');
     let ini = null;
     el.onpointerdown = (e) => (ini = [e.clientX, e.clientY]);
@@ -978,7 +978,7 @@ async function salirAR() {
   $('#ar-guia').hidden = true;
   $('#ar-aviso').hidden = true;
   plegarPanel(false);
-  $('#btn-ar span:last-child').textContent = 'Realidad aumentada';
+  $('#btn-ar .etq').textContent = 'Realidad aumentada';
   mesa.add(mapa.root);
   reloj.getDelta();
   renderer.setAnimationLoop(bucle);
@@ -994,9 +994,20 @@ $('#btn-ar').addEventListener('click', () => {
 const reloj = new THREE.Clock();
 const corte = $('#corte');
 let acumCorte = 0;
+let acumEtiq = 1;
 function frame(dt) {
   mapa.update(dt);
   sim.update(dt);
+  acumEtiq += dt;
+  if (acumEtiq > 0.12) {
+    acumEtiq = 0;
+    const enAR = app.modoAR && app.ar;
+    const lienzo = enAR ? app.ar.lienzo : renderer.domElement;
+    const cam = enAR ? app.ar.camera : camara;
+    cam.updateMatrixWorld();
+    mapa.root.updateMatrixWorld();
+    mapa.ordenarEtiquetas(cam, lienzo.clientWidth, lienzo.clientHeight);
+  }
   acumCorte += dt;
   if (app.capa === 'tectonica' && acumCorte > 1 / 30) {
     acumCorte = 0;
@@ -1221,7 +1232,7 @@ function iniciarSimulacro(ciudad) {
 // ---------------------------------------------------------------------
 $('#btn-pasaporte').addEventListener('click', () => guia.abrirPasaporte());
 guia.montarGuia();
-guia.onProgreso((n, total) => { $('#btn-pasaporte span:last-child').textContent = `${n}/${total}`; });
+guia.onProgreso((n, total) => { $('#btn-pasaporte .cuenta').textContent = `${n}/${total}`; });
 audio.cargarManifiesto().then(() => {
   const cr = audio.creditos();
   $('#creditos-sonido').innerHTML = cr.length

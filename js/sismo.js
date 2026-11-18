@@ -65,7 +65,7 @@ export class SimuladorSismo {
     const linea = new THREE.Mesh(new THREE.CylinderGeometry(0.0008, 0.0008, 0.06, 6), new THREE.MeshBasicMaterial({ color: 0xff6060 }));
     linea.rotation.x = Math.PI / 2;
     linea.position.z = 0.03;
-    this.epiLbl = crearEtiqueta('Epicentro', { tam: 0.016, color: '#fff', fondo: 'rgba(160,10,10,0.9)' });
+    this.epiLbl = crearEtiqueta('Epicentro', { prioridad: 9, tam: 0.016, color: '#fff', fondo: 'rgba(160,10,10,0.9)' });
     this.epiLbl.position.z = 0.072;
     this.epi.add(estrella, linea, this.epiLbl);
     // Hipocentro bajo el mapa (misma exageración vertical que la placa)
