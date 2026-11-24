@@ -8,13 +8,14 @@
 //   abre al instante y la siguiente visita trae la versión nueva.
 // - Las APIs externas (clima, USGS) no pasan por aquí: la app ya guarda su
 //   último dato con fecha en el navegador.
-const VERSION = 'mexico-vivo-v63';
+const VERSION = 'mexico-vivo-v64';
 const PRECARGA = [
   './',
   'manifest.webmanifest',
   'icono.svg',
   'assets/marca/sello.svg',
   'assets/pegatinas/ui/advertencia.png',
+  'assets/pegatinas/ui/bitacora.png',
   'assets/pegatinas/ui/siguiente.png',
   'assets/pegatinas/ui/detener.png',
   'assets/pegatinas/ui/actualizar.png',
@@ -67,7 +68,6 @@ const PRECARGA = [
   'assets/pegatinas/ui/mision-tusismo.png',
   'assets/pegatinas/ui/monarca.png',
   'assets/pegatinas/ui/mono.png',
-  'assets/pegatinas/ui/museo.png',
   'assets/pegatinas/ui/niebla.png',
   'assets/pegatinas/ui/nieve.png',
   'assets/pegatinas/ui/nivel.png',

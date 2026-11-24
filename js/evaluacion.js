@@ -1,5 +1,5 @@
 // Evaluación del aprendizaje: la misma prueba corta ANTES y DESPUÉS de usar el
-// prototipo, por visitante (anónimo, solo un número y un rango de edad).
+// prototipo, por participante (anónimo, solo un número y un rango de edad).
 // Se guarda en este navegador y se exporta a CSV para el documento técnico.
 
 export const PREGUNTAS = [
@@ -34,7 +34,7 @@ export function registrar(id, fase, edad, respuestas) {
   return aciertos;
 }
 
-// Estadística por pares completos (antes + después del mismo visitante)
+// Estadística por pares completos (antes + después de la misma persona)
 export function resumen() {
   const d = leer();
   const n = PREGUNTAS.length;

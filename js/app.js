@@ -665,7 +665,7 @@ function fichaObjeto(ud) {
       audio.clic(760);
       break;
     case 'maravilla': {
-      // Expedición: primero el visitante adivina «¿por qué existe?», luego lee la respuesta
+      // Expedición: primero quien explora adivina «¿por qué existe?», luego lee la respuesta
       const t = TIPOS_MARAVILLA[d.tipo];
       const yaVisitada = app.maravillasVistas.has(d.id);
       abrirFicha({
@@ -1621,7 +1621,7 @@ async function fotoAR() {
   });
 }
 $('#btn-foto-ar').addEventListener('click', fotoAR);
-// precarga de la AR mientras el visitante está en la portada (no en equipos «ligeros»)
+// precarga de la AR mientras quien explora está en la portada (no en equipos «ligeros»)
 if (navigator.mediaDevices?.getUserMedia && !new URLSearchParams(location.search).has('ligero')) {
   const precargar = () => import('./ar.js').then((m) => m.precargarAR()).catch(() => {});
   setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(precargar, { timeout: 4000 }) : precargar()), 5000);
@@ -1681,7 +1681,7 @@ function frame(dt) {
 // El mapa está acostado: el punto (x, y) del mapa queda en (x, 0, −y) del mundo.
 let vuelo = null;
 function volarA(lon, lat, dist = 0.5, ms = 1600) {
-  if (app.modoAR) return; // en AR manda la cámara del visitante
+  if (app.modoAR) return; // en AR manda la cámara de quien explora
   const [x, y] = proyectar(lon, lat);
   const haciaT = new THREE.Vector3(x, 0, -y);
   const dir = new THREE.Vector3(0, 0.8, 0.6).normalize();
@@ -1850,7 +1850,7 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
     <div class="efecto"><b>${x.nombre}</b><p>${x.texto}</p><small>Fuente: ${autor(x.fuente)} ${anio(x.fuente)} (nivel ${FUENTES_SABORES[x.fuente].nivel})</small></div>`).join('');
   $('#btn-ir-platillos').onclick = () => cambiarCapa('cultura');
 
-  // Laboratorio: el visitante avanza paso a paso y la olla cambia de estado
+  // Laboratorio: quien explora avanza paso a paso y la olla cambia de estado
   const lab = $('#lab-nixtamal');
   let paso = 0;
   const pintarLab = () => {
@@ -2203,7 +2203,7 @@ const limpiarPaso = () => {
 const recorrido = crearRecorrido({
   mostrarPestana,
   cambiarCapa, fichaEstado, volarA, ponerAnio(a) { mostrarPestana('historia', 'experimenta', false); ponerAnio(a); },
-  abrirPasaporte: () => guia.abrirPasaporte(),
+  abrirBitacora: () => guia.abrirPasaporte(),
   clic: () => audio.clic(700),
   verSubsuelo(on) { $('#chk-subsuelo').checked = on; mapa.setSubsuelo(on); },
   prepararPrediccion() {
@@ -2248,7 +2248,7 @@ function empezarRecorrido() {
 }
 $('#btn-recorrido').addEventListener('click', empezarRecorrido);
 $('#btn-recorrido-panel').addEventListener('click', empezarRecorrido);
-renderer.domElement.addEventListener('pointerdown', () => { vuelo = null; }); // el visitante toma el control
+renderer.domElement.addEventListener('pointerdown', () => { vuelo = null; }); // quien explora toma el control
 
 // ---------------------------------------------------------------------
 // Modo sin conexión: service worker (no se activa con ?dev, para desarrollar)
@@ -2269,12 +2269,12 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:' && !params.has
 }
 
 // ---------------------------------------------------------------------
-// Modo exhibición (?exhibicion): para dejar la app sola en el museo.
-// Tras 90 s sin que nadie la toque, todo vuelve al inicio para el siguiente
-// visitante: se cierran fichas y ventanas, se detienen sonidos y simulaciones
-// y se reinicia el pasaporte.
+// Modo exhibición (?exhibicion): para dejar la app sola en una presentación continua.
+// Tras 90 s sin que nadie la toque, todo vuelve al inicio para la siguiente
+// persona: se cierran fichas y ventanas, se detienen sonidos y simulaciones
+// y se reinicia la bitácora.
 // ---------------------------------------------------------------------
-const EXHIBICION = params.has('exhibicion');
+const EXHIBICION = params.has('exhibicion'); // modo de presentación continua (reinicio por inactividad)
 const INACTIVIDAD_S = 90;
 const PREGUNTAS_INICIO = [
   '¿Cuántos segundos de aviso tendría Pachuca si tiembla en Acapulco?',
@@ -2317,7 +2317,7 @@ if (EXHIBICION) {
   setInterval(() => { k = (k + 1) % PREGUNTAS_INICIO.length; p.textContent = PREGUNTAS_INICIO[k]; }, 10000);
   addEventListener('contextmenu', (e) => e.preventDefault());
 } else {
-  // Exponer para depuración (no en el museo)
+  // Exponer para depuración (no en modo presentación)
   window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom, tsunami, volverAlInicio };
 }
 
@@ -2328,9 +2328,9 @@ if (EXHIBICION) {
 montarSismosVivo(inicio);
 
 // ---------------------------------------------------------------------
-// Modo guía para el equipo del stand (no lo ve el visitante).
+// Modo guía para el equipo del proyecto (no lo ve quien explora).
 // Se abre manteniendo presionado el sello de la barra 1.5 s, o con la tecla G.
-// Escenarios listos para demostrar, controles rápidos y lo que pasó hoy en el stand.
+// Escenarios listos para demostrar, controles rápidos y lo que pasó hoy en la presentación.
 // ---------------------------------------------------------------------
 const CLAVE_STAND = 'mv-stand';
 function leerStand() {
@@ -2364,7 +2364,7 @@ const ESCENARIOS = [
     if (v) { fichaObjeto({ tipo: 'volcan', data: v }); setTimeout(() => $('#panel .ficha .btn.peligro')?.click(), 400); }
   } },
   { id: 'clima', titulo: 'Clima en vivo de las 32 capitales', nota: 'Datos de hace unos minutos.', fn: () => cambiarCapa('clima') },
-  { id: 'recorrido', titulo: 'Recorrido guiado (4 min)', nota: 'Para grupos grandes.', fn: () => $('#btn-recorrido').click() },
+  { id: 'recorrido', titulo: 'Investigación guiada', nota: 'Para presentar el proyecto paso a paso.', fn: () => $('#btn-recorrido').click() },
 ];
 function sismoGuia(cfg, escucha) {
   if (!inicio.hidden) { inicio.classList.add('fuera'); setTimeout(() => (inicio.hidden = true), 600); }
@@ -2399,7 +2399,7 @@ function abrirGuia() {
     </div>
     <h3>Hoy <small>(${d.dia})</small></h3>
     <div class="tarjetas gs-cifras">
-      <div><b>${d.visitas}</b><span>visitas</span></div>
+      <div><b>${d.visitas}</b><span>sesiones</span></div>
       <div><b>${d.simulaciones}</b><span>sismos simulados</span></div>
       <div><b>${sims ? Math.round((d.simulacrosATiempo / sims) * 100) + ' %' : '—'}</b><span>simulacros a tiempo (${d.simulacrosATiempo} de ${sims})</span></div>
       <div><b>${d.preguntas ? Math.round((d.aciertos / d.preguntas) * 100) + ' %' : '—'}</b><span>aciertos en el reto (${d.retos} retos)</span></div>

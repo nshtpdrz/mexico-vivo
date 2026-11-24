@@ -1,4 +1,4 @@
-// Axo, el ajolote guía: da pistas, lee en voz alta y lleva el pasaporte de misiones.
+// Axo, el ajolote guía: da pistas, lee en voz alta y lleva la bitácora de misiones.
 import * as audio from './audio.js';
 
 export const MISIONES = [
@@ -19,7 +19,7 @@ export const MISIONES = [
   { id: 'tsunami', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
   { id: 'sabores', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
   { id: 'nixtamal', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
-  { id: 'expedicion', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, visita tres maravillas naturales y responde por qué existen.' },
+  { id: 'expedicion', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, explora tres maravillas naturales y responde por qué existen.' },
   { id: 'geoparque', titulo: 'El geoparque de Hidalgo', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, en Hidalgo.' },
 ];
 
@@ -99,7 +99,7 @@ export function montarGuia() {
   el.querySelector('.axo-cara').onclick = () => {
     const pend = MISIONES.find((m) => !hechas[m.id]);
     decir(pend ? `Misión: ${pend.titulo}. ${pend.pista}` : '¡Completaste todas las misiones! Eres un experto de México Vivo.', {
-      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/pasaporte.png" alt="">Ver pasaporte', fn: () => abrirPasaporte() }],
+      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/bitacora.png" alt="">Ver bitácora', fn: () => abrirPasaporte() }],
     });
   };
   return el;
@@ -164,8 +164,8 @@ export function completar(id) {
   setTimeout(() => audio.clic(1600), 120);
   confeti();
   const faltan = MISIONES.length - progreso();
-  decir(`¡Misión cumplida: ${m.titulo}! ${faltan ? `Te faltan ${faltan}.` : '¡Completaste el pasaporte!'}`, {
-    acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/pasaporte.png" alt="">Pasaporte', fn: () => abrirPasaporte() }],
+  decir(`¡Misión cumplida: ${m.titulo}! ${faltan ? `Te faltan ${faltan}.` : '¡Completaste tu bitácora!'}`, {
+    acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/bitacora.png" alt="">Bitácora', fn: () => abrirPasaporte() }],
   });
 }
 
@@ -186,7 +186,7 @@ export function abrirPasaporte() {
   }
   const n = progreso();
   d.innerHTML = `<button class="cerrar" aria-label="Cerrar">×</button>
-    <p class="sub">Pasaporte de México Vivo</p>
+    <p class="sub">Bitácora de México Vivo</p>
     <h2>${n} de ${MISIONES.length} misiones</h2>
     <div class="sellos">${MISIONES.map((m) => `
       <div class="sello ${hechas[m.id] ? 'hecho' : ''}">

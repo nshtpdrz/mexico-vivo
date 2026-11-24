@@ -133,7 +133,7 @@ export function pintarMisiones() {
     el.classList.toggle('completa', !pend);
     el.innerHTML = pend
       ? `<span class="mc-ico" aria-hidden="true">${pend.icono}</span><div><b>Misión: ${pend.titulo}</b><small>${pend.pista}</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`
-      : `<span class="mc-ico" aria-hidden="true"><img class="pi" src="assets/pegatinas/ui/trofeo.png" alt=""></span><div><b>¡Completaste las misiones de esta capa!</b><small>Abre tu pasaporte para ver las demás.</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`;
+      : `<span class="mc-ico" aria-hidden="true"><img class="pi" src="assets/pegatinas/ui/trofeo.png" alt=""></span><div><b>¡Completaste las misiones de esta capa!</b><small>Abre tu bitácora para ver las demás.</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`;
   }
 }
 

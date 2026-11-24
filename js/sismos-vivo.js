@@ -1,7 +1,7 @@
 // «El país se mueve ahora mismo»: tarjeta de la portada con los sismos reales de las últimas
 // 24 horas (USGS). Un minimapa de México donde cada sismo late en su lugar, y un renglón que
 // va cambiando: cuándo, qué magnitud y dónde. Recuerda que la Tierra se mueve todo el tiempo
-// y atrae a quien pasa frente al stand.
+// y atrae a quien pasa frente a la pantalla.
 // Sin internet usa el último dato guardado (lo dice); si nunca hubo datos, la tarjeta no aparece.
 import { obtenerSismosUSGS } from './apis.js';
 import { prepararEstados, proyectar } from './geo.js';

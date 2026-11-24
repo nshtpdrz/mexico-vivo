@@ -2,7 +2,7 @@
 //
 // No depende de WebXR (muchos celulares no lo tienen): la pantalla se parte en dos vistas, una por
 // ojo (THREE.StereoCamera), y el giroscopio del celular gira la cabeza virtual. El mapa queda como
-// una mesa grande frente al visitante, que está de pie en el lado sur.
+// una mesa grande frente a quien explora, que está de pie en el lado sur.
 //
 // Interacción sin manos: una mira en el centro de la vista se llena en 1.5 s cuando se mira algo que
 // se puede tocar (un estado, un volcán, un sitio…); al llenarse, o al apretar el botón del visor
@@ -94,7 +94,7 @@ export function crearVisor(o) {
     euler.set(b, a, -g, 'YXZ');
     qCabeza.setFromEuler(euler).multiply(qX).multiply(q0.setFromAxisAngle(zee, -ang));
     if (calibrar) {
-      // Lo que el visitante tenga enfrente pasa a ser «hacia el mapa» (norte, −z). Solo se calibra
+      // Lo que tenga enfrente quien explora pasa a ser «hacia el mapa» (norte, −z). Solo se calibra
       // cuando el celular ya está de pie (en el visor, mirando al frente) y pasó un momento desde que
       // se tocó «Visor VR»: con el celular acostado en la mano el rumbo sale al azar y el mapa
       // quedaba a un lado o detrás.
@@ -159,7 +159,7 @@ export function crearVisor(o) {
     ], { ancho: 1024, alto: 560, imagen: info.imagen });
     ficha = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.186), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false }));
     ficha.renderOrder = 900;
-    // arriba de lo que se mira (para no taparlo: el estado elegido se viste con su patrón), mirando al visitante
+    // arriba de lo que se mira (para no taparlo: el estado elegido se viste con su patrón), mirando a quien explora
     const dir = new THREE.Vector3(0, 0.3, -1).applyQuaternion(camara.quaternion).normalize();
     ficha.position.copy(camara.position).addScaledVector(dir, 0.55);
     ficha.quaternion.copy(camara.quaternion);
@@ -213,7 +213,7 @@ export function crearVisor(o) {
   }
 
   // ---- fondo de patrones: el mismo fondo artesanal de la pantalla, ahora como una pared circular
-  // tapizada alrededor del visitante (con un velo de papel, como en la página) ----
+  // tapizada alrededor de quien explora (con un velo de papel, como en la página) ----
   let pared = null, idFondo = null;
   v.setFondo = (id) => {
     if ((id ?? null) === idFondo && (pared || !v.activo)) return;

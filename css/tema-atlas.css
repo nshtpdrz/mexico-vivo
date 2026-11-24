@@ -221,7 +221,7 @@ body:not(.modo-ar) .btn-foto-ar { display: none; }
 @media (max-width: 900px) { .sismos-vivo { position: static; width: 100%; max-width: 420px; margin: 14px auto 0; } }
 @media (prefers-reduced-motion: reduce) { .sv-punto { animation: none; } }
 
-/* ===== Modo guía del stand ===== */
+/* ===== Modo guía del equipo ===== */
 .guia-stand { max-width: 760px; width: calc(100vw - 32px); }
 .guia-stand h3 { margin: 18px 0 8px; }
 .gs-escenarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
@@ -263,3 +263,25 @@ body.en-visor { background: #000; cursor: none; }
 body.modo-ar.con-patron .ar-contenedor::after { content: ''; position: absolute; inset: 0; z-index: 12; pointer-events: none;
   border: 18px solid transparent; border-image: var(--patron) 70 round;
   box-shadow: inset 0 0 0 2px rgba(27, 26, 23, .45), inset 0 0 24px rgba(27, 26, 23, .35); animation: patronEntra .7s ease; }
+
+/* investigación guiada: los puntos se agrupan por parte; conclusión con opciones */
+.rec-puntos { gap: 10px; }
+.rec-parte { flex: 1; display: flex; gap: 3px; }
+.rec-opciones { display: grid; gap: 6px; margin: 8px 0; }
+.rec-opciones .opcion { text-align: left; justify-content: flex-start; white-space: normal; line-height: 1.3; padding: 9px 12px; height: auto; }
+.rec-explica { background: #efe5d0; border-radius: 10px; padding: 8px 12px; }
+#btn-recorrido small { display: block; font-size: 12px; opacity: .75; font-weight: 500; }
+
+/* investigación guiada: tarjeta de papel (antes, fondo oscuro con texto en tinta: no se leía) */
+.recorrido { background: var(--fondo-2); color: var(--texto); border: 2px solid var(--oro); box-shadow: 0 18px 50px rgba(40, 25, 10, .3); }
+.recorrido h3 { color: var(--texto); font-family: var(--display, 'Instrument Serif', serif); font-weight: 400; font-size: 24px; }
+.recorrido p { color: #2b2823; }
+.rec-cab { color: var(--oro); }
+.rec-salir { background: rgba(27, 26, 23, .07); color: var(--texto); }
+.rec-puntos i { background: rgba(27, 26, 23, .14); }
+.rec-puntos i.hecho { background: rgba(179, 38, 30, .45); }
+.rec-puntos i.actual { background: var(--oro); }
+.rec-opciones .opcion { background: #fff; color: var(--texto); border: 2px solid var(--linea); }
+.rec-opciones .opcion:disabled { opacity: 1; cursor: default; }
+.rec-opciones .opcion.bien { background: rgba(47, 107, 69, .16); border-color: #2f6b45; }
+.rec-opciones .opcion.malo { background: rgba(179, 38, 30, .12); border-color: var(--oro); }

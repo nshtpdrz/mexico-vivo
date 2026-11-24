@@ -218,7 +218,7 @@ export class SimuladorSismo {
     if (!this.corriendo) return;
     // Durante el simulacro el reloj corre a tiempo real: los «91 s de aviso» son 91 s de verdad.
     // Cuando la onda S ya llegó a la ciudad que escuchas, el resto del país se recorre rápido
-    // (el visitante ya vio lo importante y no tiene que esperar un minuto más).
+    // (quien explora ya vio lo importante y no tiene que esperar un minuto más).
     let v = this.velocidad;
     if (this.tiempoReal) v = 1;
     else {

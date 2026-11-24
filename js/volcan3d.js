@@ -372,7 +372,7 @@ export async function abrirVolcan(volcan, cimas = []) {
   ro.observe(lienzo);
   ajustar();
   // --- VR (WebXR): la maqueta sobre una mesa virtual, o volando sobre el volcán ---
-  // En lugar de escalar la escena (rompería sombras y bruma), se escala al visitante:
+  // En lugar de escalar la escena (rompería sombras y bruma), se escala a quien explora:
   // la cámara cuelga de un «carro» cuya escala convierte metros reales en km del modelo.
   const carro = new THREE.Group();
   escena.add(carro);

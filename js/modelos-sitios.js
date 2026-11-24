@@ -7,7 +7,7 @@
 //  · Orientación: `A` es el azimut (grados desde el norte) hacia donde mira la fachada principal.
 //    Solo se pone cuando está bien documentado; si no, la fachada mira al sur (hacia quien ve el mapa).
 //  · Todas las piezas de un mismo material se fusionan en una sola malla: cada maqueta cuesta
-//    3–8 llamadas de dibujo en lugar de decenas (rendimiento en la tablet del stand).
+//    3–8 llamadas de dibujo en lugar de decenas (rendimiento en la tablet de la presentación).
 //  · Las obras muy largas (acueductos) se muestran como un tramo, con sus proporciones reales;
 //    las piezas diminutas junto a obras enormes (cabeza olmeca) se agrandan y se dice en el código.
 import * as THREE from 'three';
