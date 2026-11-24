@@ -2270,7 +2270,16 @@ renderer.domElement.addEventListener('pointerdown', () => { vuelo = null; }); //
 // ---------------------------------------------------------------------
 const params = new URLSearchParams(location.search);
 if ('serviceWorker' in navigator && location.protocol !== 'file:' && !params.has('dev')) {
-  navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Sin modo sin conexión:', e));
+  // Se registra cuando la app ya arrancó (no compite con la carga inicial). Lo opcional (patrones,
+  // modelos, sonidos, AR) se baja después, de dos en dos, para que todo funcione sin internet.
+  const registrar = () => navigator.serviceWorker.register('sw.js').then(() => {
+    const ahorro = navigator.connection && navigator.connection.saveData;
+    if (ahorro) return;
+    setTimeout(() => navigator.serviceWorker.ready.then((r) => r.active && r.active.postMessage('precargar')),
+      params.has('exhibicion') ? 5000 : 25000);
+  }).catch((e) => console.warn('Sin modo sin conexión:', e));
+  if (document.readyState === 'complete') setTimeout(registrar, 4000);
+  else addEventListener('load', () => setTimeout(registrar, 4000), { once: true });
   // Cuando se instala una versión nueva, la página se recarga sola una vez para usarla (si no, la copia
   // guardada se seguía mostrando hasta una segunda recarga). No interrumpe el visor VR ni la AR.
   const habiaControl = !!navigator.serviceWorker.controller;

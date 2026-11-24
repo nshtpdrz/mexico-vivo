@@ -8,7 +8,7 @@
 //   abre al instante y la siguiente visita trae la versión nueva.
 // - Las APIs externas (clima, USGS) no pasan por aquí: la app ya guarda su
 //   último dato con fecha en el navegador.
-const VERSION = 'mexico-vivo-v66';
+const VERSION = 'mexico-vivo-v67';
 const PRECARGA = [
   './',
   'manifest.webmanifest',
@@ -299,13 +299,29 @@ const PRECARGA = [
   'vendor/three/three.module.js',
 ];
 
-const OPCIONAL = /^(assets\/modelos\/|assets\/sonidos\/|assets\/patrones\/|assets\/pegatinas\/ui\/|data\/relieve\/|data\/sismogramas\/|assets\/marca\/velasco)/;
-const pedir = (u) => new Request(u, { cache: 'reload' });
+// Lo opcional (modelos, sonidos, patrones, relieve, AR...) NO se baja al instalar: en una tablet
+// eso saturaba la red justo cuando la página necesitaba cargar. Se guarda al usarse y, ya con
+// la app abierta y en calma, la página pide «precargar» y se baja de dos en dos.
+const OPCIONAL = /^(assets\/modelos\/|assets\/sonidos\/|assets\/patrones\/|assets\/pegatinas\/ui\/|data\/relieve\/|data\/sismogramas\/|assets\/marca\/velasco|vendor\/mindar\/|assets\/marcador\.mind)/;
+const pedir = (u) => new Request(u, { cache: 'no-cache' }); // revalida (304) en vez de volver a bajar lo recién cargado
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then(async (c) => {
-    await c.addAll(PRECARGA.filter((u) => !OPCIONAL.test(u)).map(pedir));
-    await Promise.allSettled(PRECARGA.filter((u) => OPCIONAL.test(u)).map((u) => c.add(pedir(u))));
-  }).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(VERSION)
+    .then((c) => c.addAll(PRECARGA.filter((u) => !OPCIONAL.test(u)).map(pedir)))
+    .then(() => self.skipWaiting()));
+});
+
+let precargando = null;
+async function precargarOpcional() {
+  const c = await caches.open(VERSION);
+  const faltan = [];
+  for (const u of PRECARGA.filter((x) => OPCIONAL.test(x))) if (!(await c.match(u, { ignoreSearch: true }))) faltan.push(u);
+  const trabajar = async () => { for (let u; (u = faltan.shift());) { try { await c.add(pedir(u)); } catch (_) { /* se reintenta en otra visita */ } } };
+  await Promise.all([trabajar(), trabajar()]);
+}
+self.addEventListener('message', (e) => {
+  if (e.data !== 'precargar') return;
+  precargando = precargando || precargarOpcional().finally(() => { precargando = null; });
+  e.waitUntil(precargando);
 });
 
 self.addEventListener('activate', (e) => {
