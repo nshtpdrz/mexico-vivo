@@ -102,7 +102,7 @@ export const MARAVILLAS = [
     id: 'comarca', relieve: 'lugar-comarca', nombre: 'Geoparque Comarca Minera', tipo: 'geoparque', anio: 2017, lugar: 'Centro-sur de Hidalgo',
     lon: -98.73, lat: 20.12,
     fuente: { cita: 'UNESCO, Programa Internacional de Ciencias de la Tierra y Geoparques. Comarca Minera UNESCO Global Geopark.', url: 'https://www.unesco.org/en/iggp/comarca-minera-unesco-global-geopark', nivel: 'A' },
-    nino: '¡Es nuestro geoparque, aquí en Hidalgo! Los volcanes de hace millones de años dejaron metales y obsidiana.',
+    nino: '¡Es el geoparque de Hidalgo! Los volcanes de hace millones de años dejaron metales y obsidiana.',
     porque: 'Se extiende por las sierras de Pachuca y Las Navajas, donde se encuentran dos provincias magmáticas: una más antigua, ligada a los volcanes de la Sierra Madre Occidental, y otra ligada a la Faja Volcánica Transmexicana, formada porque las placas de Cocos y Rivera se hunden bajo la placa Norteamericana. Ese vulcanismo intenso formó una de las regiones mineras más importantes del mundo. Teotihuacanos, toltecas y mexicas extrajeron aquí obsidiana.',
     dato: 'Mide 184,800 ha. Según la UNESCO, aquí Alexander von Humboldt describió los prismas basálticos más altos del mundo, y aquí se jugó el primer partido de futbol en México.',
     pregunta: { p: '¿Qué vidrio volcánico extraían aquí los pueblos prehispánicos?', o: ['Cuarzo', 'Obsidiana', 'Ámbar'], r: 1 },

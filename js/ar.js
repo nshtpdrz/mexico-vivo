@@ -439,7 +439,7 @@ export async function iniciarAR({ contenedor, mapa, onEstado, onDetectado, onFra
     try { await sello.decode(); } catch (_) {}
     const t = Math.max(54, W * 0.09);
     c.font = `${Math.round(t * 0.2)}px "DM Mono", monospace`;
-    const anchoTexto = Math.max(c.measureText('MUSEO EL REHILETE · PACHUCA').width, t * 0.42 * 5.2);
+    const anchoTexto = Math.max(c.measureText('UN PAÍS QUE SE MUEVE').width, t * 0.42 * 5.2);
     c.fillStyle = 'rgba(251,247,238,0.92)';
     c.beginPath(); c.roundRect(14, H - t - 30, t + 30 + anchoTexto + 18, t + 16, 14); c.fill();
     if (sello.naturalWidth) c.drawImage(sello, 22, H - t - 22, t, t);
@@ -449,7 +449,7 @@ export async function iniciarAR({ contenedor, mapa, onEstado, onDetectado, onFra
     c.fillText('México Vivo', 30 + t, H - t / 2 - 26);
     c.font = `${Math.round(t * 0.2)}px "DM Mono", monospace`;
     c.fillStyle = '#b3261e';
-    c.fillText('MUSEO EL REHILETE · PACHUCA', 30 + t, H - t / 2 - 4);
+    c.fillText('UN PAÍS QUE SE MUEVE', 30 + t, H - t / 2 - 4);
     return new Promise((ok) => cv.toBlob(ok, 'image/jpeg', 0.9));
   }
 

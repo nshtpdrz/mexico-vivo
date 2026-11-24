@@ -2,7 +2,7 @@
 import * as audio from './audio.js';
 
 export const MISIONES = [
-  { id: 'hidalgo', titulo: 'Encuentra Hidalgo', pista: 'Toca el estado de Hidalgo, ¡ahí estamos!' },
+  { id: 'hidalgo', titulo: 'Encuentra Hidalgo', pista: 'Toca el estado de Hidalgo, ¡es nuestro estado!' },
   { id: 'aviso60', titulo: 'Más de 60 s de aviso', pista: 'En Sismos, escucha desde Pachuca y pon un epicentro en la costa. ¿Logras más de 60 segundos de aviso?' },
   { id: 'prediccion', titulo: 'Predicción certera', pista: 'Antes de simular, predice el aviso. ¡Atínale con 10 segundos de diferencia o menos!' },
   { id: 'simulacro', titulo: 'Simulacro a tiempo', pista: 'Cuando suene la alerta, elige los 3 pasos para protegerte antes de que llegue la onda S.' },
@@ -20,7 +20,7 @@ export const MISIONES = [
   { id: 'sabores', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
   { id: 'nixtamal', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
   { id: 'expedicion', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, visita tres maravillas naturales y responde por qué existen.' },
-  { id: 'geoparque', titulo: 'Nuestro geoparque', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, aquí en Hidalgo.' },
+  { id: 'geoparque', titulo: 'El geoparque de Hidalgo', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, en Hidalgo.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
@@ -193,7 +193,7 @@ export function abrirPasaporte() {
         <span class="sello-ico">${m.icono}</span><b>${m.titulo}</b>
         <small>${hechas[m.id] ? '<img class="pi" src="assets/pegatinas/ui/correcto.png" alt="">¡Hecho!' : m.pista}</small>
       </div>`).join('')}</div>
-    <div class="acciones-ficha"><button class="btn sec" id="pas-reiniciar">Nuevo visitante (reiniciar)</button></div>`;
+    <div class="acciones-ficha"><button class="btn sec" id="pas-reiniciar">Nueva persona (reiniciar)</button></div>`;
   d.querySelector('.cerrar').onclick = () => d.close();
   d.querySelector('#pas-reiniciar').onclick = () => { reiniciar(); abrirPasaporte(); };
   if (!d.open) d.showModal();

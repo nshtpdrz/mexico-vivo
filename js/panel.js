@@ -21,7 +21,7 @@ export const TARJETAS = {
   clima: { p: '¿Dónde suele hacer más frío: en Toluca (2,660 m) o en Villahermosa (10 m)?', o: ['En Toluca', 'En Villahermosa', 'Igual en las dos'], r: 0,
     sabias: 'El aire que sube se expande y se enfría. Por eso las ciudades altas suelen ser más frías.', accion: 'En Experimenta, cada punto de la gráfica es una capital con datos de hace minutos.' },
   historia: { p: '¿Qué ciudad florecía en Hidalgo hacia el año 950?', o: ['Tula', 'Cancún', 'Monterrey'], r: 0,
-    sabias: 'Tula fue la capital tolteca, aquí en Hidalgo.', accion: 'En Experimenta, mueve la línea del tiempo y mira qué lugares se encienden.' },
+    sabias: 'Tula fue la capital tolteca, en Hidalgo.', accion: 'En Experimenta, mueve la línea del tiempo y mira qué lugares se encienden.' },
   cultura: { p: '¿En qué año la UNESCO reconoció la cocina tradicional mexicana como Patrimonio Inmaterial?', o: ['1810', '2010', '2025'], r: 1,
     sabias: 'Fue en 2010, con el paradigma de Michoacán.', accion: 'Toca un estado: verás un platillo, una artesanía y una tradición de una región.' },
   lenguas: { p: '¿Cuántas personas hablaban una lengua indígena en México en 2020?', o: ['Unas 70 mil', 'Más de 7 millones', 'Nadie'], r: 1,

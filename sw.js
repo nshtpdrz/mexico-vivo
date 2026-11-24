@@ -8,7 +8,7 @@
 //   abre al instante y la siguiente visita trae la versión nueva.
 // - Las APIs externas (clima, USGS) no pasan por aquí: la app ya guarda su
 //   último dato con fecha en el navegador.
-const VERSION = 'mexico-vivo-v62';
+const VERSION = 'mexico-vivo-v63';
 const PRECARGA = [
   './',
   'manifest.webmanifest',

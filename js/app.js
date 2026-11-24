@@ -245,7 +245,7 @@ function pintarResultados(res, cfg) {
 // Interfaz: capas
 // ---------------------------------------------------------------------
 const LEYENDAS = {
-  estados: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#f2b21b', 'Hidalgo (¡aquí estamos!)']]),
+  estados: () => Object.values(REGIONES).map((r) => [r.color, r.nombre]).concat([['#f2b21b', 'Hidalgo (nuestro estado)']]),
   tectonica: () => Object.values(ZONAS_SISMICAS).map((z) => [z.color, z.nombre])
     .concat([['#ff3b3b', 'Subducción'], ['#ffd23a', 'Divergente'], ['#3ad1ff', 'Transformante']]),
   volcanes: () => [['#5b3a2a', 'Volcán (altura proporcional)'], ['#ff7a1a', 'Eje Neovolcánico'], ['#2b2f3a', 'Sitio geológico']],
@@ -626,7 +626,7 @@ function rumbo(g) {
 }
 
 // pegatina de cada tradición (capa Cultura)
-const PEG_TRADICION = { voladores: 'celebracion', parachicos: 'celebracion', muertos: 'celebracion', charreria: 'celebracion', pirekua: 'mision-musica', mariachi: 'mision-musica', cocina: 'mision-nixtamal', talavera: 'museo' };
+const PEG_TRADICION = { voladores: 'celebracion', parachicos: 'celebracion', muertos: 'celebracion', charreria: 'celebracion', pirekua: 'mision-musica', mariachi: 'mision-musica', cocina: 'mision-nixtamal', talavera: 'ciudad-virreinal' };
 function fichaObjeto(ud) {
   const d = ud.data;
   switch (ud.tipo) {
@@ -755,8 +755,8 @@ function fichaObjeto(ud) {
     case 'eje':
       abrirFicha({ titulo: 'Eje Neovolcánico Transversal', sub: '~1,000 km de Nayarit a Veracruz', color: '#ff7a1a', cuerpo: '<p>Es una cadena de más de 8,000 estructuras volcánicas. Está inclinado respecto a la fosa porque la placa de Cocos se hunde con distintos ángulos: bajo Guerrero viaja casi plana (losa plana) antes de hundirse.</p>' });
       break;
-    case 'museo':
-      abrirFicha({ revision: false, titulo: 'Museo El Rehilete', sub: 'Pachuca, Hidalgo', color: '#f2b21b', cuerpo: '<p>¡Aquí estamos! Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/sismicidad.png" alt="">Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
+    case 'pachuca':
+      abrirFicha({ revision: false, titulo: 'Pachuca, Hidalgo', sub: 'Capital de nuestro estado', color: '#f2b21b', cuerpo: '<p>Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/sismicidad.png" alt="">Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
       break;
     case 'usgs':
       abrirFicha({ revision: false,
@@ -1421,11 +1421,11 @@ function menuReto() {
     <h2>¿Qué quieres hacer?</h2>
     <div class="opciones">
       <button class="btn opcion" id="m-reto"><b>Reto libre</b>&nbsp;· 5 preguntas con explicación</button>
-      <button class="btn opcion" id="m-antes"><b>Evaluación: ANTES</b>&nbsp;· el visitante aún no explora</button>
-      <button class="btn opcion" id="m-despues" ${pend.length ? '' : 'disabled'}><b>Evaluación: DESPUÉS</b>&nbsp;· ${pend.length ? `${pend.length} visitante(s) pendiente(s)` : 'nadie pendiente'}</button>
+      <button class="btn opcion" id="m-antes"><b>Evaluación: ANTES</b>&nbsp;· la persona aún no explora</button>
+      <button class="btn opcion" id="m-despues" ${pend.length ? '' : 'disabled'}><b>Evaluación: DESPUÉS</b>&nbsp;· ${pend.length ? `${pend.length} participante(s) pendiente(s)` : 'nadie pendiente'}</button>
       <button class="btn opcion" id="m-res"><b>Resultados</b>&nbsp;· estadística y CSV</button>
     </div>
-    <p class="nota">La evaluación es anónima: solo guarda un número de visitante, un rango de edad y las respuestas, en este navegador.</p>`;
+    <p class="nota">La evaluación es anónima: solo guarda un número de participante, un rango de edad y las respuestas, en este navegador.</p>`;
   $('#m-reto').onclick = iniciarReto;
   $('#m-antes').onclick = () => evalEdad();
   $('#m-despues').onclick = () => evalElegir(pend);
@@ -1440,7 +1440,7 @@ function evalEdad() {
 }
 
 function evalElegir(pend) {
-  $('#reto-cont').innerHTML = `<p class="sub">Evaluación · después</p><h2>¿Cuál es tu número de visitante?</h2>
+  $('#reto-cont').innerHTML = `<p class="sub">Evaluación · después</p><h2>¿Cuál es tu número de participante?</h2>
     <div class="opciones numeros">${pend.map((id) => `<button class="btn opcion" data-id="${id}">#${id}</button>`).join('')}</div>`;
   $$('.opcion', dlg).forEach((b) => (b.onclick = () => {
     const id = +b.dataset.id;
@@ -1455,10 +1455,10 @@ function evalPreguntas(id, fase, edad) {
     if (i >= ev.PREGUNTAS.length) {
       const ok = ev.registrar(id, fase, edad, resp);
       $('#reto-cont').innerHTML = fase === 'antes'
-        ? `<p class="sub">¡Gracias!</p><h2>Eres el visitante <span class="num-visitante">#${id}</span></h2>
+        ? `<p class="sub">¡Gracias!</p><h2>Eres el participante <span class="num-visitante">#${id}</span></h2>
            <p>Recuerda tu número. Ahora explora el mapa y, al terminar, contesta la parte DESPUÉS.</p>
            <div class="acciones-ficha"><button class="btn primario" id="ev-ok">Explorar</button></div>`
-        : `<p class="sub">Visitante #${id}</p><h2>${ok} de ${ev.PREGUNTAS.length} correctas</h2>
+        : `<p class="sub">Participante #${id}</p><h2>${ok} de ${ev.PREGUNTAS.length} correctas</h2>
            <p>Gracias por ayudarnos a medir si el prototipo enseña.</p>
            <div class="acciones-ficha"><button class="btn primario" id="ev-ok">Cerrar</button></div>`;
       $('#ev-ok').onclick = () => dlg.close();
@@ -1466,7 +1466,7 @@ function evalPreguntas(id, fase, edad) {
     }
     const q = ev.PREGUNTAS[i];
     // en la evaluación NO se muestra si la respuesta es correcta (no "enseña" en el ANTES)
-    $('#reto-cont').innerHTML = `<p class="sub">Evaluación · ${fase} · visitante #${id} · ${i + 1}/${ev.PREGUNTAS.length}</p>
+    $('#reto-cont').innerHTML = `<p class="sub">Evaluación · ${fase} · participante #${id} · ${i + 1}/${ev.PREGUNTAS.length}</p>
       <h2>${q.p}</h2><div class="opciones">${q.o.map((o, j) => `<button class="btn opcion" data-j="${j}">${o}</button>`).join('')}
       <button class="btn opcion sec" data-j="-1">No sé</button></div>`;
     $$('.opcion', dlg).forEach((b) => (b.onclick = () => { resp.push(+b.dataset.j); audio.clic(); paso(i + 1); }));
@@ -1479,18 +1479,18 @@ function evalResultados() {
   const pct = (x) => `${Math.round(x * 100)} %`;
   const total = ev.registros();
   $('#reto-cont').innerHTML = `<p class="sub">Resultados de la evaluación</p>
-    ${r.pares.length ? `<h2>${r.pares.length} visitantes con antes y después</h2>
+    ${r.pares.length ? `<h2>${r.pares.length} participantes con antes y después</h2>
     <div class="tarjetas">
       <div><b>${fmt(r.mA, 1)}/${r.n}</b><small>promedio ANTES</small></div>
       <div><b>${fmt(r.mD, 1)}/${r.n}</b><small>promedio DESPUÉS</small></div>
       <div><b>${fmt(r.g, 2)}</b><small>ganancia normalizada (Hake)</small></div>
     </div>
-    <p>${r.mejoraron} de ${r.pares.length} visitantes mejoraron su puntaje.</p>
+    <p>${r.mejoraron} de ${r.pares.length} participantes mejoraron su puntaje.</p>
     <table><thead><tr><th>Pregunta</th><th>Antes</th><th>Después</th></tr></thead><tbody>
     ${ev.PREGUNTAS.map((q, i) => `<tr><td>${i + 1}. ${q.p}</td><td>${pct(r.porPregunta[i].antes)}</td><td>${pct(r.porPregunta[i].despues)}</td></tr>`).join('')}
     </tbody></table>
     <p class="nota">Muestra pequeña y sin grupo control: sirve como evidencia preliminar, no como prueba estadística.</p>`
-    : `<h2>Aún no hay pares completos</h2><p>Registros guardados: ${total.length}. Cada visitante debe contestar ANTES y DESPUÉS.</p>`}
+    : `<h2>Aún no hay pares completos</h2><p>Registros guardados: ${total.length}. Cada participante debe contestar ANTES y DESPUÉS.</p>`}
     <div class="acciones-ficha">
       <button class="btn primario" id="ev-csv" ${total.length ? '' : 'disabled'}>Descargar CSV</button>
       <button class="btn sec" id="ev-volver">Volver</button>
@@ -2382,22 +2382,22 @@ function abrirGuia() {
   if (!dlgGuia) {
     dlgGuia = document.createElement('dialog');
     dlgGuia.className = 'reto guia-stand';
-    dlgGuia.setAttribute('aria-label', 'Modo guía del stand');
+    dlgGuia.setAttribute('aria-label', 'Modo guía del equipo');
     document.body.appendChild(dlgGuia);
   }
   const d = leerStand();
   const sims = d.simulacrosATiempo + d.simulacrosTarde;
   dlgGuia.innerHTML = `<button class="cerrar" aria-label="Cerrar">×</button>
-    <p class="sub">Solo para el equipo del stand</p><h2>Modo guía</h2>
+    <p class="sub">Solo para el equipo del proyecto</p><h2>Modo guía</h2>
     <h3>Demostraciones listas</h3>
     <div class="gs-escenarios">${ESCENARIOS.map((e) => `<button class="btn" data-e="${e.id}"><b>${e.titulo}</b><small>${e.nota}</small></button>`).join('')}</div>
     <h3>Controles rápidos</h3>
     <div class="fila gs-controles">
-      <button class="btn primario" data-a="reiniciar">Reiniciar para el siguiente visitante</button>
+      <button class="btn primario" data-a="reiniciar">Reiniciar para la siguiente persona</button>
       <button class="btn" data-a="vel" data-v="1">Velocidad 1×</button><button class="btn" data-a="vel" data-v="10">10×</button><button class="btn" data-a="vel" data-v="40">40×</button>
       <label class="switch"><input type="checkbox" data-a="simulacro" ${$('#chk-simulacro')?.checked ? 'checked' : ''}><span></span>Simulacro al sonar la alerta</label>
     </div>
-    <h3>Hoy en el stand <small>(${d.dia})</small></h3>
+    <h3>Hoy <small>(${d.dia})</small></h3>
     <div class="tarjetas gs-cifras">
       <div><b>${d.visitas}</b><span>visitas</span></div>
       <div><b>${d.simulaciones}</b><span>sismos simulados</span></div>

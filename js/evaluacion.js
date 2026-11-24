@@ -58,7 +58,7 @@ export function resumen() {
 }
 
 export function csv() {
-  const filas = [['visitante', 'fase', 'edad', 'fecha', ...PREGUNTAS.map((_, i) => `p${i + 1}_correcta`), 'aciertos']];
+  const filas = [['participante', 'fase', 'edad', 'fecha', ...PREGUNTAS.map((_, i) => `p${i + 1}_correcta`), 'aciertos']];
   for (const r of leer()) {
     filas.push([r.id, r.fase, r.edad, r.fecha, ...r.respuestas.map((x, i) => (x === PREGUNTAS[i].r ? 1 : 0)), r.aciertos]);
   }

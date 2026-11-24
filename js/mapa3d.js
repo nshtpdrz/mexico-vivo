@@ -6,7 +6,7 @@ import { proyectar, desproyectar, prepararEstados, MARCADOR_ASPECTO, KM_POR_UNID
 export const EXAG_PROF = 4; // exageración vertical de la profundidad bajo el mapa
 import {
   ESTADOS, REGIONES, ZONAS_SISMICAS, BIOMAS, LIMITES_PLACAS, PLACAS, VOLCANES,
-  EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, MUSEO,
+  EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, PACHUCA,
 } from './datos.js';
 import { SITIOS, TRADICIONES } from './cultura.js';
 import { LENGUA_ESTADOS } from './lenguas.js';
@@ -337,7 +337,7 @@ export class MapaMexico {
   _comun() {
     const g = new THREE.Group();
     this.capas.comun = g;
-    // Pin del museo
+    // Pin de Pachuca, capital de Hidalgo
     const pin = new THREE.Group();
     const palo = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, 0.05, 8), new THREE.MeshStandardMaterial({ color: 0xffd34d }));
     palo.rotation.x = Math.PI / 2;
@@ -345,13 +345,13 @@ export class MapaMexico {
     const bola = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 20, 14), new THREE.MeshStandardMaterial({ color: 0xffc21a, emissive: 0x8a5a00, emissiveIntensity: 0.6 }));
     bola.position.z = 0.052;
     pin.add(palo, bola);
-    const lbl = crearEtiqueta('Museo El Rehilete', { icono: 'museo', prioridad: 10, tam: 0.017, color: '#fbf7ee', fondo: 'rgba(179,38,30,0.96)', borde: '#fbf7ee' });
+    const lbl = crearEtiqueta('Pachuca, Hidalgo', { icono: 'mision-hidalgo', prioridad: 10, tam: 0.017, color: '#fbf7ee', fondo: 'rgba(179,38,30,0.96)', borde: '#fbf7ee' });
     lbl.position.z = 0.062;
     pin.add(lbl);
-    pin.position.copy(V(MUSEO.lon, MUSEO.lat, 0));
+    pin.position.copy(V(PACHUCA.lon, PACHUCA.lat, 0));
     pin.userData.base = 0.03;
-    this.pinMuseo = pin;
-    bola.userData = { tipo: 'museo' };
+    this.pinPachuca = pin;
+    bola.userData = { tipo: 'pachuca' };
     this.pickables.push(bola);
     g.add(pin);
     this.animables.push((t) => { bola.position.z = 0.052 + Math.sin(t * 3) * 0.003; });
@@ -1088,7 +1088,7 @@ export class MapaMexico {
       } else if (r.mesh.position.lengthSq() > 0) r.mesh.position.set(0, 0, 0);
     }
     const hid = this.estados.get('MX-HID');
-    if (hid) this.pinMuseo.position.z = hid.altura;
+    if (hid) this.pinPachuca.position.z = hid.altura;
     this.animables = this.animables.filter((fn) => fn(t, dt) !== false);
   }
 

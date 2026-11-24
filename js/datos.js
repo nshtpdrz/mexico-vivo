@@ -79,7 +79,7 @@ export const ESTADOS = {
   'MX-DUR': { capital: 'Durango', lat: 24.02, lon: -104.66, region: 'norte', zona: 'A', bioma: 'templado', dato: 'La Sierra Madre Occidental es una de las mayores provincias de rocas volcánicas del planeta.' },
   'MX-GUA': { capital: 'Guanajuato', lat: 21.02, lon: -101.26, region: 'centro', zona: 'B', bioma: 'semiarido', dato: 'Su riqueza en plata se formó cuando fluidos calientes depositaron minerales en las grietas de las rocas.' },
   'MX-GRO': { capital: 'Chilpancingo', lat: 17.55, lon: -99.5, region: 'sur', zona: 'D', bioma: 'selvaSeca', dato: 'La «Brecha de Guerrero» es un tramo de la costa que lleva más de 100 años sin un gran sismo y acumula energía.' },
-  'MX-HID': { capital: 'Pachuca', lat: 20.1, lon: -98.76, region: 'centro', zona: 'B', bioma: 'templado', dato: '¡Aquí estamos! El Geoparque Comarca Minera (UNESCO) y los Prismas Basálticos muestran millones de años de historia volcánica.' },
+  'MX-HID': { capital: 'Pachuca', lat: 20.1, lon: -98.76, region: 'centro', zona: 'B', bioma: 'templado', dato: 'Nuestro estado. El Geoparque Comarca Minera (UNESCO) y los Prismas Basálticos muestran millones de años de historia volcánica.' },
   'MX-JAL': { capital: 'Guadalajara', lat: 20.67, lon: -103.35, region: 'occidente', zona: 'C', bioma: 'templado', dato: 'Bajo su costa se hunde la pequeña placa de Rivera. En 1932 hubo ahí un sismo de magnitud 8.2.' },
   'MX-MEX': { capital: 'Toluca', lat: 19.29, lon: -99.66, region: 'centro', zona: 'B', bioma: 'templado', dato: 'El Nevado de Toluca tiene dos lagunas dentro de su cráter, a más de 4,000 m de altura.' },
   'MX-MIC': { capital: 'Morelia', lat: 19.7, lon: -101.19, region: 'occidente', zona: 'C', bioma: 'templado', dato: 'Millones de mariposas monarca invernan en sus bosques. En 1943 nació aquí el Paricutín, en medio de una milpa.' },
@@ -102,7 +102,7 @@ export const ESTADOS = {
 };
 
 // Ciudad sede del concurso
-export const MUSEO = { nombre: 'Museo El Rehilete', lat: 20.08, lon: -98.74 };
+export const PACHUCA = { nombre: 'Pachuca, Hidalgo', lat: 20.12, lon: -98.73 };
 
 // --------------------------------------------------------------------
 // Tectónica (trazos esquemáticos, [lon, lat])

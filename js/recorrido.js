@@ -50,7 +50,7 @@ export function crearRecorrido(api) {
     },
     {
       titulo: 'Viaje en el tiempo',
-      texto: 'Viajemos al año 950. En Tula, aquí en Hidalgo, florece la capital tolteca. Mueve la línea del tiempo del panel para ver otras épocas.',
+      texto: 'Viajemos al año 950. En Tula, en Hidalgo, florece la capital tolteca. Mueve la línea del tiempo del panel para ver otras épocas.',
       hacer() { api.cambiarCapa('historia'); api.ponerAnio(950); api.volarA(-99.34, 20.06, 0.5); },
     },
     {
