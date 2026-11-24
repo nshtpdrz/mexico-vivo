@@ -37,7 +37,7 @@ function elegirVoz() {
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { vozEs = elegirVoz(); };
 
-const PEG = (id) => `<img class="pi" src="assets/pegatinas/ui/${id}.png" alt="">`;
+const PEG = (id) => `<img class="pi" loading="lazy" src="assets/pegatinas/ui/${id}.png" alt="">`;
 for (const m of MISIONES) m.icono = PEG('mision-' + m.id.toLowerCase());
 
 export const vozDisponible = () => 'speechSynthesis' in window;
@@ -99,7 +99,7 @@ export function montarGuia() {
   el.querySelector('.axo-cara').onclick = () => {
     const pend = MISIONES.find((m) => !hechas[m.id]);
     decir(pend ? `Misión: ${pend.titulo}. ${pend.pista}` : '¡Completaste todas las misiones! Eres un experto de México Vivo.', {
-      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/bitacora.png" alt="">Ver bitácora', fn: () => abrirPasaporte() }],
+      acciones: [{ texto: '<img class="pi" loading="lazy" src="assets/pegatinas/ui/bitacora.png" alt="">Ver bitácora', fn: () => abrirPasaporte() }],
     });
   };
   return el;
@@ -165,7 +165,7 @@ export function completar(id) {
   confeti();
   const faltan = MISIONES.length - progreso();
   decir(`¡Misión cumplida: ${m.titulo}! ${faltan ? `Te faltan ${faltan}.` : '¡Completaste tu bitácora!'}`, {
-    acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/bitacora.png" alt="">Bitácora', fn: () => abrirPasaporte() }],
+    acciones: [{ texto: '<img class="pi" loading="lazy" src="assets/pegatinas/ui/bitacora.png" alt="">Bitácora', fn: () => abrirPasaporte() }],
   });
 }
 
@@ -191,7 +191,7 @@ export function abrirPasaporte() {
     <div class="sellos">${MISIONES.map((m) => `
       <div class="sello ${hechas[m.id] ? 'hecho' : ''}">
         <span class="sello-ico">${m.icono}</span><b>${m.titulo}</b>
-        <small>${hechas[m.id] ? '<img class="pi" src="assets/pegatinas/ui/correcto.png" alt="">¡Hecho!' : m.pista}</small>
+        <small>${hechas[m.id] ? '<img class="pi" loading="lazy" src="assets/pegatinas/ui/correcto.png" alt="">¡Hecho!' : m.pista}</small>
       </div>`).join('')}</div>
     <div class="acciones-ficha"><button class="btn sec" id="pas-reiniciar">Nueva persona (reiniciar)</button></div>`;
   d.querySelector('.cerrar').onclick = () => d.close();

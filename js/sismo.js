@@ -1,5 +1,5 @@
 // Simulador físico de propagación de ondas sísmicas y alerta temprana.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { distanciaKm, proyectar, KM_POR_UNIDAD } from './geo.js';
 import { ESTADOS, SENSORES, VEL_P, VEL_S, T_PROCESO_ALERTA, LIMITES_PLACAS } from './datos.js';
 import { crearEtiqueta, vec, EXAG_PROF } from './mapa3d.js';
@@ -143,12 +143,12 @@ export class SimuladorSismo {
     const esc = ciudades.find((c) => c.id === this.escucha);
     const pan = (id) => { const e = ESTADOS[id]; return e ? (e.lon + 102.5) / 15 : 0; };
 
-    this._evento(0, `<img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Ruptura: M${this.cfg.mag.toFixed(1)} a ${this.cfg.prof} km de profundidad. Energía ≈ ${energia(this.cfg.mag).toExponential(1)} J`, 'ruptura', () => {
+    this._evento(0, `<img class="pi" loading="lazy" src="assets/pegatinas/ui/ruptura.png" alt="">Ruptura: M${this.cfg.mag.toFixed(1)} a ${this.cfg.prof} km de profundidad. Energía ≈ ${energia(this.cfg.mag).toExponential(1)} J`, 'ruptura', () => {
       audio.golpeP(Math.min(1, this.cfg.mag / 8), 0);
     });
     if (tAlerta !== null) {
-      this._evento(tAlerta - T_PROCESO_ALERTA, `<img class="pi" src="assets/pegatinas/ui/sensor-sismico.png" alt="">Sensor «${sensorDetecta.nombre}» detecta la onda P`, 'sensor');
-      this._evento(tAlerta, `<img class="pi" src="assets/pegatinas/ui/alerta.png" alt="">ALERTA SÍSMICA emitida por radio (t = ${tAlerta.toFixed(1)} s)`, 'alerta', () => {
+      this._evento(tAlerta - T_PROCESO_ALERTA, `<img class="pi" loading="lazy" src="assets/pegatinas/ui/sensor-sismico.png" alt="">Sensor «${sensorDetecta.nombre}» detecta la onda P`, 'sensor');
+      this._evento(tAlerta, `<img class="pi" loading="lazy" src="assets/pegatinas/ui/alerta.png" alt="">ALERTA SÍSMICA emitida por radio (t = ${tAlerta.toFixed(1)} s)`, 'alerta', () => {
         this.cb.onAlerta?.(true);
         if (this.alertaActiva && esc && esc.aviso > 0) audio.alertaSismica();
       });
@@ -157,11 +157,11 @@ export class SimuladorSismo {
     }
     for (const c of ciudades) {
       const relevante = c.id === this.escucha || c.d < 450 || ['MX-CMX', 'MX-HID'].includes(c.id);
-      this._evento(c.tP, relevante ? `<img class="pi" src="assets/pegatinas/ui/onda-p.png" alt="">Onda P llega a ${c.nombre}` : null, 'p', () => {
+      this._evento(c.tP, relevante ? `<img class="pi" loading="lazy" src="assets/pegatinas/ui/onda-p.png" alt="">Onda P llega a ${c.nombre}` : null, 'p', () => {
         this._marcarCiudad(c, 0x4fc3ff);
         if (c.id === this.escucha) audio.golpeP(Math.min(1, (c.I - 2) / 7), pan(c.id));
       });
-      this._evento(c.tS, relevante ? `<img class="pi" src="assets/pegatinas/ui/onda-s.png" alt="">Onda S llega a ${c.nombre} · intensidad ${ROMANOS[Math.round(c.I)]}${c.aviso !== null && this.alertaActiva ? ` · aviso: ${c.aviso > 0 ? c.aviso.toFixed(0) + ' s' : 'ninguno'}` : ''}` : null, 's', () => {
+      this._evento(c.tS, relevante ? `<img class="pi" loading="lazy" src="assets/pegatinas/ui/onda-s.png" alt="">Onda S llega a ${c.nombre} · intensidad ${ROMANOS[Math.round(c.I)]}${c.aviso !== null && this.alertaActiva ? ` · aviso: ${c.aviso > 0 ? c.aviso.toFixed(0) + ' s' : 'ninguno'}` : ''}` : null, 's', () => {
         this._marcarCiudad(c, 0xff4040);
         const reg = this.mapa.estados.get(c.id);
         if (reg) reg.sacudida = Math.max(0, (c.I - 2.5) / 9) * 0.014;

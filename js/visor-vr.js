@@ -10,11 +10,12 @@
 // mesa, hay una fila de botones para cambiar de capa y uno para salir.
 //
 // En una computadora (sin giroscopio) se puede mirar arrastrando el ratón, para probar.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 
-const ALTO_OJOS = 0.3;    // sobre la mesa (unidades del mapa: el país mide ~1 de ancho)
-const DISTANCIA = 0.72;   // del centro del mapa hacia el sur: el mapa queda ~23° bajo la vista,
-                          // dentro del campo visual aunque se mire al frente
+// En el visor el mapa se pone DE PIE, como un mural frente a quien explora (norte arriba, el
+// relieve sale de la pared hacia la vista). Unidades del mapa: el país mide ~1 de ancho.
+const ALTO_OJOS = 0;      // los ojos a la altura del centro del mural
+const DISTANCIA = 0.92;   // distancia al mural: el país completo cabe en la vista
 const SEP_OJOS = 0.03;    // separación de los ojos: el país se siente como una mesa de unos 2 m
 const PERMANENCIA = 1.5;  // segundos mirando algo para elegirlo
 
@@ -108,7 +109,7 @@ export function crearVisor(o) {
     camara.quaternion.copy(qAjuste).multiply(qCabeza);
   }
   // ratón (computadora): mirar arrastrando
-  let yaw = 0, pitch = -0.4, arrastre = null;
+  let yaw = 0, pitch = 0, arrastre = null;
   const alBajar = (e) => { arrastre = [e.clientX, e.clientY, yaw, pitch, performance.now()]; };
   const alMover = (e) => {
     if (!arrastre) return;
@@ -122,7 +123,7 @@ export function crearVisor(o) {
     // dos toques seguidos recentran: lo que se mira en ese momento pasa a ser «el frente»
     if (arrastre && Math.hypot(e.clientX - arrastre[0], e.clientY - arrastre[1]) < 8 && performance.now() - arrastre[4] < 500) {
       const ahora = performance.now();
-      if (ahora - ultimoToque < 400) { calibrar = true; tEntrada = 0; yaw = 0; pitch = -0.4; navigator.vibrate?.([20, 40, 20]); }
+      if (ahora - ultimoToque < 400) { calibrar = true; tEntrada = 0; yaw = 0; pitch = 0; navigator.vibrate?.([20, 40, 20]); }
       else elegir();
       ultimoToque = ahora;
     }
@@ -179,10 +180,11 @@ export function crearVisor(o) {
     items.forEach(([id, nombre], i) => {
       const activo = id === o.capaActual();
       const tex = texturaTexto([{ texto: nombre, tam: 58, color: activo ? '#fff' : '#1b1a17', peso: 600 }], { ancho: 512, alto: 160, fondo: activo ? '#b3261e' : id === '__salir' ? '#e8dcc4' : '#f7f1e4', imagen: id === '__salir' ? null : `assets/pegatinas/${id}.png`, izq: true });
-      const b = new THREE.Mesh(new THREE.PlaneGeometry(ancho * 0.94, ancho * 0.3), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
-      const x = -0.475 + ancho * (i + 0.5);
-      b.position.set(x, 0.03, 0.42 + Math.abs(x) * 0.12);
-      b.rotation.set(-1.0, -x * 0.35, 0);
+      const b = new THREE.Mesh(new THREE.PlaneGeometry(0.125, 0.039), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+      // repisa en arco alrededor de quien explora, bajo el mural: se mira hacia abajo para elegir
+      const a = (i / (n - 1) - 0.5) * 2.0, R = 0.5;
+      b.position.set(Math.sin(a) * R, ALTO_OJOS - 0.3, DISTANCIA - Math.cos(a) * R);
+      b.rotation.set(0, -a, 0); b.rotateX(-0.75);
       b.userData = { botonVR: id };
       botones.add(b);
       listaBotones.push(b);
@@ -226,7 +228,7 @@ export function crearVisor(o) {
     const R = 2.4, H = 3.2, mosaico = 0.5; // un mosaico del patrón mide 0.5 (≈ 2.4 veces el ancho del país / 10)
     tex.repeat.set(Math.round((2 * Math.PI * R) / mosaico), Math.round(H / mosaico));
     // cuarto tapizado: pared circular y piso con el patrón, el mapa como mesa en medio
-    const PISO = -0.6;
+    const PISO = -0.75;
     const matPared = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, transparent: true, opacity: 0, depthWrite: false });
     const texPiso = tex.clone(); texPiso.repeat.set(Math.round((2 * R) / mosaico), Math.round((2 * R) / mosaico)); texPiso.needsUpdate = true;
     const matPiso = new THREE.MeshBasicMaterial({ map: texPiso, transparent: true, opacity: 0, depthWrite: false });
@@ -236,7 +238,7 @@ export function crearVisor(o) {
     const piso = new THREE.Mesh(new THREE.CircleGeometry(R, 64), matPiso);
     piso.rotation.x = -Math.PI / 2; piso.position.y = PISO;
     [muro, piso].forEach((m) => { m.renderOrder = -1; pared.add(m); });
-    pared.position.set(0, 0, DISTANCIA * 0.5);
+    pared.position.set(0, 0, DISTANCIA * 0.45);
     escena.add(pared);
     const t0 = performance.now(), p = pared;
     const aparecer = () => { if (pared !== p) return; const k = Math.min(1, (performance.now() - t0) / 700); matPared.opacity = 0.42 * k; matPiso.opacity = 0.3 * k; if (k < 1) requestAnimationFrame(aparecer); };
@@ -244,7 +246,7 @@ export function crearVisor(o) {
   };
 
   // ---- entrar / salir ----
-  let dprAntes = 1, bloqueo = null, fondoAntes = null;
+  let dprAntes = 1, bloqueo = null, fondoAntes = null, mesaAntes = null, sombraAntes = true;
   v.entrar = async () => {
     // iOS pide permiso para el giroscopio (debe ser dentro del toque del botón)
     try { if (typeof DeviceOrientationEvent?.requestPermission === 'function') await DeviceOrientationEvent.requestPermission(); } catch (_) {}
@@ -253,7 +255,9 @@ export function crearVisor(o) {
     try { bloqueo = await navigator.wakeLock?.request('screen'); } catch (_) {}
     v.activo = true; calibrar = true; conGiroscopio = false; orientacion = null; tEntrada = performance.now(); primera = null; usarRaton = false;
     fondoAntes = escena.background; escena.background = new THREE.Color('#e9dfcc'); // papel de la marca
-    yaw = 0; pitch = -0.4;
+    if (o.mesa) { mesaAntes = { rot: o.mesa.rotation.clone(), pos: o.mesa.position.clone() }; o.mesa.rotation.set(0, 0, 0); o.mesa.position.set(0, ALTO_OJOS, 0); }
+    if (o.sol) { sombraAntes = o.sol.castShadow; o.sol.castShadow = false; o.sol.userData.posVR ??= o.sol.position.clone(); o.sol.position.set(-0.6, 1.2, 1.6); }
+    yaw = 0; pitch = 0;
     document.body.classList.add('en-visor');
     dprAntes = renderer.getPixelRatio();
     renderer.setPixelRatio(Math.min(1.25, devicePixelRatio)); // dos vistas: menos pixeles por vista
@@ -269,6 +273,8 @@ export function crearVisor(o) {
     if (!v.activo) return;
     v.activo = false;
     escena.background = fondoAntes;
+    if (o.mesa && mesaAntes) { o.mesa.rotation.copy(mesaAntes.rot); o.mesa.position.copy(mesaAntes.pos); mesaAntes = null; }
+    if (o.sol) { o.sol.castShadow = sombraAntes; if (o.sol.userData.posVR) o.sol.position.copy(o.sol.userData.posVR); delete o.sol.userData.posVR; }
     document.body.classList.remove('en-visor');
     removeEventListener('deviceorientation', alOrientar);
     renderer.domElement.removeEventListener('pointerdown', alBajar);

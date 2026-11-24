@@ -7,7 +7,7 @@
 //   · plataforma costera, h ≈ 100 m → v ≈ 31 m/s ≈ 113 km/h
 // Al llegar a aguas someras se frena, la energía se comprime y la ola crece
 // (asomeramiento). Todo esto es un modelo simplificado con fines educativos.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { distanciaKm, puntoEnPoligono, KM_POR_UNIDAD } from './geo.js';
 import { vec } from './mapa3d.js';
 

@@ -11,7 +11,7 @@
 //  · calidad automática propia de la AR (resolución, sombras y grano);
 //  · gestos: pellizcar para acercar, girar con dos dedos, doble toque para reiniciar;
 //  · foto: une el video y el mapa en una imagen.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { dibujarMarcador } from './marcador.js';
 
 const DB = 'mexico-vivo';

@@ -10,8 +10,8 @@
 //    3–8 llamadas de dibujo en lugar de decenas (rendimiento en la tablet de la presentación).
 //  · Las obras muy largas (acueductos) se muestran como un tramo, con sus proporciones reales;
 //    las piezas diminutas junto a obras enormes (cabeza olmeca) se agrandan y se dice en el código.
-import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import * as THREE from '../vendor/three/three.module.js';
+import { mergeGeometries } from '../vendor/three/addons/utils/BufferGeometryUtils.js';
 import { materialAtlas } from './mapa3d.js';
 import { cargarDEM, muestrear } from './relieve-mapa.js';
 

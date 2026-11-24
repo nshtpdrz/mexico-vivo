@@ -12,7 +12,7 @@
 //
 // Todo cuelga de mapa.root para que también aparezca en AR. No se cuelga de mapa.capas.clima
 // porque pintarClima() vacía ese grupo cada vez que cambia la variable.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { proyectar, desproyectar } from './geo.js';
 
 const LAT_MIN = 14, LON_MIN = -118, PASO = 1.5, NLAT = 13, NLON = 22; // 13 × 22 = 286 puntos

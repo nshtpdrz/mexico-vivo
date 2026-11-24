@@ -11,7 +11,7 @@
 // En la costa del Golfo de México provoca los «nortes»: vientos fuertes del norte y descenso de temperatura.
 //
 // Todo es una simulación didáctica: las trayectorias son ilustrativas, no de huracanes reales.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { vec } from './mapa3d.js';
 import { enTierra } from './tsunami.js';
 import { distanciaKm } from './geo.js';

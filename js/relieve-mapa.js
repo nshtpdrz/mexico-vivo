@@ -3,7 +3,7 @@
 // Forma, cráter, barrancas y tamaño son los reales; para que se lean a la escala del país, todo el
 // modelo se agranda ESCALA_H veces y la altura, además, EXAGERACION_V veces (el mismo factor para
 // todos, así se comparan bien entre sí). El borde se funde con el mapa para que no parezca una loseta.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { proyectar, KM_POR_UNIDAD } from './geo.js';
 
 export const ESCALA_H = 2;        // tamaño horizontal ×2

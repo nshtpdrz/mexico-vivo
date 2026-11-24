@@ -98,8 +98,8 @@ export function crearRecorrido(api) {
       <div class="rec-botones">
         ${i > 0 ? '<button class="btn sec" data-a="atras">Anterior</button>' : ''}
         ${p.final
-          ? (respuesta != null ? '<button class="btn" data-a="bitacora"><img class="pi" src="assets/pegatinas/ui/bitacora.png" alt="">Abrir bitácora</button><button class="btn primario" data-a="salir">Explorar libremente</button>' : '')
-          : '<button class="btn primario" data-a="sig"><img class="pi" src="assets/pegatinas/ui/siguiente.png" alt="">Siguiente</button>'}
+          ? (respuesta != null ? '<button class="btn" data-a="bitacora"><img class="pi" loading="lazy" src="assets/pegatinas/ui/bitacora.png" alt="">Abrir bitácora</button><button class="btn primario" data-a="salir">Explorar libremente</button>' : '')
+          : '<button class="btn primario" data-a="sig"><img class="pi" loading="lazy" src="assets/pegatinas/ui/siguiente.png" alt="">Siguiente</button>'}
       </div>`;
     el.querySelector('.rec-salir').onclick = salir;
     el.querySelectorAll('[data-o]').forEach((b) => (b.onclick = () => { respuesta = +b.dataset.o; api.clic(); pintar(); }));

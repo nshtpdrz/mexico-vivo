@@ -4,8 +4,8 @@
 // Estilo «Atlas de Velasco»: relieve sombreado a mano con luz cálida del noroeste
 // (la convención cartográfica), tintas hipsométricas, rayado en las sombras y
 // curvas de nivel en sepia. Todo en un solo shader WebGL, sin posproceso.
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from '../vendor/three/three.module.js';
+import { OrbitControls } from '../vendor/three/addons/controls/OrbitControls.js';
 import { crearEtiqueta, materialAtlas } from './mapa3d.js';
 import * as audio from './audio.js';
 
@@ -83,9 +83,9 @@ export async function abrirVolcan(volcan, cimas = []) {
       <div class="control"><label>Exageración vertical <output id="vv-exag">1.5×</output></label>
         <input type="range" id="vv-rng" min="1" max="3" step="0.1" value="1.5"></div>
       <div class="fila">
-        ${volcan.activo ? '<button class="btn peligro" id="vv-erupcion"><img class="pi" src="assets/pegatinas/ui/erupcion.png" alt="">Erupción</button>' : ''}
+        ${volcan.activo ? '<button class="btn peligro" id="vv-erupcion"><img class="pi" loading="lazy" src="assets/pegatinas/ui/erupcion.png" alt="">Erupción</button>' : ''}
         <button class="btn" id="vv-girar">⟳ Girar</button>
-        <button class="btn" id="vv-vr" hidden><img class="pi" src="assets/pegatinas/ui/ar.png" alt="">Ver en VR</button>
+        <button class="btn" id="vv-vr" hidden><img class="pi" loading="lazy" src="assets/pegatinas/ui/ar.png" alt="">Ver en VR</button>
       </div>
       <div class="vv-leyenda">${PISOS.map(([h, c, nom], i) => `<div><i style="background:${c}"></i>${i === 0 ? `más de ${h.toLocaleString('es-MX')} m` : `${h.toLocaleString('es-MX')}–${PISOS[i - 1][0].toLocaleString('es-MX')} m`} · ${nom}</div>`).join('')}
         <div><i style="background:none;border-top:2px solid #7a5a3c;height:0;margin-top:6px"></i>curvas de nivel cada 100 m</div></div>

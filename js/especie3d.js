@@ -5,12 +5,12 @@
 //  · En el visor «Ver a tamaño real»: el modelo en metros, junto a una persona de 1.60 m (o una mano,
 //    para las especies chicas), para comparar tamaños de verdad.
 // Si un modelo no existe todavía, se usa la pegatina de siempre. El cactus se construye aquí mismo.
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import * as THREE from '../vendor/three/three.module.js';
+import { GLTFLoader } from '../vendor/three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from '../vendor/three/addons/controls/OrbitControls.js';
+import { MeshoptDecoder } from '../vendor/three/addons/libs/meshopt_decoder.module.js';
+import * as SkeletonUtils from '../vendor/three/addons/utils/SkeletonUtils.js';
+import { mergeGeometries } from '../vendor/three/addons/utils/BufferGeometryUtils.js';
 
 // tamaño real (m) de la dimensión más larga del animal adulto, y si se compara con persona o con mano
 export const TAMANO_REAL = {

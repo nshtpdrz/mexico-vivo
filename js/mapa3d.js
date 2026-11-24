@@ -1,6 +1,6 @@
 // Construcción del mapa 3D de México. Todo vive en el plano XY con Z "hacia
 // afuera del papel"; así el mismo grupo sirve en modo mesa y anclado al marcador AR.
-import * as THREE from 'three';
+import * as THREE from '../vendor/three/three.module.js';
 import { proyectar, desproyectar, prepararEstados, MARCADOR_ASPECTO, KM_POR_UNIDAD } from './geo.js';
 
 export const EXAG_PROF = 4; // exageración vertical de la profundidad bajo el mapa
@@ -265,13 +265,15 @@ export class MapaMexico {
     this._estados();
     this._comun();
     this._tectonica();
-    this._volcanes();
-    this._biodiversidad();
-    this._cultura();
-    this._sabores();
-    this._maravillas();
+    // Rendimiento: estas capas (relieve de volcanes, 26 maquetas con terreno, maravillas, piezas…)
+    // ya no se arman al arrancar: se arman la primera vez que se abren (setCapa) o en un rato libre
+    // (armarEnReposo). Al arranque solo queda el mapa base y Sismos.
+    this._porArmar = {
+      volcanes: () => this._volcanes(), biodiversidad: () => this._biodiversidad(), cultura: () => this._cultura(),
+      sabores: () => this._sabores(), maravillas: () => this._maravillas(), tradiciones: () => this._tradiciones(),
+    };
+    for (const k of Object.keys(this._porArmar)) this.capas[k] = new THREE.Group();
     this.capas.clima = new THREE.Group();
-    this._tradiciones();
     this.capas.sismo = new THREE.Group();
     this.capas.usgs = new THREE.Group();
     Object.values(this.capas).forEach((g) => this.root.add(g));
@@ -784,6 +786,7 @@ export class MapaMexico {
       this.sitios.push({ s, m, lbl, objetivo: 1, actual: 1 });
     }
     this._separarSitios(g);
+    if (this._anio !== undefined) this.setAnio(this._anio); // por si la línea del tiempo se movió antes de armar
     this.animables.push((t, dt) => {
       if (!g.visible) return;
       for (const r of this.sitios) {
@@ -931,7 +934,28 @@ export class MapaMexico {
   }
 
   // Resalta los sitios que existían en el año elegido (null = todos)
+  // arma una capa pendiente (su función crea un grupo nuevo en this.capas[k] y sustituye al vacío)
+  armarCapa(k) {
+    const f = this._porArmar?.[k];
+    if (!f) return;
+    delete this._porArmar[k];
+    const vacio = this.capas[k];
+    f();
+    const g = this.capas[k];
+    if (vacio && vacio !== g) { g.visible = vacio.visible; this.root.remove(vacio); }
+    if (!g.parent) this.root.add(g);
+  }
+
+  // arma las capas pendientes de una en una, en momentos libres, para que cambiar de capa sea inmediato
+  armarEnReposo() {
+    const k = Object.keys(this._porArmar || {})[0];
+    if (!k) return;
+    const siguiente = () => { this.armarCapa(k); setTimeout(() => this.armarEnReposo(), 700); };
+    if (window.requestIdleCallback) requestIdleCallback(siguiente, { timeout: 4000 }); else setTimeout(siguiente, 200);
+  }
+
   setAnio(anio) {
+    this._anio = anio;
     for (const r of this.sitios || []) r.objetivo = anio === null || (anio >= r.s.desde && anio <= r.s.hasta) ? 1 : 0;
   }
 
@@ -950,6 +974,7 @@ export class MapaMexico {
       sabores: ['comun', 'sabores'],
       maravillas: ['comun', 'maravillas'],
     }[capa];
+    for (const k of vis) this.armarCapa(k);
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
     // los modelos 3D de especies se descargan la primera vez que se abre Biodiversidad, no al arrancar
     if (capa === 'biodiversidad' && !this._especiesPedidas) { this._especiesPedidas = true; this._modelosEspecies(this.capas.biodiversidad); }

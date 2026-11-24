@@ -12,6 +12,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/estilo.css">
   <link rel="stylesheet" href="css/tema-atlas.css">
+  <script src="js/compat.js"></script>
   <script type="importmap">
     { "imports": {
         "three": "./vendor/three/three.module.js",
@@ -57,7 +58,7 @@
     <article id="ficha" class="ficha" hidden></article>
 
     <section class="panel-capa" data-capa="estados">
-      <img class="peg-panel" src="assets/pegatinas/estados.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/estados.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 1</p>
       <h2>Un país sobre placas en movimiento</h2>
       <p class="solo-exploradores nino">México está hecho de piezas gigantes de roca que se mueven muy despacio: las placas. ¡Toca un estado para conocerlo!</p>
@@ -86,7 +87,7 @@
     </section>
 
     <section class="panel-capa" data-capa="tectonica" hidden>
-      <img class="peg-panel" src="assets/pegatinas/tectonica.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/tectonica.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 2 · Física de ondas</p>
       <h2>Simulador de sismos y alerta temprana</h2>
       <p class="solo-exploradores nino">Cuando dos placas se atoran y de pronto se sueltan, la tierra tiembla. Toca el mar cerca de la costa y presiona Simular.</p>
@@ -125,7 +126,7 @@
               <p class="poe-res" id="poe-res" hidden></p>
             </div>
             <div class="fila">
-              <button class="btn primario grande" id="btn-sismo"><img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular sismo</button>
+              <button class="btn primario grande" id="btn-sismo"><img loading="lazy" class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular sismo</button>
               <div class="reloj"><b id="sismo-reloj">0.0 s</b><small id="sismo-radios">P: 0 km · S: 0 km</small></div>
             </div>
           </div>
@@ -139,7 +140,7 @@
             <label for="rng-vel">Velocidad de la simulación <output id="val-vel">10×</output></label>
             <input type="range" id="rng-vel" min="1" max="40" step="1" value="10">
           </div>
-          <label class="campo"><img class="pi" src="assets/pegatinas/ui/audifonos.png" alt="">Escuchar desde <select id="sel-escucha"></select></label>
+          <label class="campo"><img loading="lazy" class="pi" src="assets/pegatinas/ui/audifonos.png" alt="">Escuchar desde <select id="sel-escucha"></select></label>
           <label class="switch"><input type="checkbox" id="chk-alerta" checked><span></span>Alerta sísmica</label>
           <label class="switch"><input type="checkbox" id="chk-simulacro" checked><span></span>Simulacro al sonar la alerta (agáchate, cúbrete, sujétate)</label>
           <label class="switch"><input type="checkbox" id="chk-tsunami" checked><span></span>Simular tsunami si el sismo es en el mar</label>
@@ -164,7 +165,7 @@
       <div class="historicos" id="reales"></div>
       <canvas id="sismograma" class="sismograma"></canvas>
       <div class="fila">
-        <button class="btn primario" id="btn-escuchar" disabled><img class="pi" src="assets/pegatinas/ui/audifonos.png" alt="">Escuchar</button>
+        <button class="btn primario" id="btn-escuchar" disabled><img loading="lazy" class="pi" src="assets/pegatinas/ui/audifonos.png" alt="">Escuchar</button>
         <label class="campo">Acelerar
           <select id="sel-acelerar">
             <option value="100">×100 (grave, 9 s)</option>
@@ -178,7 +179,7 @@
       <div data-tab="experimenta">
         <h3>Haz tu propio sismo</h3>
         <p>Tu dispositivo se vuelve un sismógrafo. En tablet o celular usa el <b>acelerómetro</b>: ponlo en la mesa y salta o golpea cerca. En laptop usa el <b>micrófono</b>: aplaude. El detector STA/LTA te avisará, igual que en una estación real.</p>
-        <button class="btn" id="btn-sensor"><img class="pi" src="assets/pegatinas/ui/sensor.png" alt="">Activar mi sismógrafo</button>
+        <button class="btn" id="btn-sensor"><img loading="lazy" class="pi" src="assets/pegatinas/ui/sensor.png" alt="">Activar mi sismógrafo</button>
         <div class="sensor-wrap"><canvas id="sensor-cv" class="sismograma chico"></canvas><div class="sensor-alerta" id="sensor-alerta" hidden></div></div>
         <p class="nota" id="sensor-info"></p>
       </div>
@@ -211,18 +212,18 @@
     </section>
 
     <section class="panel-capa" data-capa="volcanes" hidden>
-      <img class="peg-panel" src="assets/pegatinas/volcanes.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/volcanes.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 3 · Geología</p>
       <h2>Volcanes y el Eje Neovolcánico</h2>
       <p class="solo-exploradores nino">Los volcanes son montañas por donde sale roca derretida del interior de la Tierra. ¡Toca uno que tenga fuego!</p>
       <p class="solo-descubridores avanzado" data-tab="comprende">En el visor de relieve real, la exageración vertical multiplica las alturas para que el relieve se note. Con 1× la proporción es la real. Las erupciones son representaciones educativas, no simulaciones físicas.</p>
-      <p class="nota">Los volcanes con <img class="pi" src="assets/pegatinas/ui/erupcion.png" alt="">están activos y echan fumarolas. Toca uno de la lista o del mapa.</p>
+      <p class="nota">Los volcanes con <img loading="lazy" class="pi" src="assets/pegatinas/ui/erupcion.png" alt="">están activos y echan fumarolas. Toca uno de la lista o del mapa.</p>
       <ul class="lista" id="lista-volcanes"></ul>
       <p data-tab="comprende">La placa de Cocos se hunde bajo México. A unos 100 km de profundidad suelta agua que funde el manto, y ese magma sube y forma la cadena de volcanes que cruza el país.</p>
     </section>
 
     <section class="panel-capa" data-capa="biodiversidad" hidden>
-      <img class="peg-panel" src="assets/pegatinas/biodiversidad.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/biodiversidad.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 4 · Ecología</p>
       <h2>Biodiversidad y paisajes sonoros</h2>
       <p class="solo-exploradores nino">En México viven muchísimos animales y plantas que no existen en ningún otro país. Toca un estado y escucha.</p>
@@ -233,7 +234,7 @@
     </section>
 
     <section class="panel-capa" data-capa="clima" hidden>
-      <img class="peg-panel" src="assets/pegatinas/clima.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/clima.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 5 · Datos en tiempo real</p>
       <h2>Clima en vivo</h2>
       <p class="solo-exploradores nino">Mientras más alto subes, más frío hace. Mira qué capitales están más frías hoy.</p>
@@ -247,7 +248,7 @@
             <option value="viento">Viento</option>
           </select>
         </label>
-        <button class="btn" id="btn-clima"><img class="pi" src="assets/pegatinas/ui/actualizar.png" alt="">Actualizar</button>
+        <button class="btn" id="btn-clima"><img loading="lazy" class="pi" src="assets/pegatinas/ui/actualizar.png" alt="">Actualizar</button>
       </div>
       <p class="nota" id="clima-estado"></p>
       <div class="fila">
@@ -292,8 +293,8 @@
           </label>
         </div>
         <div class="fila">
-          <button class="btn primario" id="btn-huracan"><img class="pi" src="assets/pegatinas/ui/huracan.png" alt="">Simular huracán</button>
-          <button class="btn" id="btn-frente"><img class="pi" src="assets/pegatinas/ui/frente-frio.png" alt="">Simular frente frío</button>
+          <button class="btn primario" id="btn-huracan"><img loading="lazy" class="pi" src="assets/pegatinas/ui/huracan.png" alt="">Simular huracán</button>
+          <button class="btn" id="btn-frente"><img loading="lazy" class="pi" src="assets/pegatinas/ui/frente-frio.png" alt="">Simular frente frío</button>
         </div>
         <p class="resultado" id="meteoro-res" aria-live="polite">Elige un fenómeno y obsérvalo en el mapa.</p>
         <p class="aviso-sim">Simulación didáctica con trayectorias ilustrativas, no de huracanes reales. Para avisos oficiales: Servicio Meteorológico Nacional (SMN) y Protección Civil.</p>
@@ -309,7 +310,7 @@
       </details>
     </section>
     <section class="panel-capa" data-capa="historia" hidden>
-      <img class="peg-panel" src="assets/pegatinas/historia.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/historia.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 6 · Historia</p>
       <h2>3,500 años de historia en un mapa</h2>
       <p class="solo-exploradores nino">Hace miles de años ya había ciudades en México. Mueve la línea del tiempo para viajar al pasado.</p>
@@ -334,7 +335,7 @@
     </section>
 
     <section class="panel-capa" data-capa="cultura" hidden>
-      <img class="peg-panel" src="assets/pegatinas/cultura.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/cultura.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 7 · Cultura viva</p>
       <h2>Tradiciones de hoy, de cada región</h2>
       <p class="solo-exploradores nino">En cada rincón de México se cocina, se teje y se baila distinto. Toca un estado y escucha su música.</p>
@@ -346,7 +347,7 @@
       </div>
     </section>
     <section class="panel-capa" data-capa="lenguas" hidden>
-      <img class="peg-panel" src="assets/pegatinas/lenguas.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/lenguas.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 8 · Lenguas de México</p>
       <h2>Lenguas vivas: 68 agrupaciones, 364 variantes</h2>
       <p class="solo-exploradores nino">En México se hablan muchas lenguas además del español. ¡Millones de personas las hablan hoy en su casa, en la escuela y en su comunidad!</p>
@@ -371,7 +372,7 @@
       </div>
     </section>
     <section class="panel-capa" data-capa="sabores" hidden>
-      <img class="peg-panel" src="assets/pegatinas/sabores.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/sabores.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 9 · Sabores de México</p>
       <h2>Del teocintle a la tortilla</h2>
       <p class="solo-exploradores nino">El maíz, el frijol, la calabaza y el chile se cultivan en esta tierra desde hace miles de años. ¡Toca las vasijas del mapa!</p>
@@ -407,7 +408,7 @@
       </div>
     </section>
     <section class="panel-capa" data-capa="maravillas" hidden>
-      <img class="peg-panel" src="assets/pegatinas/maravillas.png" alt="" width="88" height="88" decoding="async">
+      <img loading="lazy" class="peg-panel" src="assets/pegatinas/maravillas.png" alt="" width="88" height="88" decoding="async">
       <p class="sub">Capa 10 · Maravillas naturales</p>
       <h2>¿Por qué existe este lugar?</h2>
       <p class="solo-exploradores nino">Islas que son volcanes, bosques llenos de mariposas y pozos de agua que podrían venir de un asteroide. ¡Toca un símbolo y adivina!</p>
@@ -424,7 +425,7 @@
   </aside>
 
   <div class="leyenda" id="leyenda"></div>
-  <button class="btn primario grande sim-flotante" id="btn-sismo-flotante" aria-label="Simular sismo"><img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular</button>
+  <button class="btn primario grande sim-flotante" id="btn-sismo-flotante" aria-label="Simular sismo"><img class="pi" loading="lazy" src="assets/pegatinas/ui/ruptura.png" alt="">Simular</button>
   <div class="tooltip" id="tooltip" hidden></div>
   <div class="cuenta-s" id="cuenta-s" hidden aria-live="polite"><small id="cs-ciudad"></small><b id="cs-num"></b><span id="cs-txt"></span></div>
   <div class="alerta-banner" id="alerta-banner" role="alert">ALERTA SÍSMICA <small>· SIMULACRO</small></div>
@@ -433,7 +434,7 @@
     <p>Apunta la cámara al mapa impreso</p>
     <small>Pellizca para acercar · gira con dos dedos · doble toque para reiniciar · mantén presionado para ver el nombre</small>
   </div>
-  <button class="btn primario btn-foto-ar" id="btn-foto-ar" hidden aria-label="Tomar foto"><img class="pi" src="assets/pegatinas/ui/simulacro-video.png" alt="">Foto</button>
+  <button class="btn primario btn-foto-ar" id="btn-foto-ar" hidden aria-label="Tomar foto"><img class="pi" loading="lazy" src="assets/pegatinas/ui/simulacro-video.png" alt="">Foto</button>
   <div class="simulacro" id="simulacro" role="dialog" aria-modal="true" aria-label="Simulacro" hidden></div>
   <div class="ar-aviso" id="ar-aviso" hidden>Buscando el mapa… mantenlo a la vista</div>
   <div class="ar-estado" id="ar-estado" hidden></div>
@@ -452,7 +453,7 @@
       <h1>México <i>Vivo</i></h1>
       <p class="inicio-pregunta" id="inicio-pregunta" hidden></p>
       <p>Explora las fuerzas que mueven, sacuden y dan vida a México: placas tectónicas, ondas sísmicas, volcanes, ecosistemas y clima en tiempo real.</p>
-      <button class="btn primario un-toque" id="btn-un-toque"><img class="pi" src="assets/pegatinas/ui/toque.png" alt="">Toca para ver un sismo<small>Frente a Acapulco · ¿llega la alerta a Pachuca?</small></button>
+      <button class="btn primario un-toque" id="btn-un-toque"><img class="pi" loading="lazy" src="assets/pegatinas/ui/toque.png" alt="">Toca para ver un sismo<small>Frente a Acapulco · ¿llega la alerta a Pachuca?</small></button>
       <div class="niveles" role="radiogroup" aria-label="¿Quién explora?">
         <p>¿Quién explora?</p>
         <button class="btn nivel" data-nivel="exploradores" role="radio" aria-checked="false">Exploradores<small>6 a 11 años</small></button>
@@ -462,13 +463,13 @@
       <div class="inicio-botones">
         <button class="btn grande" id="btn-empezar">Explorar libremente</button>
         <button class="btn grande" id="btn-recorrido">Investigación guiada<small>¿Por qué México se mueve?</small></button>
-        <button class="btn sec enlace-ar" id="btn-empezar-ar"><img class="pi" src="assets/pegatinas/ui/ar.png" alt="">Realidad aumentada con el cartel</button>
+        <button class="btn sec enlace-ar" id="btn-empezar-ar"><img class="pi" loading="lazy" src="assets/pegatinas/ui/ar.png" alt="">Realidad aumentada con el cartel</button>
       </div>
       <p class="nota">¿No tienes el mapa impreso? <a href="marcador.html" target="_blank">Imprime el marcador AR</a></p>
     </div>
   </div>
 
-  <script src="data/mexico-estados.js"></script>
+  <script defer src="data/mexico-estados.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
