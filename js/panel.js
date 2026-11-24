@@ -46,7 +46,8 @@ export const CAPA_MISIONES = {
   maravillas: ['geoparque', 'expedicion'],
 };
 
-const PESTANAS = [['descubre', 'Descubre'], ['experimenta', 'Experimenta'], ['comprende', 'Comprende'], ['fuentes', 'Fuentes']];
+// (sin pestaña «Fuentes»: las fuentes van en los documentos, no en pantalla)
+const PESTANAS = [['descubre', 'Descubre'], ['experimenta', 'Experimenta'], ['comprende', 'Comprende']];
 const respondidas = new Set();
 const actual = {};
 let alResponder = () => {};
@@ -55,7 +56,7 @@ export function organizarPanel({ onResponder } = {}) {
   if (onResponder) alResponder = onResponder;
   for (const s of document.querySelectorAll('.panel-capa')) {
     const capa = s.dataset.capa;
-    const cab = [...s.children].filter((e) => e.matches('.sub, h2'));
+    const cab = [...s.children].filter((e) => e.matches('.sub, h2, .peg-panel'));
     const resto = [...s.children].filter((e) => !cab.includes(e));
     const grupos = {};
     for (const el of resto) (grupos[el.dataset.tab || 'descubre'] ||= []).push(el);
@@ -132,7 +133,7 @@ export function pintarMisiones() {
     el.classList.toggle('completa', !pend);
     el.innerHTML = pend
       ? `<span class="mc-ico" aria-hidden="true">${pend.icono}</span><div><b>Misión: ${pend.titulo}</b><small>${pend.pista}</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`
-      : `<span class="mc-ico" aria-hidden="true">✓</span><div><b>¡Completaste las misiones de esta capa!</b><small>Abre tu pasaporte para ver las demás.</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`;
+      : `<span class="mc-ico" aria-hidden="true"><img class="pi" src="assets/pegatinas/ui/trofeo.png" alt=""></span><div><b>¡Completaste las misiones de esta capa!</b><small>Abre tu pasaporte para ver las demás.</small></div><span class="mc-cuenta">${hechas}/${ms.length}</span>`;
   }
 }
 

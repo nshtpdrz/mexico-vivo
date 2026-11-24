@@ -132,6 +132,7 @@ export class SimuladorSismo {
   }
 
   iniciar() {
+    this.tiempoReal = false;
     audio.iniciarAudio();
     this.detener(false);
     this._calcular();
@@ -142,12 +143,12 @@ export class SimuladorSismo {
     const esc = ciudades.find((c) => c.id === this.escucha);
     const pan = (id) => { const e = ESTADOS[id]; return e ? (e.lon + 102.5) / 15 : 0; };
 
-    this._evento(0, `💥 Ruptura: M${this.cfg.mag.toFixed(1)} a ${this.cfg.prof} km de profundidad. Energía ≈ ${energia(this.cfg.mag).toExponential(1)} J`, 'ruptura', () => {
+    this._evento(0, `<img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Ruptura: M${this.cfg.mag.toFixed(1)} a ${this.cfg.prof} km de profundidad. Energía ≈ ${energia(this.cfg.mag).toExponential(1)} J`, 'ruptura', () => {
       audio.golpeP(Math.min(1, this.cfg.mag / 8), 0);
     });
     if (tAlerta !== null) {
-      this._evento(tAlerta - T_PROCESO_ALERTA, `📡 Sensor «${sensorDetecta.nombre}» detecta la onda P`, 'sensor');
-      this._evento(tAlerta, `🚨 ALERTA SÍSMICA emitida por radio (t = ${tAlerta.toFixed(1)} s)`, 'alerta', () => {
+      this._evento(tAlerta - T_PROCESO_ALERTA, `<img class="pi" src="assets/pegatinas/ui/sensor-sismico.png" alt="">Sensor «${sensorDetecta.nombre}» detecta la onda P`, 'sensor');
+      this._evento(tAlerta, `<img class="pi" src="assets/pegatinas/ui/alerta.png" alt="">ALERTA SÍSMICA emitida por radio (t = ${tAlerta.toFixed(1)} s)`, 'alerta', () => {
         this.cb.onAlerta?.(true);
         if (this.alertaActiva && esc && esc.aviso > 0) audio.alertaSismica();
       });
@@ -156,11 +157,11 @@ export class SimuladorSismo {
     }
     for (const c of ciudades) {
       const relevante = c.id === this.escucha || c.d < 450 || ['MX-CMX', 'MX-HID'].includes(c.id);
-      this._evento(c.tP, relevante ? `🔵 Onda P llega a ${c.nombre}` : null, 'p', () => {
+      this._evento(c.tP, relevante ? `<img class="pi" src="assets/pegatinas/ui/onda-p.png" alt="">Onda P llega a ${c.nombre}` : null, 'p', () => {
         this._marcarCiudad(c, 0x4fc3ff);
         if (c.id === this.escucha) audio.golpeP(Math.min(1, (c.I - 2) / 7), pan(c.id));
       });
-      this._evento(c.tS, relevante ? `🔴 Onda S llega a ${c.nombre} · intensidad ${ROMANOS[Math.round(c.I)]}${c.aviso !== null && this.alertaActiva ? ` · aviso: ${c.aviso > 0 ? c.aviso.toFixed(0) + ' s' : 'ninguno'}` : ''}` : null, 's', () => {
+      this._evento(c.tS, relevante ? `<img class="pi" src="assets/pegatinas/ui/onda-s.png" alt="">Onda S llega a ${c.nombre} · intensidad ${ROMANOS[Math.round(c.I)]}${c.aviso !== null && this.alertaActiva ? ` · aviso: ${c.aviso > 0 ? c.aviso.toFixed(0) + ' s' : 'ninguno'}` : ''}` : null, 's', () => {
         this._marcarCiudad(c, 0xff4040);
         const reg = this.mapa.estados.get(c.id);
         if (reg) reg.sacudida = Math.max(0, (c.I - 2.5) / 9) * 0.014;
@@ -193,6 +194,7 @@ export class SimuladorSismo {
   }
 
   detener(limpiar = true) {
+    this.tiempoReal = false;
     this.corriendo = false;
     if (limpiar) {
       [this.anilloP, this.anilloS, this.relleno, this.esferaP, this.esferaS].forEach((m) => (m.visible = false));
@@ -214,7 +216,16 @@ export class SimuladorSismo {
     this.estrella.rotation.z += dt * 2;
     this.marcasCiudad.forEach((m) => m.scale.lerp(new THREE.Vector3(1, 1, 1), 1 - Math.pow(0.05, dt)));
     if (!this.corriendo) return;
-    this.t += dt * this.velocidad;
+    // Durante el simulacro el reloj corre a tiempo real: los «91 s de aviso» son 91 s de verdad.
+    // Cuando la onda S ya llegó a la ciudad que escuchas, el resto del país se recorre rápido
+    // (el visitante ya vio lo importante y no tiene que esperar un minuto más).
+    let v = this.velocidad;
+    if (this.tiempoReal) v = 1;
+    else {
+      const esc = this.res?.ciudades.find((c) => c.id === this.escucha);
+      if (esc && this.t > esc.tS + 4) v = Math.max(v, 40);
+    }
+    this.t += dt * v;
     const t = this.t;
     const prof = this.cfg.prof;
     // radio en superficie: sqrt((v t)^2 - h^2)

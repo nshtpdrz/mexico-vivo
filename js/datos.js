@@ -83,7 +83,7 @@ export const ESTADOS = {
   'MX-JAL': { capital: 'Guadalajara', lat: 20.67, lon: -103.35, region: 'occidente', zona: 'C', bioma: 'templado', dato: 'Bajo su costa se hunde la pequeña placa de Rivera. En 1932 hubo ahí un sismo de magnitud 8.2.' },
   'MX-MEX': { capital: 'Toluca', lat: 19.29, lon: -99.66, region: 'centro', zona: 'B', bioma: 'templado', dato: 'El Nevado de Toluca tiene dos lagunas dentro de su cráter, a más de 4,000 m de altura.' },
   'MX-MIC': { capital: 'Morelia', lat: 19.7, lon: -101.19, region: 'occidente', zona: 'C', bioma: 'templado', dato: 'Millones de mariposas monarca invernan en sus bosques. En 1943 nació aquí el Paricutín, en medio de una milpa.' },
-  'MX-MOR': { capital: 'Cuernavaca', lat: 18.92, lon: -99.23, region: 'centro', zona: 'C', bioma: 'selvaSeca', dato: 'Le dicen «la ciudad de la eterna primavera» por su clima templado casi todo el año.' },
+  'MX-MOR': { capital: 'Cuernavaca', lat: 18.92, lon: -99.23, region: 'centro', zona: 'C', bioma: 'selvaSeca', dato: 'A su capital, Cuernavaca, le dicen «la ciudad de la eterna primavera» por su clima templado casi todo el año.' },
   'MX-NAY': { capital: 'Tepic', lat: 21.5, lon: -104.89, region: 'occidente', zona: 'C', bioma: 'selvaSeca', dato: 'El volcán Ceboruco hizo erupción en 1870; aún se ven sus coladas de lava.' },
   'MX-NLE': { capital: 'Monterrey', lat: 25.69, lon: -100.32, region: 'noreste', zona: 'A', bioma: 'semiarido', dato: 'La Sierra Madre Oriental está hecha de capas de roca caliza de un antiguo mar, plegadas como una alfombra.' },
   'MX-OAX': { capital: 'Oaxaca', lat: 17.07, lon: -96.73, region: 'sur', zona: 'D', bioma: 'selvaSeca', dato: 'Es el estado con más biodiversidad de México: más de 12,000 especies de plantas.' },
@@ -167,7 +167,7 @@ export const SENSORES = [
 // de la estación G.UNM (Ciudad Universitaria, CDMX), canal BHZ, 20 muestras/s,
 // descargado del servicio FDSN de EarthScope. Cada archivo empieza 60 s antes del origen.
 export const SISMOS_HISTORICOS = [
-  { nombre: 'Michoacán 1985', fecha: '19 sep 1985', lat: 18.19, lon: -102.53, mag: 8.0, prof: 17, nota: 'Causó la peor tragedia sísmica de la CDMX. De ahí nació el Sistema de Alerta Sísmica Mexicano (1991).' },
+  { nombre: 'Michoacán 1985', fecha: '19 sep 1985', lat: 18.19, lon: -102.53, mag: 8.1, prof: 17, nota: 'Causó la peor tragedia sísmica de la CDMX. De ahí nació el Sistema de Alerta Sísmica Mexicano (1991).' },
   { nombre: 'Chiapas 2017', fecha: '7 sep 2017', lat: 15.02, lon: -93.9, mag: 8.2, prof: 47, origen: '2017-09-08T04:49:19Z', archivo: 'chiapas2017', nota: 'El más fuerte en un siglo. Se rompió la placa de Cocos por dentro (falla normal), no el contacto entre placas.' },
   { nombre: 'Puebla–Morelos 2017', fecha: '19 sep 2017', lat: 18.55, lon: -98.49, mag: 7.1, prof: 57, origen: '2017-09-19T18:14:38Z', archivo: 'puebla2017', nota: 'Fue intraplaca y cercano: llegó a la CDMX con muy poco tiempo de alerta.' },
   { nombre: 'Oaxaca 2020', fecha: '23 jun 2020', lat: 15.89, lon: -96.01, mag: 7.4, prof: 20, origen: '2020-06-23T15:29:04Z', archivo: 'oaxaca2020', nota: 'Sismo de subducción cerca de Crucecita, Huatulco.' },
@@ -188,12 +188,12 @@ export const VOLCANES = [
   { nombre: 'La Malinche (Matlalcuéyetl)', relieve: 'malinche', lat: 19.23, lon: -98.03, alt: 4461, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'Su última actividad fue hace unos 3,000 años.' },
   { nombre: 'Volcán de Colima', relieve: 'colima', lat: 19.51, lon: -103.62, alt: 3820, estado: 'Muy activo', tipo: 'Estratovolcán', dato: 'Hace erupciones explosivas y flujos piroclásticos con frecuencia.', activo: true },
   { nombre: 'Paricutín', relieve: 'paricutin', lat: 19.49, lon: -102.25, alt: 2800, estado: 'Extinto · activo 1943–1952', tipo: 'Cono de escoria', dato: 'Nació en 1943 en la milpa de Dionisio Pulido y creció 336 m en su primer año. Su lava sepultó San Juan Parangaricutiro.' },
-  { nombre: 'Ceboruco', lat: 21.12, lon: -104.51, alt: 2280, estado: 'Activo · erupción 1870', tipo: 'Estratovolcán', dato: 'Tiene fumarolas activas.' },
-  { nombre: 'El Chichón', lat: 17.36, lon: -93.23, alt: 1150, estado: 'Activo · erupción 1982', tipo: 'Domo / estratovolcán', dato: 'Su erupción de 1982 mató a unas 2,000 personas y bajó la temperatura global por las cenizas en la estratósfera.', activo: true },
-  { nombre: 'Tacaná', lat: 15.13, lon: -92.11, alt: 4060, estado: 'Activo', tipo: 'Estratovolcán', dato: 'Está en la frontera con Guatemala.' },
-  { nombre: 'Las Tres Vírgenes', lat: 27.47, lon: -112.59, alt: 1940, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'Su calor se aprovecha en una planta geotérmica.' },
-  { nombre: 'San Martín Tuxtla', lat: 18.57, lon: -95.17, alt: 1650, estado: 'Dormido · erupción 1793', tipo: 'Volcán en escudo', dato: 'Está aislado en la costa de Veracruz, fuera del Eje Neovolcánico.' },
-  { nombre: 'Xitle', lat: 19.25, lon: -99.22, alt: 3100, estado: 'Extinto', tipo: 'Cono de escoria', dato: 'Hace unos 1,670 años su lava cubrió Cuicuilco y formó el Pedregal de San Ángel, donde hoy está Ciudad Universitaria.' },
+  { nombre: 'Ceboruco', relieve: 'ceboruco', lat: 21.12, lon: -104.51, alt: 2280, estado: 'Activo · erupción 1870', tipo: 'Estratovolcán', dato: 'Tiene fumarolas activas.' },
+  { nombre: 'El Chichón', relieve: 'chichon', lat: 17.36, lon: -93.23, alt: 1150, estado: 'Activo · erupción 1982', tipo: 'Domo / estratovolcán', dato: 'Su erupción de 1982 mató a unas 2,000 personas y bajó la temperatura global por las cenizas en la estratósfera.', activo: true },
+  { nombre: 'Tacaná', relieve: 'tacana', lat: 15.13, lon: -92.11, alt: 4060, estado: 'Activo', tipo: 'Estratovolcán', dato: 'Está en la frontera con Guatemala.' },
+  { nombre: 'Las Tres Vírgenes', relieve: 'tres-virgenes', lat: 27.47, lon: -112.59, alt: 1940, estado: 'Dormido', tipo: 'Estratovolcán', dato: 'Su calor se aprovecha en una planta geotérmica.' },
+  { nombre: 'San Martín Tuxtla', relieve: 'san-martin', lat: 18.57, lon: -95.17, alt: 1650, estado: 'Dormido · erupción 1793', tipo: 'Volcán en escudo', dato: 'Está aislado en la costa de Veracruz, fuera del Eje Neovolcánico.' },
+  { nombre: 'Xitle', relieve: 'xitle', lat: 19.25, lon: -99.22, alt: 3100, estado: 'Extinto', tipo: 'Cono de escoria', dato: 'Hace unos 1,670 años su lava cubrió Cuicuilco y formó el Pedregal de San Ángel, donde hoy está Ciudad Universitaria.' },
 ];
 
 export const EJE_NEOVOLCANICO = [[-105.3, 21.0], [-104.0, 20.6], [-102.5, 19.7], [-101.0, 19.6], [-99.7, 19.3], [-98.6, 19.1], [-97.2, 19.1], [-96.3, 19.3]];
@@ -208,24 +208,24 @@ export const GEOSITIOS = [
 // Biodiversidad
 // --------------------------------------------------------------------
 export const ESPECIES = [
-  { nombre: 'Ajolote', cientifico: 'Ambystoma mexicanum', emoji: '🦎', lat: 19.26, lon: -99.1, estado: 'En peligro crítico', bioma: 'humedal', dato: 'Puede regenerar extremidades, corazón e incluso partes del cerebro. Solo vive en los canales de Xochimilco.' },
-  { nombre: 'Vaquita marina', cientifico: 'Phocoena sinus', emoji: '🐬', lat: 31.2, lon: -114.4, estado: 'En peligro crítico', bioma: 'humedal', dato: 'Es el mamífero marino más amenazado del mundo: quedan alrededor de 10. Muere atrapada en redes ilegales.' },
-  { nombre: 'Mariposa monarca', cientifico: 'Danaus plexippus', emoji: '🦋', lat: 19.6, lon: -100.25, estado: 'Vulnerable', bioma: 'templado', dato: 'Vuela hasta 4,000 km desde Canadá y se orienta con el sol y el campo magnético de la Tierra.' },
-  { nombre: 'Jaguar', cientifico: 'Panthera onca', emoji: '🐆', lat: 18.3, lon: -89.75, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Es el felino más grande de América. Un jaguar necesita decenas de km² de selva continua.' },
-  { nombre: 'Quetzal', cientifico: 'Pharomachrus mocinno', emoji: '🦜', lat: 15.65, lon: -92.8, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Vive en el bosque de niebla de El Triunfo. Su verde no viene de un pigmento sino de cómo sus plumas reflejan la luz.' },
-  { nombre: 'Guacamaya roja', cientifico: 'Ara macao', emoji: '🦜', lat: 16.45, lon: -91.05, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'En la Selva Lacandona quedan pocos cientos de ejemplares silvestres.' },
-  { nombre: 'Tiburón ballena', cientifico: 'Rhincodon typus', emoji: '🦈', lat: 21.6, lon: -87.15, estado: 'En peligro', bioma: 'humedal', dato: 'Es el pez más grande del mundo (más de 12 m) y solo come plancton.' },
-  { nombre: 'Lobo mexicano', cientifico: 'Canis lupus baileyi', emoji: '🐺', lat: 29.9, lon: -108.3, estado: 'En peligro', bioma: 'templado', dato: 'Se extinguió en la naturaleza en México. Desde 2011 se reintroduce gracias a la cría en cautiverio.' },
-  { nombre: 'Teporingo', cientifico: 'Romerolagus diazi', emoji: '🐇', lat: 19.1, lon: -98.7, estado: 'En peligro', bioma: 'templado', dato: 'Es uno de los conejos más pequeños del mundo. Solo vive en los pastizales de los volcanes del centro.' },
-  { nombre: 'Tortuga golfina', cientifico: 'Lepidochelys olivacea', emoji: '🐢', lat: 15.72, lon: -96.73, estado: 'Protegida', bioma: 'humedal', dato: 'En La Escobilla, Oaxaca, llegan miles de hembras a desovar al mismo tiempo («arribada»). La temperatura de la arena decide si las crías son machos o hembras.' },
-  { nombre: 'Perrito llanero mexicano', cientifico: 'Cynomys mexicanus', emoji: '🐿️', lat: 24.7, lon: -100.6, estado: 'En peligro', bioma: 'semiarido', dato: 'Sus madrigueras airean el suelo y ayudan a que el agua de lluvia se infiltre.' },
-  { nombre: 'Berrendo peninsular', cientifico: 'Antilocapra americana peninsularis', emoji: '🦌', lat: 27.6, lon: -113.6, estado: 'En peligro crítico', bioma: 'desierto', dato: 'Puede correr a más de 80 km/h. Sobrevive en el Desierto de El Vizcaíno.' },
-  { nombre: 'Cactus «viejito»', cientifico: 'Cephalocereus senilis', emoji: '🌵', lat: 20.6, lon: -98.75, estado: 'Amenazada', bioma: 'semiarido', dato: 'Es endémico de la Barranca de Metztitlán, Hidalgo. Sus «canas» lo protegen del sol intenso.' },
-  { nombre: 'Flamenco americano', cientifico: 'Phoenicopterus ruber', emoji: '🦩', lat: 20.85, lon: -90.38, estado: 'Amenazada', bioma: 'humedal', dato: 'Su color rosa viene de los carotenoides de los crustáceos que come en Celestún y Ría Lagartos.' },
-  { nombre: 'Manatí', cientifico: 'Trichechus manatus', emoji: '🌊', lat: 18.6, lon: -88.2, estado: 'En peligro', bioma: 'humedal', dato: 'Es herbívoro y come hasta el 10 % de su peso al día en pastos marinos.' },
-  { nombre: 'Mono aullador de manto', cientifico: 'Alouatta palliata', emoji: '🐒', lat: 18.45, lon: -95.05, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Su rugido se oye a más de un kilómetro: un hueso del cuello agrandado (el hioides) funciona como caja de resonancia. Vive en Los Tuxtlas y las selvas del sureste.' },
-  { nombre: 'Tucán real', cientifico: 'Ramphastos sulfuratus', emoji: '🐦', lat: 17.55, lon: -92.2, estado: 'Amenazada (NOM-059)', bioma: 'selvaHumeda', dato: 'Su pico enorme es hueco y ligero. Además de alcanzar frutas, le sirve para soltar calor y regular su temperatura.' },
-  { nombre: 'Ballena jorobada', cientifico: 'Megaptera novaeangliae', emoji: '🐋', lat: 20.7, lon: -105.6, estado: 'Protegida en México', bioma: 'humedal', dato: 'Cada invierno viaja miles de kilómetros desde Alaska y Canadá para tener a sus crías en el Pacífico mexicano (Bahía de Banderas, Los Cabos). Los machos cantan canciones que cambian de un año a otro.' },
+  { nombre: 'Ajolote', cientifico: 'Ambystoma mexicanum', icono: 'ajolote', lat: 19.26, lon: -99.1, estado: 'En peligro crítico', bioma: 'humedal', dato: 'Puede regenerar extremidades, corazón e incluso partes del cerebro. Solo vive en los canales de Xochimilco.' },
+  { nombre: 'Vaquita marina', cientifico: 'Phocoena sinus', icono: 'vaquita', lat: 31.2, lon: -114.4, estado: 'En peligro crítico', bioma: 'humedal', dato: 'Es el mamífero marino más amenazado del mundo: quedan alrededor de 10. Muere atrapada en redes ilegales.' },
+  { nombre: 'Mariposa monarca', cientifico: 'Danaus plexippus', icono: 'monarca', lat: 19.6, lon: -100.25, estado: 'Vulnerable', bioma: 'templado', dato: 'Vuela hasta 4,000 km desde Canadá y se orienta con el sol y el campo magnético de la Tierra.' },
+  { nombre: 'Jaguar', cientifico: 'Panthera onca', icono: 'jaguar', lat: 18.3, lon: -89.75, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Es el felino más grande de América. Un jaguar necesita decenas de km² de selva continua.' },
+  { nombre: 'Quetzal', cientifico: 'Pharomachrus mocinno', icono: 'quetzal', lat: 15.65, lon: -92.8, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Vive en el bosque de niebla de El Triunfo. Su verde no viene de un pigmento sino de cómo sus plumas reflejan la luz.' },
+  { nombre: 'Guacamaya roja', cientifico: 'Ara macao', icono: 'guacamaya', lat: 16.45, lon: -91.05, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'En la Selva Lacandona quedan pocos cientos de ejemplares silvestres.' },
+  { nombre: 'Tiburón ballena', cientifico: 'Rhincodon typus', icono: 'tiburon-ballena', lat: 21.6, lon: -87.15, estado: 'En peligro', bioma: 'humedal', dato: 'Es el pez más grande del mundo (más de 12 m) y solo come plancton.' },
+  { nombre: 'Lobo mexicano', cientifico: 'Canis lupus baileyi', icono: 'lobo', lat: 29.9, lon: -108.3, estado: 'En peligro', bioma: 'templado', dato: 'Se extinguió en la naturaleza en México. Desde 2011 se reintroduce gracias a la cría en cautiverio.' },
+  { nombre: 'Teporingo', cientifico: 'Romerolagus diazi', icono: 'teporingo', lat: 19.1, lon: -98.7, estado: 'En peligro', bioma: 'templado', dato: 'Es uno de los conejos más pequeños del mundo. Solo vive en los pastizales de los volcanes del centro.' },
+  { nombre: 'Tortuga golfina', cientifico: 'Lepidochelys olivacea', icono: 'tortuga', lat: 15.72, lon: -96.73, estado: 'Protegida', bioma: 'humedal', dato: 'En La Escobilla, Oaxaca, llegan miles de hembras a desovar al mismo tiempo («arribada»). La temperatura de la arena decide si las crías son machos o hembras.' },
+  { nombre: 'Perrito llanero mexicano', cientifico: 'Cynomys mexicanus', icono: 'perrito', lat: 24.7, lon: -100.6, estado: 'En peligro', bioma: 'semiarido', dato: 'Sus madrigueras airean el suelo y ayudan a que el agua de lluvia se infiltre.' },
+  { nombre: 'Berrendo peninsular', cientifico: 'Antilocapra americana peninsularis', icono: 'berrendo', lat: 27.6, lon: -113.6, estado: 'En peligro crítico', bioma: 'desierto', dato: 'Puede correr a más de 80 km/h. Sobrevive en el Desierto de El Vizcaíno.' },
+  { nombre: 'Cactus «viejito»', cientifico: 'Cephalocereus senilis', icono: 'cactus', lat: 20.6, lon: -98.75, estado: 'Amenazada', bioma: 'semiarido', dato: 'Es endémico de la Barranca de Metztitlán, Hidalgo. Sus «canas» lo protegen del sol intenso.' },
+  { nombre: 'Flamenco americano', cientifico: 'Phoenicopterus ruber', icono: 'flamenco', lat: 20.85, lon: -90.38, estado: 'Amenazada', bioma: 'humedal', dato: 'Su color rosa viene de los carotenoides de los crustáceos que come en Celestún y Ría Lagartos.' },
+  { nombre: 'Manatí', cientifico: 'Trichechus manatus', icono: 'manati', lat: 18.6, lon: -88.2, estado: 'En peligro', bioma: 'humedal', dato: 'Es herbívoro y come hasta el 10 % de su peso al día en pastos marinos.' },
+  { nombre: 'Mono aullador de manto', cientifico: 'Alouatta palliata', icono: 'mono', lat: 18.45, lon: -95.05, estado: 'En peligro (NOM-059)', bioma: 'selvaHumeda', dato: 'Su rugido se oye a más de un kilómetro: un hueso del cuello agrandado (el hioides) funciona como caja de resonancia. Vive en Los Tuxtlas y las selvas del sureste.' },
+  { nombre: 'Tucán real', cientifico: 'Ramphastos sulfuratus', icono: 'tucan', lat: 17.55, lon: -92.2, estado: 'Amenazada (NOM-059)', bioma: 'selvaHumeda', dato: 'Su pico enorme es hueco y ligero. Además de alcanzar frutas, le sirve para soltar calor y regular su temperatura.' },
+  { nombre: 'Ballena jorobada', cientifico: 'Megaptera novaeangliae', icono: 'ballena', lat: 20.7, lon: -105.6, estado: 'Protegida en México', bioma: 'humedal', dato: 'Cada invierno viaja miles de kilómetros desde Alaska y Canadá para tener a sus crías en el Pacífico mexicano (Bahía de Banderas, Los Cabos). Los machos cantan canciones que cambian de un año a otro.' },
 ];
 
 // --------------------------------------------------------------------
@@ -245,16 +245,16 @@ export const CLIMA_RESPALDO = {
 
 // Códigos WMO usados por Open-Meteo
 export function describeTiempo(code) {
-  if (code === 0) return ['☀️', 'Despejado'];
-  if (code <= 2) return ['🌤️', 'Poco nublado'];
-  if (code === 3) return ['☁️', 'Nublado'];
-  if (code <= 48) return ['🌫️', 'Niebla'];
-  if (code <= 57) return ['🌦️', 'Llovizna'];
-  if (code <= 67) return ['🌧️', 'Lluvia'];
-  if (code <= 77) return ['🌨️', 'Nieve'];
-  if (code <= 82) return ['🌧️', 'Chubascos'];
-  if (code <= 86) return ['🌨️', 'Chubascos de nieve'];
-  return ['⛈️', 'Tormenta'];
+  if (code === 0) return ['despejado', 'Despejado'];
+  if (code <= 2) return ['poco-nublado', 'Poco nublado'];
+  if (code === 3) return ['nublado', 'Nublado'];
+  if (code <= 48) return ['niebla', 'Niebla'];
+  if (code <= 57) return ['llovizna', 'Llovizna'];
+  if (code <= 67) return ['lluvia', 'Lluvia'];
+  if (code <= 77) return ['nieve', 'Nieve'];
+  if (code <= 82) return ['lluvia', 'Chubascos'];
+  if (code <= 86) return ['nieve', 'Chubascos de nieve'];
+  return ['tormenta', 'Tormenta'];
 }
 
 // --------------------------------------------------------------------

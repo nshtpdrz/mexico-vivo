@@ -2,25 +2,25 @@
 import * as audio from './audio.js';
 
 export const MISIONES = [
-  { id: 'hidalgo', icono: '📍', titulo: 'Encuentra Hidalgo', pista: 'Toca el estado de Hidalgo, ¡ahí estamos!' },
-  { id: 'aviso60', icono: '⏱️', titulo: 'Más de 60 s de aviso', pista: 'En Sismos, escucha desde Pachuca y pon un epicentro en la costa. ¿Logras más de 60 segundos de aviso?' },
-  { id: 'prediccion', icono: '🎯', titulo: 'Predicción certera', pista: 'Antes de simular, predice el aviso. ¡Atínale con 10 segundos de diferencia o menos!' },
-  { id: 'simulacro', icono: '🛡️', titulo: 'Simulacro a tiempo', pista: 'Cuando suene la alerta, elige los 3 pasos para protegerte antes de que llegue la onda S.' },
-  { id: 'sismoReal', icono: '🎧', titulo: 'Escucha un sismo real', pista: 'En Sismos, toca «Escuchar» en un registro real de la UNAM.' },
-  { id: 'tuSismo', icono: '🤸', titulo: 'Haz tu propio sismo', pista: 'Activa el sismógrafo y salta junto a la tablet o aplaude cerca del micrófono.' },
-  { id: 'erupcion', icono: '🌋', titulo: 'Despierta un volcán', pista: 'En Volcanes, toca un volcán activo 🔥 y simula su erupción.' },
-  { id: 'selva', icono: '🦜', titulo: 'Escucha la selva', pista: 'En Biodiversidad, toca Chiapas o Campeche y escucha.' },
-  { id: 'frio', icono: '🥶', titulo: 'La capital más fría', pista: 'En Clima en vivo, busca la capital con la temperatura más baja y tócala.' },
-  { id: 'relieve', icono: '🏔️', titulo: 'Explora un volcán real', pista: 'En Volcanes, toca el Popocatépetl o el Pico de Orizaba y abre «Explorar su relieve real».' },
-  { id: 'tula', icono: '🗿', titulo: 'Conoce a los Atlantes', pista: 'En Historia, toca Tula: la capital tolteca está en Hidalgo.' },
-  { id: 'tenochtitlan', icono: '🦅', titulo: 'Viaja a 1325', pista: 'En Historia, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
-  { id: 'musica', icono: '🎶', titulo: 'Música de una región', pista: 'En Cultura, toca Chiapas, Veracruz, Hidalgo o San Luis Potosí y escucha su música.' },
-  { id: 'lenguas', icono: '💬', titulo: 'Lenguas vivas', pista: 'En Lenguas, toca un estado y descubre qué parte de su población habla una lengua indígena.' },
-  { id: 'tsunami', icono: '🌊', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
-  { id: 'sabores', icono: '🌽', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
-  { id: 'nixtamal', icono: '🫓', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
-  { id: 'expedicion', icono: '🧭', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, visita tres maravillas naturales y responde por qué existen.' },
-  { id: 'geoparque', icono: '⬢', titulo: 'Nuestro geoparque', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, aquí en Hidalgo.' },
+  { id: 'hidalgo', titulo: 'Encuentra Hidalgo', pista: 'Toca el estado de Hidalgo, ¡ahí estamos!' },
+  { id: 'aviso60', titulo: 'Más de 60 s de aviso', pista: 'En Sismos, escucha desde Pachuca y pon un epicentro en la costa. ¿Logras más de 60 segundos de aviso?' },
+  { id: 'prediccion', titulo: 'Predicción certera', pista: 'Antes de simular, predice el aviso. ¡Atínale con 10 segundos de diferencia o menos!' },
+  { id: 'simulacro', titulo: 'Simulacro a tiempo', pista: 'Cuando suene la alerta, elige los 3 pasos para protegerte antes de que llegue la onda S.' },
+  { id: 'sismoReal', titulo: 'Escucha un sismo real', pista: 'En Sismos, toca «Escuchar» en un registro real de la UNAM.' },
+  { id: 'tuSismo', titulo: 'Haz tu propio sismo', pista: 'Activa el sismógrafo y salta junto a la tablet o aplaude cerca del micrófono.' },
+  { id: 'erupcion', titulo: 'Despierta un volcán', pista: 'En Volcanes, toca un volcán activo (el que echa fumarola) y simula su erupción.' },
+  { id: 'selva', titulo: 'Escucha la selva', pista: 'En Biodiversidad, toca Chiapas o Campeche y escucha.' },
+  { id: 'frio', titulo: 'La capital más fría', pista: 'En Clima en vivo, busca la capital con la temperatura más baja y tócala.' },
+  { id: 'relieve', titulo: 'Explora un volcán real', pista: 'En Volcanes, toca el Popocatépetl o el Pico de Orizaba y abre «Explorar su relieve real».' },
+  { id: 'tula', titulo: 'Conoce a los Atlantes', pista: 'En Historia, toca Tula: la capital tolteca está en Hidalgo.' },
+  { id: 'tenochtitlan', titulo: 'Viaja a 1325', pista: 'En Historia, mueve la línea del tiempo al año en que se fundó México-Tenochtitlan.' },
+  { id: 'musica', titulo: 'Música de una región', pista: 'En Cultura, toca Chiapas, Veracruz, Hidalgo o San Luis Potosí y escucha su música.' },
+  { id: 'lenguas', titulo: 'Lenguas vivas', pista: 'En Lenguas, toca un estado y descubre qué parte de su población habla una lengua indígena.' },
+  { id: 'tsunami', titulo: 'Provoca un tsunami', pista: 'En Sismos, pon un epicentro en el mar, magnitud 7.5 o más y poca profundidad, y simula.' },
+  { id: 'sabores', titulo: 'Rastrea el maíz', pista: 'En Sabores, toca una vasija del mapa para ver dónde se encontró evidencia antigua de un alimento.' },
+  { id: 'nixtamal', titulo: 'Haz nixtamal', pista: 'En Sabores, completa los seis pasos del laboratorio de nixtamalización.' },
+  { id: 'expedicion', titulo: 'Expedición: 3 maravillas', pista: 'En Maravillas, visita tres maravillas naturales y responde por qué existen.' },
+  { id: 'geoparque', titulo: 'Nuestro geoparque', pista: 'En Maravillas, descubre por qué existe el Geoparque Comarca Minera, aquí en Hidalgo.' },
 ];
 
 const CLAVE = 'mv-pasaporte-v1';
@@ -36,6 +36,9 @@ function elegirVoz() {
   return voces.find((v) => v.lang === 'es-MX') || voces.find((v) => v.lang === 'es-US') || voces.find((v) => v.lang.startsWith('es')) || null;
 }
 if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { vozEs = elegirVoz(); };
+
+const PEG = (id) => `<img class="pi" src="assets/pegatinas/ui/${id}.png" alt="">`;
+for (const m of MISIONES) m.icono = PEG('mision-' + m.id.toLowerCase());
 
 export const vozDisponible = () => 'speechSynthesis' in window;
 export const vozEncendida = () => vozActiva;
@@ -96,7 +99,7 @@ export function montarGuia() {
   el.querySelector('.axo-cara').onclick = () => {
     const pend = MISIONES.find((m) => !hechas[m.id]);
     decir(pend ? `Misión: ${pend.titulo}. ${pend.pista}` : '¡Completaste todas las misiones! Eres un experto de México Vivo.', {
-      acciones: [{ texto: '🎒 Ver pasaporte', fn: () => abrirPasaporte() }],
+      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/pasaporte.png" alt="">Ver pasaporte', fn: () => abrirPasaporte() }],
     });
   };
   return el;
@@ -113,13 +116,15 @@ export function decir(texto, { acciones = [], ms = 9000 } = {}) {
   acciones.forEach((a) => {
     const b = document.createElement('button');
     b.className = 'btn mini';
-    b.textContent = a.texto;
+    b.innerHTML = a.texto;
     b.onclick = () => { a.fn(); g.hidden = true; };
     ac.appendChild(b);
   });
   el.classList.remove('salta'); void el.offsetWidth; el.classList.add('salta');
   clearTimeout(timer);
-  timer = setTimeout(() => { g.hidden = true; }, ms);
+  // en celular el globo tapa parte del mapa: se queda menos tiempo (se vuelve a abrir tocando a Axo)
+  const espera = innerWidth < 900 ? Math.min(ms, 5500) : ms;
+  timer = setTimeout(() => { g.hidden = true; }, espera);
 }
 
 const PISTAS_CAPA = {
@@ -160,7 +165,7 @@ export function completar(id) {
   confeti();
   const faltan = MISIONES.length - progreso();
   decir(`¡Misión cumplida: ${m.titulo}! ${faltan ? `Te faltan ${faltan}.` : '¡Completaste el pasaporte!'}`, {
-    acciones: [{ texto: '🎒 Pasaporte', fn: () => abrirPasaporte() }],
+    acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/pasaporte.png" alt="">Pasaporte', fn: () => abrirPasaporte() }],
   });
 }
 
@@ -186,7 +191,7 @@ export function abrirPasaporte() {
     <div class="sellos">${MISIONES.map((m) => `
       <div class="sello ${hechas[m.id] ? 'hecho' : ''}">
         <span class="sello-ico">${m.icono}</span><b>${m.titulo}</b>
-        <small>${hechas[m.id] ? '✔ ¡Hecho!' : m.pista}</small>
+        <small>${hechas[m.id] ? '<img class="pi" src="assets/pegatinas/ui/correcto.png" alt="">¡Hecho!' : m.pista}</small>
       </div>`).join('')}</div>
     <div class="acciones-ficha"><button class="btn sec" id="pas-reiniciar">Nuevo visitante (reiniciar)</button></div>`;
   d.querySelector('.cerrar').onclick = () => d.close();
@@ -201,11 +206,15 @@ function confeti() {
   cv.width = innerWidth; cv.height = innerHeight;
   document.body.appendChild(cv);
   const c = cv.getContext('2d');
-  const cols = ['#ffc21a', '#ff4545', '#3ddc97', '#4fc3ff', '#ff9ec4'];
-  const ps = Array.from({ length: 120 }, () => ({
-    x: innerWidth / 2, y: innerHeight * 0.4, vx: (Math.random() - 0.5) * 14, vy: -Math.random() * 14 - 4,
-    r: Math.random() * Math.PI, c: cols[Math.floor(Math.random() * cols.length)],
-  }));
+  // papel picado de la marca: sale de las dos orillas de abajo y cae por los costados (el centro queda libre)
+  const cols = ['#b3261e', '#d9a43a', '#2f6b45', '#22346a', '#f3ecdd'];
+  const ps = Array.from({ length: 70 }, (_, i) => {
+    const izq = i % 2 === 0;
+    return {
+      x: izq ? 0 : innerWidth, y: innerHeight * 0.85, vx: (izq ? 1 : -1) * (3 + Math.random() * 6), vy: -Math.random() * 12 - 8,
+      r: Math.random() * Math.PI, c: cols[Math.floor(Math.random() * cols.length)],
+    };
+  });
   let f = 0;
   const paso = () => {
     c.clearRect(0, 0, cv.width, cv.height);
@@ -213,7 +222,8 @@ function confeti() {
       p.vy += 0.4; p.x += p.vx; p.y += p.vy; p.r += 0.2;
       c.save(); c.translate(p.x, p.y); c.rotate(p.r); c.fillStyle = p.c; c.fillRect(-4, -2, 8, 4); c.restore();
     }
-    if (++f < 110) requestAnimationFrame(paso); else cv.remove();
+    cv.style.opacity = f > 50 ? String(Math.max(0, 1 - (f - 50) / 25)) : '1';
+    if (++f < 75) requestAnimationFrame(paso); else cv.remove();
   };
   paso();
 }

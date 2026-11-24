@@ -40,6 +40,12 @@ export function iniciarAudio() {
   ruidoMarron = crearRuido('marron');
 }
 
+// Subtítulos: cada sonido avisa qué se está oyendo (para quien no oye o si la sala es ruidosa)
+export const avisos = new EventTarget();
+const subtitulo = (texto) => avisos.dispatchEvent(new CustomEvent('subtitulo', { detail: texto }));
+const creditoDe = (clave) => { const i = manifiesto?.[clave] || {}; return i.subtitulo ?? i.titulo ?? 'Sonido'; };
+const NOMBRE_BIOMA = { desierto: 'desierto', matorral: 'matorral', bosque: 'bosque templado', selva: 'selva húmeda', selvaSeca: 'selva seca', humedal: 'humedal y costa', mar: 'mar' };
+
 export const contexto = () => ctx;
 export const salida = () => master;
 
@@ -106,6 +112,7 @@ export async function reproducirGrabacion(clave, pan = 0) {
     s.connect(g).connect(paneo(pan)).connect(master);
     s.start();
     grabacionUnica = s;
+    subtitulo(creditoDe(clave));
     return true;
   } catch (e) {
     console.warn('No se pudo reproducir', clave, e);
@@ -167,9 +174,33 @@ export function golpeP(intensidad = 0.5, pan = 0) {
   o.stop(t + 0.6);
 }
 
-// Retumbo del sismo (onda S): ruido marrón filtrado + temblor de baja frecuencia
+// Efecto con grabación real (clave de sonidos.json). Si no hay archivo, devuelve false y se usa el sintetizado.
+// La grabación se desvanece al final de «duracion» segundos para no tapar la explicación.
+function efectoGrabado(clave, { pan = 0, volumen = 1, duracion = null } = {}) {
+  if (!ctx || !tieneGrabacion(clave)) return false;
+  subtitulo(creditoDe(clave));
+  decodificar(clave).then((audio) => {
+    const t = ctx.currentTime;
+    const s = ctx.createBufferSource();
+    s.buffer = audio;
+    const g = ctx.createGain();
+    const v = (manifiesto[clave].volumen ?? 0.9) * volumen;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.001, v), t + 0.15);
+    const fin = Math.min(audio.duration, duracion ?? audio.duration);
+    g.gain.setTargetAtTime(0.0001, t + Math.max(0.2, fin - 0.8), 0.25);
+    s.connect(g).connect(paneo(pan)).connect(master);
+    s.start(t);
+    s.stop(t + fin + 0.3);
+  }).catch(() => {});
+  return true;
+}
+
+// Retumbo del sismo (onda S): grabación real si existe ('efecto-retumbo');
+// si no, ruido marrón filtrado + temblor de baja frecuencia (sintetizado)
 export function retumbo(intensidad = 0.6, duracion = 4, pan = 0) {
   if (!ctx) return;
+  if (efectoGrabado('efecto-retumbo', { pan, volumen: Math.min(1, 0.3 + intensidad), duracion })) return;
   const t = ctx.currentTime;
   const src = fuenteRuido(ruidoMarron);
   const lp = ctx.createBiquadFilter();
@@ -212,25 +243,77 @@ export function retumbo(intensidad = 0.6, duracion = 4, pan = 0) {
   [src, lfo, sub, crujido].forEach((n) => { n.start(t); n.stop(t + duracion + 0.1); });
 }
 
-// Tono de alerta genérico (dos tonos alternados, NO es el audio oficial del SASMEX)
+// Alerta del simulador, de alta calidad: sirena de dos tonos como la de un altavoz en la calle.
+// Cada tono lleva armónicos con un leve desafinado (suena «grande», no de juguete), pasa por un
+// filtro de bocina y una reverberación de calle generada al vuelo, y sube y baja como una sirena real.
+let reverbCalle = null;
+function reverb() {
+  if (reverbCalle) return reverbCalle;
+  const dur = 2.2, n = Math.floor(ctx.sampleRate * dur);
+  const ir = ctx.createBuffer(2, n, ctx.sampleRate);
+  for (let c = 0; c < 2; c++) {
+    const d = ir.getChannelData(c);
+    for (let i = 0; i < n; i++) {
+      const t = i / ctx.sampleRate;
+      // ecos de fachadas (primeras reflexiones) + cola difusa
+      const eco = [0.045, 0.11, 0.19, 0.31].some((e) => Math.abs(t - e - c * 0.007) < 0.0015) ? 0.6 : 0;
+      d[i] = ((Math.random() * 2 - 1) * Math.exp(-t * 3.1) + eco * Math.exp(-t * 2)) * 0.5;
+    }
+  }
+  reverbCalle = ctx.createConvolver();
+  reverbCalle.buffer = ir;
+  return reverbCalle;
+}
 export function alerta(repeticiones = 6) {
+  subtitulo('Alerta sísmica · simulacro');
   if (!ctx) return;
-  const t0 = ctx.currentTime;
-  for (let i = 0; i < repeticiones; i++) {
-    const t = t0 + i * 0.5;
+  const t0 = ctx.currentTime + 0.05;
+  const periodo = 0.62; // cada tono
+  const dur = repeticiones * periodo;
+  const bus = ctx.createGain();
+  // bocina: recorta graves y agudos extremos y le da cuerpo en 1-3 kHz
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 280; hp.Q.value = 0.8;
+  const pico = ctx.createBiquadFilter(); pico.type = 'peaking'; pico.frequency.value = 1700; pico.Q.value = 0.9; pico.gain.value = 5;
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200; lp.Q.value = 0.5;
+  // saturación suave, como un amplificador de altavoz al límite
+  const sat = ctx.createWaveShaper();
+  const curva = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; curva[i] = Math.tanh(x * 2.2) / Math.tanh(2.2); }
+  sat.curve = curva; sat.oversample = '4x';
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -16; comp.ratio.value = 5; comp.attack.value = 0.004; comp.release.value = 0.2;
+  const seco = ctx.createGain(); seco.gain.value = 0.82;
+  const humedo = ctx.createGain(); humedo.gain.value = 0.32;
+  const salidaG = ctx.createGain();
+  salidaG.gain.setValueAtTime(0.0001, t0);
+  salidaG.gain.exponentialRampToValueAtTime(0.32, t0 + 0.08);
+  salidaG.gain.setValueAtTime(0.32, t0 + dur - 0.12);
+  salidaG.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.05);
+  bus.connect(hp).connect(pico).connect(sat).connect(lp).connect(comp);
+  comp.connect(seco).connect(salidaG);
+  comp.connect(reverb()).connect(humedo).connect(salidaG);
+  salidaG.connect(master);
+
+  // dos tonos alternados con deslizamiento corto entre ellos (como la sirena electrónica)
+  const voces = [{ tipo: 'sawtooth', mult: 1, det: -6, g: 0.22 }, { tipo: 'sawtooth', mult: 1, det: 7, g: 0.22 },
+                 { tipo: 'square', mult: 2, det: 0, g: 0.06 }, { tipo: 'triangle', mult: 0.5, det: 0, g: 0.18 }];
+  for (const v of voces) {
     const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = 'square';
-    o.frequency.setValueAtTime(i % 2 ? 660 : 880, t);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
-    g.gain.setValueAtTime(0.12, t + 0.35);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
-    const lp = ctx.createBiquadFilter();
-    lp.frequency.value = 3000;
-    o.connect(lp).connect(g).connect(master);
-    o.start(t);
-    o.stop(t + 0.5);
+    o.type = v.tipo; o.detune.value = v.det;
+    const g = ctx.createGain(); g.gain.value = v.g;
+    for (let i = 0; i < repeticiones; i++) {
+      const t = t0 + i * periodo;
+      const f = (i % 2 ? 740 : 988) * v.mult;
+      if (i === 0) o.frequency.setValueAtTime(f, t);
+      else o.frequency.setTargetAtTime(f, t, 0.012);
+    }
+    // vibrato lento: la sirena «respira»
+    const lfo = ctx.createOscillator(); lfo.frequency.value = 5.5;
+    const lfoG = ctx.createGain(); lfoG.gain.value = 9 * v.mult;
+    lfo.connect(lfoG).connect(o.frequency);
+    o.connect(g).connect(bus);
+    o.start(t0); lfo.start(t0);
+    o.stop(t0 + dur + 0.1); lfo.stop(t0 + dur + 0.1);
   }
 }
 
@@ -246,6 +329,8 @@ export async function alertaSismica() {
 // Llegada de un tsunami: oleaje que crece y revienta
 export function ola(intensidad = 0.6, pan = 0) {
   if (!ctx) return;
+  if (efectoGrabado('efecto-oleaje', { pan, volumen: Math.min(1, 0.35 + intensidad), duracion: 8 })) return;
+  subtitulo('Llegada del tsunami a la costa · sonido sintetizado');
   const t = ctx.currentTime;
   const src = fuenteRuido(ruidoMarron);
   const lp = ctx.createBiquadFilter();
@@ -266,6 +351,8 @@ export function ola(intensidad = 0.6, pan = 0) {
 // Erupción: explosión + retumbo + lluvia de piroclastos
 export function erupcion(pan = 0) {
   if (!ctx) return;
+  if (efectoGrabado('efecto-erupcion', { pan, duracion: 14 })) return;
+  subtitulo('Erupción · retumbo y explosiones sintetizados');
   const t = ctx.currentTime;
   const pn = paneo(pan);
   pn.connect(master);
@@ -433,10 +520,12 @@ export async function ambienteBioma(tipo, pan = 0) {
       s.start();
       nodos.push(s);
       ambiente = { nodos, timers, salida, tipo };
+      subtitulo(creditoDe('bioma-' + tipo));
       return;
     } catch (_) { /* si falla, seguimos con el sintetizado */ }
   }
   const cada = (fn, ms) => timers.push(setInterval(() => Math.random() < 0.7 && fn(), ms));
+  subtitulo(`Paisaje sonoro de ${NOMBRE_BIOMA[tipo] ?? tipo} · sintetizado con física del sonido (viento, agua y animales)`);
 
   switch (tipo) {
     case 'desierto':
@@ -494,10 +583,25 @@ export function ambienteClima(vientoKmh, llueve, pan = 0) {
   salida.connect(paneo(pan)).connect(master);
   const nodos = [];
   const nivel = Math.min(0.5, 0.04 + vientoKmh / 80);
-  viento(salida, nodos, nivel, 250 + vientoKmh * 12);
+  if (tieneGrabacion('efecto-viento')) {
+    // viento real grabado; su volumen sigue la velocidad del dato de este momento
+    subtitulo(`Viento de ${Math.round(vientoKmh)} km/h${llueve ? ' y lluvia' : ''} · ${creditoDe('efecto-viento')}`);
+    decodificar('efecto-viento').then((audio) => {
+      if (!ambiente || ambiente.salida !== salida) return;
+      const s = ctx.createBufferSource();
+      s.buffer = audio; s.loop = true;
+      const g = ctx.createGain();
+      g.gain.value = Math.min(1, 0.08 + vientoKmh / 45) * (manifiesto['efecto-viento'].volumen ?? 0.8);
+      s.connect(g).connect(salida); s.start(); nodos.push(s);
+    }).catch(() => {});
+  } else {
+    subtitulo(`Viento de ${Math.round(vientoKmh)} km/h${llueve ? ' y lluvia' : ''} · sonido sintetizado con el dato de este momento`);
+    viento(salida, nodos, nivel, 250 + vientoKmh * 12);
+  }
   ambiente = { nodos, timers: [], salida, tipo: 'clima' };
-  if (llueve && tieneGrabacion('clima-lluvia')) {
-    decodificar('clima-lluvia').then((audio) => {
+  const claveLluvia = tieneGrabacion('efecto-lluvia') ? 'efecto-lluvia' : 'clima-lluvia';
+  if (llueve && tieneGrabacion(claveLluvia)) {
+    decodificar(claveLluvia).then((audio) => {
       if (!ambiente || ambiente.salida !== salida) return;
       const s = ctx.createBufferSource();
       s.buffer = audio;

@@ -6,10 +6,17 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { MapaMexico, crearEtiqueta, vec } from './mapa3d.js';
 import { SimuladorSismo, dibujarCorte, ROMANOS, DESC_MMI, energia } from './sismo.js';
 import { obtenerClima, obtenerSismosUSGS, regresion } from './apis.js';
+import { montarSismosVivo } from './sismos-vivo.js';
 import { ERAS, SITIOS, EVENTOS, INMATERIAL, CULTURA_ESTADOS } from './cultura.js';
 import { abrirVolcan, cerrarVolcan } from './volcan3d.js';
+import { abrirEspecie, cerrarEspecie } from './especie3d.js';
 import { Tsunami } from './tsunami.js';
+import { Meteoros, SAFFIR } from './meteoros.js';
+import { VientoVivo } from './viento-vivo.js';
+import { crearVisor } from './visor-vr.js';
 import { crearRecorrido } from './recorrido.js';
+import { PATRONES } from './patrones.js';
+const pi = (id) => `<img class="pi" src="assets/pegatinas/ui/${id}.png" alt="">`;
 import { LENGUA_ESTADOS, RESUMEN_LENGUAS, TOP_LENGUAS, FAMILIAS, FUENTES_LENGUAS } from './lenguas.js';
 import { MARAVILLAS, TIPOS_MARAVILLA, FUENTES_MARAVILLAS } from './maravillas.js';
 import { FUENTES_SABORES, ORIGENES, LINEA_SABORES, PASOS_NIXTAMAL, EFECTOS_NIXTAMAL, OTROS_ALIMENTOS, PENDIENTES_SABORES } from './sabores.js';
@@ -35,8 +42,13 @@ const fmt = (n, d = 0) => Number(n).toLocaleString('es-MX', { maximumFractionDig
 // ---------------------------------------------------------------------
 const vista = $('#vista');
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+// 1.5 como máximo: en tablets con pantalla de densidad 2–3 dibujar al doble cuesta hasta 4× más
+// pixeles y con el antialias casi no se nota la diferencia
+renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio));
 renderer.shadowMap.enabled = true;
+// las sombras se recalculan unas 20 veces por segundo, no en cada cuadro (ver bucle())
+renderer.shadowMap.autoUpdate = false;
+renderer.shadowMap.needsUpdate = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 vista.appendChild(renderer.domElement);
@@ -101,6 +113,7 @@ mesa.rotation.x = -Math.PI / 2;
 escena.add(mesa);
 
 const mapa = new MapaMexico();
+const vientoVivo = new VientoVivo(mapa);
 mesa.add(mapa.root);
 
 // ---------------------------------------------------------------------
@@ -123,6 +136,7 @@ const app = {
 const log = $('#sismo-log');
 const sim = new SimuladorSismo(mapa, {
   onEscucha(c, res) {
+    cuentaS.llego(c);
     // Predecir → observar → explicar
     const pred = app.prediccion;
     const aviso = sim.alertaActiva && res.tAlerta !== null ? Math.max(0, c.aviso) : 0;
@@ -145,8 +159,11 @@ const sim = new SimuladorSismo(mapa, {
     app.prediccion = +$('#rng-pred').value;
     $('#poe-res').hidden = true;
     log.innerHTML = '';
-    $('#btn-sismo').textContent = '■ Detener';
+    $('#btn-sismo').innerHTML = '<img class="pi" src="assets/pegatinas/ui/detener.png" alt="">Detener';
     $('#btn-sismo').classList.add('peligro');
+    $('#btn-sismo-flotante').innerHTML = '<img class="pi" src="assets/pegatinas/ui/detener.png" alt="">Detener';
+    $('#btn-sismo-flotante').classList.add('peligro');
+    cuentaS.preparar(sim.res);
   },
   onEvento(texto, tipo, t) {
     const li = document.createElement('li');
@@ -156,6 +173,7 @@ const sim = new SimuladorSismo(mapa, {
   },
   onTiempo(t, rP, rS) {
     $('#sismo-reloj').textContent = `${t.toFixed(1)} s`;
+    cuentaS.tic(t);
     $('#sismo-radios').textContent = `P: ${fmt(rP)} km · S: ${fmt(rS)} km`;
   },
   onAlerta(on) {
@@ -167,8 +185,11 @@ const sim = new SimuladorSismo(mapa, {
     }
   },
   onFin() {
-    $('#btn-sismo').textContent = '▶ Simular sismo';
+    $('#btn-sismo').innerHTML = '<img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular sismo';
     $('#btn-sismo').classList.remove('peligro');
+    $('#btn-sismo-flotante').innerHTML = '<img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular';
+    $('#btn-sismo-flotante').classList.remove('peligro');
+    cuentaS.ocultar();
   },
   onResultados(res, cfg) {
     pintarResultados(res, cfg);
@@ -250,7 +271,8 @@ function cambiarCapa(capa) {
   audio.detenerAmbiente();
   audio.detenerGrabacion();
   if (capa !== 'tectonica') { sim.detener(); tsunami.detener(); }
-  if (capa === 'tectonica') { sim._calcular(); }
+  if (capa !== 'clima') meteorosRef?.detener(); // var: puede llamarse antes de crear los meteoros
+  if (capa === 'tectonica') { sim._calcular(); pintarAvisoSeguro(); }
   if (capa === 'clima' && !app.clima) cargarClima();
   if (capa === 'historia') ponerAnio(app.anio ?? null);
   pintarLeyenda();
@@ -259,12 +281,39 @@ function cambiarCapa(capa) {
   if (capa !== 'tectonica') { detenerSensor(); detenerSonido(); }
 }
 
+// barra de capas: difumina la orilla mientras haya pestañas escondidas, para que se note que se desliza
+const barraCapas = $('.capas');
+function marcarDesliz() {
+  const { scrollLeft: x, scrollWidth: w, clientWidth: c } = barraCapas;
+  barraCapas.classList.toggle('mas-izq', x > 4);
+  barraCapas.classList.toggle('mas-der', x + c < w - 4);
+}
+barraCapas.addEventListener('scroll', marcarDesliz, { passive: true });
+addEventListener('resize', marcarDesliz);
+requestAnimationFrame(marcarDesliz);
+
 function pintarLeyenda() {
   const items = LEYENDAS[app.capa]();
-  $('#leyenda').innerHTML = items.map(([c, t]) => `<div><i style="background:${c}"></i>${t}</div>`).join('');
+  const ley = $('#leyenda');
+  const abierta = ley.classList.contains('abierta');
+  // en celular la leyenda empieza plegada (un botón con las muestras de color) para no tapar el mapa
+  ley.innerHTML = `<button class="ley-boton" aria-expanded="${abierta}" aria-controls="ley-items"><span class="ley-muestras">${items.slice(0, 5).map(([c]) => `<i style="background:${c}"></i>`).join('')}</span>Leyenda</button>
+    <div class="ley-items" id="ley-items">${items.map(([c, t]) => `<div><i style="background:${c}"></i>${t}</div>`).join('')}</div>`;
+  $('.ley-boton', ley).onclick = () => {
+    const ab = ley.classList.toggle('abierta');
+    $('.ley-boton', ley).setAttribute('aria-expanded', String(ab));
+  };
 }
 
 $$('.capas button').forEach((b) => b.addEventListener('click', () => cambiarCapa(b.dataset.capa)));
+// la orilla desvanecida de la barra de capas desaparece al llegar al final
+{
+  const barraCapas = $('.capas');
+  const revisarFinal = () => barraCapas.classList.toggle('al-final', barraCapas.scrollLeft + barraCapas.clientWidth >= barraCapas.scrollWidth - 4);
+  barraCapas.addEventListener('scroll', revisarFinal, { passive: true });
+  addEventListener('resize', revisarFinal);
+  setTimeout(revisarFinal, 500);
+}
 
 // Panel plegable (en AR deja ver todo el mapa)
 function plegarPanel(on) {
@@ -313,7 +362,8 @@ ponerNivel(nivelGuardado || 'aventureros');
 // Ficha de información
 // ---------------------------------------------------------------------
 const ficha = $('#ficha');
-function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], color = null, revision = true }) {
+function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], color = null, revision = false, patron = null }) {
+  const pat = patron && PATRONES[patron];
   if (!(document.body.classList.contains("en-recorrido") && innerWidth <= 900)) plegarPanel(false);
   ficha.hidden = false;
   ficha.style.setProperty('--acento', color || 'var(--oro)');
@@ -323,7 +373,7 @@ function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], 
     <h2>${titulo}</h2>
     ${chips.length ? `<div class="chips">${chips.map((c) => `<span class="chip">${c}</span>`).join('')}</div>` : ''}
     <div class="cuerpo">${cuerpo}</div>
-    ${revision ? '<p class="revision">Contenido en revisión: el equipo está verificando sus fuentes.</p>' : ''}
+    
     <div class="acciones-ficha">${acciones.map((a, i) => `<button class="btn ${a.clase || ''}" data-i="${i}">${a.texto}</button>`).join('')}</div>`;
   $('.cerrar', ficha).onclick = cerrarFicha;
   $$('.acciones-ficha button[data-i]', ficha).forEach((b) => (b.onclick = () => acciones[b.dataset.i].fn()));
@@ -334,9 +384,31 @@ function abrirFicha({ titulo, sub = '', cuerpo = '', chips = [], acciones = [], 
 }
 function cerrarFicha() {
   ficha.hidden = true;
+  fondoEstado(null);
   audio.detenerGrabacion();
   mapa.seleccionar(null);
   app.seleccion = null;
+}
+
+// ---------------------------------------------------------------------
+// Fondo según el estado: al tocar un estado, la página se viste con el patrón artesanal de ese
+// estado (dos capas que se cruzan suavemente). Al cerrar la ficha vuelve el fondo tranquilo.
+// ---------------------------------------------------------------------
+// El patrón del estado viste toda la página (el fondo detrás del mapa y del panel);
+// el tablero del mapa queda limpio encima.
+let fondoVR = null; // lo asigna el visor VR (pared con el patrón)
+function fondoEstado(id) {
+  const pagina = document.body;
+  if (id && !PATRONES[id]) id = null;
+  mapa.setPatron(id); // también sobre el relieve del estado: se ve en AR y en el visor VR
+  fondoVR?.(id); // y en el visor VR, como pared tapizada alrededor
+  if ((app.fondoPatron ?? null) === id) return;
+  app.fondoPatron = id;
+  pagina.classList.toggle('con-patron', !!id);
+  if (id) {
+    pagina.style.setProperty('--patron', `url("${new URL(`assets/patrones/${id}.jpg`, location.href).href}")`);
+    pagina.classList.remove('patron-entra'); void pagina.offsetWidth; pagina.classList.add('patron-entra');
+  }
 }
 
 function fichaEstado(id) {
@@ -345,9 +417,11 @@ function fichaEstado(id) {
   const e = r.info;
   mapa.seleccionar(id);
   app.seleccion = id;
+  fondoEstado(id);
   const pan = (e.lon + 102.5) / 15;
   if (id === 'MX-HID') guia.completar('hidalgo');
   const base = {
+    patron: id,
     titulo: r.nombre,
     sub: `Capital: ${e.capital} · ${REGIONES[e.region].nombre}`,
     color: REGIONES[e.region].color,
@@ -386,7 +460,7 @@ function fichaEstado(id) {
       ...base, revision: false, color: '#2fae7a',
       cuerpo: cerca.length
         ? `<p>Maravillas cerca de aquí:</p><ul class="lista-sp lista-maravilla-ficha">${cerca.map((m) => `<li data-id="${m.id}"><b>${m.nombre}</b> · ${TIPOS_MARAVILLA[m.tipo].nombre}</li>`).join('')}</ul>`
-        : '<p>Todavía no hay una maravilla verificada cerca de este estado. México tiene muchas más áreas naturales protegidas; aquí solo mostramos las que tienen reconocimiento de la UNESCO o estudios científicos que pudimos consultar.</p>',
+        : '<p>Todavía no hay una maravilla registrada cerca de este estado. México tiene muchas más áreas naturales protegidas; aquí solo mostramos las que tienen reconocimiento de la UNESCO o estudios científicos que pudimos consultar.</p>',
     });
     $$('.lista-maravilla-ficha li', ficha).forEach((li) => (li.onclick = () => fichaObjeto({ tipo: 'maravilla', data: MARAVILLAS.find((m) => m.id === li.dataset.id) })));
     return;
@@ -399,7 +473,7 @@ function fichaEstado(id) {
       ...base, revision: false, color: '#c7ab84',
       cuerpo: `${cerca.length
         ? `<p>Cerca de aquí hay evidencia arqueológica de alimentos antiguos:</p><ul class="lista-sp lista-origen-ficha">${cerca.map((o) => `<li data-id="${o.id}"><b>${o.alimento}</b> · ${o.nombre}</li>`).join('')}</ul>`
-        : '<p>En esta capa todavía no hay sitios con evidencia verificada cerca de este estado. Eso no significa que aquí no haya historia alimentaria: solo que aún no la documentamos con fuentes.</p>'}
+        : '<p>En esta capa todavía no hay sitios registrados cerca de este estado. Eso no significa que aquí no haya historia alimentaria.</p>'}
         ${k.platillo ? '<p class="nota">Los platillos de la región están en la capa Cultura.</p>' : ''}`,
       acciones: k.platillo ? [{ texto: 'Ver su platillo en Cultura', fn: () => { cambiarCapa('cultura'); fichaEstado(id); } }] : [],
     });
@@ -412,8 +486,8 @@ function fichaEstado(id) {
     const rasgos = [['Platillo', k.platillo], ['Artesanía', k.artesania], ['Tradición', k.tradicion]].filter(([, v]) => v);
     abrirFicha({
       ...base,
-      cuerpo: `${rasgos.length ? rasgos.map(([t, v]) => `<p class="rasgo"><b>${t}:</b> ${v}</p>`).join('') : '<p>Todavía no hay rasgos culturales verificados para este estado.</p>'}
-        ${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">Suena música tradicional de la región (ver Créditos para el autor y la licencia).</p>' : ''}`,
+      cuerpo: `${rasgos.length ? rasgos.map(([t, v]) => `<p class="rasgo"><b>${t}:</b> ${v}</p>`).join('') : '<p>Todavía no hay rasgos culturales registrados para este estado.</p>'}
+        ${k.sonido && audio.tieneGrabacion(k.sonido) ? '<p class="nota">Suena música tradicional de la región.</p>' : ''}`,
       acciones: k.sonido ? [{ texto: 'Escuchar su música', fn: () => audio.reproducirGrabacion(k.sonido, pan) }, { texto: 'Detener', clase: 'sec', fn: () => audio.detenerGrabacion() }] : [],
     });
     if (id === 'MX-HID') guia.completar('hidalgo');
@@ -429,9 +503,9 @@ function fichaEstado(id) {
     if (e.bioma === 'selvaHumeda') guia.completar('selva');
     abrirFicha({
       ...base, color: b.color,
-      chips: [`🌿 ${b.nombre}`, '🔊 Paisaje sonoro'],
-      cuerpo: `<p>${b.texto}</p>${sp.length ? `<h3>Especies cercanas</h3><ul class="lista-sp">${sp.map((s) => `<li>${s.emoji} <b>${s.nombre}</b> <i>${s.cientifico}</i></li>`).join('')}</ul>` : ''}<p class="dato">💡 ${e.dato}</p>`,
-      acciones: [{ texto: '🔇 Silenciar ambiente', fn: () => audio.detenerAmbiente() }],
+      chips: [`<img class="pi" src="assets/pegatinas/ui/hoja.png" alt="">${b.nombre}`, '<img class="pi" src="assets/pegatinas/ui/sonido.png" alt="">Paisaje sonoro'],
+      cuerpo: `<p>${b.texto}</p>${sp.length ? `<h3>Especies cercanas</h3><ul class="lista-sp">${sp.map((s) => `<li>${pi(s.icono)}<b>${s.nombre}</b> <i>${s.cientifico}</i></li>`).join('')}</ul>` : ''}<p class="dato"><img class="pi" src="assets/pegatinas/ui/idea.png" alt="">${e.dato}</p>`,
+      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/silencio.png" alt="">Silenciar ambiente', fn: () => audio.detenerAmbiente() }],
     });
     return;
   }
@@ -442,33 +516,33 @@ function fichaEstado(id) {
     const minT = Math.min(...Object.values(app.clima.datos).map((x) => x.temp));
     if (c.temp === minT) guia.completar('frio');
     abrirFicha({
-      ...base,
-      chips: [`${ico} ${desc}`, `🌡️ ${fmt(c.temp, 1)} °C`, c.humedad != null ? `💧 ${c.humedad}%` : '', `🍃 ${fmt(c.viento)} km/h ${rumbo(c.dirViento)}`, `⛰️ ${fmt(c.altitud)} m`].filter(Boolean),
+      ...base, revision: false,
+      chips: [`${pi(ico)}${desc}`, `<img class="pi" src="assets/pegatinas/ui/termometro.png" alt="">${fmt(c.temp, 1)} °C`, c.humedad != null ? `<img class="pi" src="assets/pegatinas/ui/humedad.png" alt="">${c.humedad}%` : '', `<img class="pi" src="assets/pegatinas/ui/viento.png" alt="">${fmt(c.viento)} km/h ${rumbo(c.dirViento)}`, `<img class="pi" src="assets/pegatinas/ui/relieve.png" alt="">${fmt(c.altitud)} m`].filter(Boolean),
       cuerpo: `<p>Sensación térmica: <b>${fmt(c.sensacion, 1)} °C</b>${c.presion ? ` · Presión: <b>${fmt(c.presion)} hPa</b>` : ''}${c.lluvia ? ` · Lluvia: <b>${c.lluvia} mm</b>` : ''}</p>
         <p>Con el gradiente de −6.5 °C/km, a nivel del mar ${e.capital} tendría unos <b>${fmt(c.temp + 6.5 * (c.altitud / 1000), 1)} °C</b>.</p>
         ${c.presion ? `<p>La presión baja con la altura: a ${fmt(c.altitud)} m el aire «pesa» menos (al nivel del mar es ~1013 hPa).</p>` : ''}
-        <p class="dato">💡 ${e.dato}</p>`,
+        <p class="dato"><img class="pi" src="assets/pegatinas/ui/idea.png" alt="">${e.dato}</p>`,
     });
     return;
   }
   if (app.capa === 'tectonica') {
     const z = ZONAS_SISMICAS[e.zona];
     abrirFicha({
-      ...base, color: z.color,
+      ...base, color: z.color, revision: false,
       chips: [z.nombre],
-      cuerpo: `<p class="dato">💡 ${e.dato}</p>`,
-      acciones: [{ texto: '🎧 Escuchar el sismo desde aquí', fn: () => { ponerEscucha(id); audio.clic(); } }],
+      cuerpo: `<p class="dato"><img class="pi" src="assets/pegatinas/ui/idea.png" alt="">${e.dato}</p>`,
+      acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/audifonos.png" alt="">Escuchar el sismo desde aquí', fn: () => { ponerEscucha(id); audio.clic(); } }],
     });
     return;
   }
   abrirFicha({
-    ...base,
-    chips: [`🌿 ${BIOMAS[e.bioma].nombre}`, `📈 ${ZONAS_SISMICAS[e.zona].nombre}`],
-    cuerpo: `<p class="dato">💡 ${e.dato}</p>`,
+    ...base, revision: false,
+    chips: [`<img class="pi" src="assets/pegatinas/ui/hoja.png" alt="">${BIOMAS[e.bioma].nombre}`, `<img class="pi" src="assets/pegatinas/ui/sismicidad.png" alt="">${ZONAS_SISMICAS[e.zona].nombre}`],
+    cuerpo: `<p class="dato"><img class="pi" src="assets/pegatinas/ui/idea.png" alt="">${e.dato}</p>`,
     acciones: [
       { texto: 'Ver todo de este estado', clase: 'primario', fn: () => fichaMiEstado(id) },
-      { texto: '🌍 Ver su sismicidad', fn: () => { cambiarCapa('tectonica'); } },
-      { texto: '🦋 Ver su biodiversidad', fn: () => { cambiarCapa('biodiversidad'); fichaEstado(id); } },
+      { texto: '<img class="pi" src="assets/pegatinas/ui/sismicidad.png" alt="">Ver su sismicidad', fn: () => { cambiarCapa('tectonica'); } },
+      { texto: '<img class="pi" src="assets/pegatinas/ui/monarca.png" alt="">Ver su biodiversidad', fn: () => { cambiarCapa('biodiversidad'); fichaEstado(id); } },
     ],
   });
   audio.clic(990);
@@ -482,6 +556,7 @@ function fichaMiEstado(id) {
   const e = r.info;
   mapa.seleccionar(id);
   app.seleccion = id;
+  fondoEstado(id);
   const cerca = (lista, km) => lista.filter((x) => distanciaKm(x.lat, x.lon, e.lat, e.lon) < km);
   const volc = cerca(VOLCANES, 150);
   const lengua = LENGUA_ESTADOS[id];
@@ -497,9 +572,9 @@ function fichaMiEstado(id) {
       ${fila('biodiversidad', 'Naturaleza', `Ecosistema predominante: ${BIOMAS[e.bioma].nombre}`)}
       ${lengua ? fila('lenguas', 'Lenguas', `${fmt(lengua.pct2020, 1)} % habla una lengua indígena (INEGI 2020)`) : ''}
       ${k.platillo ? fila('cultura', 'Cultura', k.platillo) : ''}
-      ${fila('sabores', 'Sabores', sab.length ? sab.map((o) => `${o.alimento} en ${o.nombre}`).join('; ') : 'Aún no hay evidencia verificada cerca')}
-      ${fila('maravillas', 'Maravillas', mar.length ? mar.map((m) => m.nombre).join('; ') : 'Aún no hay maravillas verificadas cerca')}
-    </ul><p class="nota">«Cerca» se mide desde la capital. Algunos datos de estados y cultura siguen en revisión.</p>`,
+      ${fila('sabores', 'Sabores', sab.length ? sab.map((o) => `${o.alimento} en ${o.nombre}`).join('; ') : 'Aún no hay evidencia registrada cerca')}
+      ${fila('maravillas', 'Maravillas', mar.length ? mar.map((m) => m.nombre).join('; ') : 'Aún no hay maravillas registradas cerca')}
+    </ul><p class="nota">«Cerca» se mide desde la capital.</p>`,
   });
   $$('.mi-estado .me-fila', ficha).forEach((li) => (li.onclick = () => { cambiarCapa(li.dataset.capa); fichaEstado(id); }));
   if (id === 'MX-HID') guia.completar('hidalgo');
@@ -550,6 +625,8 @@ function rumbo(g) {
   return ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'][Math.round(g / 45) % 8];
 }
 
+// pegatina de cada tradición (capa Cultura)
+const PEG_TRADICION = { voladores: 'celebracion', parachicos: 'celebracion', muertos: 'celebracion', charreria: 'celebracion', pirekua: 'mision-musica', mariachi: 'mision-musica', cocina: 'mision-nixtamal', talavera: 'museo' };
 function fichaObjeto(ud) {
   const d = ud.data;
   switch (ud.tipo) {
@@ -557,12 +634,12 @@ function fichaObjeto(ud) {
       const reg = mapa.volcanes.find((v) => v.v === d);
       abrirFicha({
         titulo: d.nombre, sub: d.tipo, color: '#e2622b',
-        chips: [`⛰️ ${fmt(d.alt)} m`, d.estado],
+        chips: [`<img class="pi" src="assets/pegatinas/ui/relieve.png" alt="">${fmt(d.alt)} m`, d.estado],
         cuerpo: `<p>${d.dato}</p><p class="nota">Los volcanes del Eje Neovolcánico se forman porque la placa de Cocos, al hundirse a ~100 km, libera agua. El agua funde el manto y el magma sube.</p>`,
         acciones: [
-          ...(d.relieve ? [{ texto: '🏔️ Explorar su relieve real', clase: 'primario', fn: () => { abrirVolcan(d, VOLCANES.filter((o) => o !== d && o.relieve === d.relieve)); guia.completar('relieve'); } }] : []),
-          { texto: '🌋 Simular erupción', clase: 'peligro', fn: () => { mapa.erupcion(reg); audio.erupcion((d.lon + 102.5) / 15); if (d.activo) guia.completar('erupcion'); } },
-          ...(d.nombre === 'Popocatépetl' ? [{ texto: '🔊 ¿Cómo se pronuncia?', fn: () => audio.reproducirGrabacion('nombre-popocatepetl') }] : []),
+          ...(d.relieve ? [{ texto: '<img class="pi" src="assets/pegatinas/ui/relieve.png" alt="">Explorar su relieve real', clase: 'primario', fn: () => { abrirVolcan(d, VOLCANES.filter((o) => o !== d && o.relieve === d.relieve)); guia.completar('relieve'); } }] : []),
+          { texto: '<img class="pi" src="assets/pegatinas/ui/erupcion.png" alt="">Simular erupción', clase: 'peligro', fn: () => { mapa.erupcion(reg); audio.erupcion((d.lon + 102.5) / 15); if (d.activo) guia.completar('erupcion'); } },
+          ...(d.nombre === 'Popocatépetl' ? [{ texto: '<img class="pi" src="assets/pegatinas/ui/sonido.png" alt="">¿Cómo se pronuncia?', fn: () => audio.reproducirGrabacion('nombre-popocatepetl') }] : []),
         ],
       });
       audio.clic(500);
@@ -572,12 +649,20 @@ function fichaObjeto(ud) {
       abrirFicha({
         titulo: d.nombre, sub: `${d.cultura ? d.cultura + ' · ' : ''}${fechaAnio(d.desde)}${d.hasta < 2026 ? ' – ' + fechaAnio(d.hasta) : ''}`,
         color: d.tipo === 'arqueologico' ? '#c9b48a' : d.tipo === 'virreinal' ? '#e0b9a0' : '#ffc21a',
-        chips: [d.tipo === 'arqueologico' ? '🛕 Zona arqueológica' : d.tipo === 'virreinal' ? '⛪ Virreinato' : '⭐ Historia moderna', ...(d.unesco ? [`🌐 Patrimonio Mundial UNESCO (${d.unesco})`] : [])],
+        chips: [d.tipo === 'arqueologico' ? '<img class="pi" src="assets/pegatinas/ui/zona-arqueologica.png" alt="">Zona arqueológica' : d.tipo === 'virreinal' ? '<img class="pi" src="assets/pegatinas/ui/ciudad-virreinal.png" alt="">Virreinato' : '<img class="pi" src="assets/pegatinas/ui/historia-moderna.png" alt="">Historia moderna', ...(d.unesco ? [`<img class="pi" src="assets/pegatinas/ui/region.png" alt="">Patrimonio Mundial UNESCO (${d.unesco})`] : [])],
         cuerpo: `<p>${d.dato}</p>`,
-        acciones: [{ texto: '🕰️ Viajar a esa época', fn: () => { const a = Math.round((d.desde + Math.min(d.hasta, 2026)) / 2); $('#rng-anio').value = a; ponerAnio(a); } }],
+        acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/tiempo.png" alt="">Viajar a esa época', fn: () => { const a = Math.round((d.desde + Math.min(d.hasta, 2026)) / 2); $('#rng-anio').value = a; ponerAnio(a); } }],
       });
       if (d.id === 'tula') guia.completar('tula');
       audio.clic(800);
+      break;
+    case 'tradicion':
+      abrirFicha({
+        titulo: `${pi(PEG_TRADICION[d.id] ?? 'celebracion')}${d.nombre}`, sub: `Patrimonio Cultural Inmaterial (UNESCO) · ${d.anio}`, color: '#b3261e',
+        chips: ['<img class="pi" src="assets/pegatinas/cultura.png" alt="">Patrimonio Inmaterial', d.lugar],
+        cuerpo: `<p>${d.dato}</p>`,
+      });
+      audio.clic(760);
       break;
     case 'maravilla': {
       // Expedición: primero el visitante adivina «¿por qué existe?», luego lee la respuesta
@@ -633,10 +718,13 @@ function fichaObjeto(ud) {
       break;
     case 'especie':
       abrirFicha({
-        titulo: `${d.emoji} ${d.nombre}`, sub: d.cientifico, color: BIOMAS[d.bioma].color,
+        titulo: `${pi(d.icono)}${d.nombre}`, sub: d.cientifico, color: BIOMAS[d.bioma].color,
         chips: [d.estado, BIOMAS[d.bioma].nombre],
         cuerpo: `<p>${d.dato}</p>`,
-        acciones: [{ texto: '🔊 Escuchar su hábitat', fn: () => audio.ambienteBioma(BIOMAS[d.bioma].sonido, (d.lon + 102.5) / 15) }],
+        acciones: [
+          { texto: '<img class="pi" src="assets/pegatinas/ui/relieve.png" alt="">Ver a tamaño real en 3D', clase: 'primario', fn: () => abrirEspecie(d) },
+          { texto: '<img class="pi" src="assets/pegatinas/ui/sonido.png" alt="">Escuchar su hábitat', fn: () => audio.ambienteBioma(BIOMAS[d.bioma].sonido, (d.lon + 102.5) / 15) },
+        ],
       });
       audio.ambienteBioma(BIOMAS[d.bioma].sonido, (d.lon + 102.5) / 15);
       audio.reproducirGrabacion('especie-' + slug(d.nombre), (d.lon + 102.5) / 15);
@@ -668,14 +756,14 @@ function fichaObjeto(ud) {
       abrirFicha({ titulo: 'Eje Neovolcánico Transversal', sub: '~1,000 km de Nayarit a Veracruz', color: '#ff7a1a', cuerpo: '<p>Es una cadena de más de 8,000 estructuras volcánicas. Está inclinado respecto a la fosa porque la placa de Cocos se hunde con distintos ángulos: bajo Guerrero viaja casi plana (losa plana) antes de hundirse.</p>' });
       break;
     case 'museo':
-      abrirFicha({ revision: false, titulo: 'Museo El Rehilete', sub: 'Pachuca, Hidalgo', color: '#f2b21b', cuerpo: '<p>¡Aquí estamos! Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '🌍 Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
+      abrirFicha({ revision: false, titulo: 'Museo El Rehilete', sub: 'Pachuca, Hidalgo', color: '#f2b21b', cuerpo: '<p>¡Aquí estamos! Prueba simular un sismo en la costa de Guerrero y mira cuánto tiempo de aviso tendría Pachuca.</p>', acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/sismicidad.png" alt="">Probar', fn: () => { cambiarCapa('tectonica'); ponerEscucha('MX-HID'); sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 }); sim.iniciar(); } }] });
       break;
     case 'usgs':
       abrirFicha({ revision: false,
         titulo: `M${d.mag.toFixed(1)} · ${d.lugar}`, sub: new Date(d.tiempo).toLocaleString('es-MX'), color: '#ff8a3a',
         chips: [`Profundidad ${fmt(d.prof)} km`, 'Dato real · USGS'],
         cuerpo: '<p>Sismo real registrado por la red mundial. Puedes simular cómo se propagaron sus ondas.</p>',
-        acciones: [{ texto: '▶ Simular este sismo', fn: () => { sim.configurar({ lat: d.lat, lon: d.lon, mag: d.mag, prof: Math.max(5, Math.round(d.prof)) }); sincronizarControles(); sim.iniciar(); } }],
+        acciones: [{ texto: '<img class="pi" src="assets/pegatinas/ui/ruptura.png" alt="">Simular este sismo', fn: () => { sim.configurar({ lat: d.lat, lon: d.lon, mag: d.mag, prof: Math.max(5, Math.round(d.prof)) }); sincronizarControles(); sim.iniciar(); } }],
       });
       break;
   }
@@ -724,6 +812,7 @@ function alClic(ev, cam, el) {
     sim.configurar({ lat, lon });
     $('#epi-texto').textContent = `${lat.toFixed(2)}°N, ${(-lon).toFixed(2)}°O`;
     audio.clic(440);
+    pintarAviso();
     if (ud?.tipo === 'estado') fichaEstado(ud.id);
     return;
   }
@@ -731,12 +820,129 @@ function alClic(ev, cam, el) {
   cerrarFicha();
 }
 
+// ---------------------------------------------------------------------
+// Epicentro arrastrable: al mover la estrella, el mapa se pinta al instante con los segundos
+// de aviso de cada estado (manipulación directa, sin oprimir «Simular»).
+// ---------------------------------------------------------------------
+var pintarAvisoListo = true; // eslint-disable-line no-var
+const COLOR_AVISO = (a) => (a == null || a <= 0 ? '#d6343a' : a < 15 ? '#f08a2c' : a < 40 ? '#f2c94c' : a < 70 ? '#7fd36b' : '#2fa37a');
+function pintarAviso() {
+  if (app.capa !== 'tectonica' || !$('#chk-aviso-mapa').checked || !sim.res) return;
+  for (const c of sim.res.ciudades) {
+    const r = mapa.estados.get(c.id);
+    if (!r) continue;
+    r.colorObj.set(COLOR_AVISO(c.aviso));
+    r.alturaObj = 0.006 + Math.max(0, Math.min(90, c.aviso ?? 0)) * 0.00035;
+  }
+  const esc = sim.res.ciudades.find((c) => c.id === sim.escucha);
+  const conAviso = sim.res.ciudades.filter((c) => c.aviso > 0).length;
+  if (sim.res.tAlerta == null) {
+    $('#aviso-vivo').innerHTML = sim.cfg.mag < 5.5
+      ? '<b>No se activa la alerta:</b> con magnitud menor a 5.5 no se emite aviso.'
+      : '<b>No hay alerta:</b> el epicentro está a más de 300 km de los sensores de la costa; nadie recibe aviso.';
+    return;
+  }
+  $('#aviso-vivo').innerHTML = esc
+    ? `${esc.nombre}: <b>${esc.aviso > 0 ? `${Math.round(esc.aviso)} s de aviso` : 'sin aviso (la onda S llega antes que la alerta)'}</b> · ${conAviso} de 32 capitales con aviso`
+    : '';
+}
+function quitarAviso() { if (app.capa === 'tectonica') mapa.setCapa('tectonica'); $('#aviso-vivo').textContent = ''; }
+$('#chk-aviso-mapa').addEventListener('change', (e) => (e.target.checked ? pintarAviso() : quitarAviso()));
+let arrastrandoEpi = false;
+function cercaDelEpicentro(e) {
+  const p = sim.estrella.getWorldPosition(new THREE.Vector3()).project(camara);
+  const r = renderer.domElement.getBoundingClientRect();
+  const sx = ((p.x + 1) / 2) * r.width + r.left, sy = ((1 - p.y) / 2) * r.height + r.top;
+  return Math.hypot(e.clientX - sx, e.clientY - sy) < (e.pointerType === 'mouse' ? 26 : 40);
+}
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  if (app.capa !== 'tectonica' || sim.corriendo || !cercaDelEpicentro(e)) return;
+  arrastrandoEpi = true;
+  e.stopImmediatePropagation(); // que OrbitControls no gire el mapa mientras se arrastra
+  renderer.domElement.setPointerCapture?.(e.pointerId);
+  renderer.domElement.style.cursor = 'grabbing';
+}, { capture: true });
+renderer.domElement.addEventListener('pointermove', (e) => {
+  if (!arrastrandoEpi) return;
+  e.stopImmediatePropagation();
+  const { enPapel } = lanzarRayo(e, camara, renderer.domElement);
+  if (!enPapel || Math.abs(enPapel.x) > 0.5 || Math.abs(enPapel.y) > 0.32) return;
+  const [lon, lat] = desproyectar(enPapel.x, enPapel.y);
+  sim.configurar({ lat, lon });
+  $('#epi-texto').textContent = `${lat.toFixed(2)}°N, ${(-lon).toFixed(2)}°O`;
+  pintarAviso();
+}, { capture: true });
+const soltarEpi = (e) => {
+  if (!arrastrandoEpi) return;
+  arrastrandoEpi = false;
+  e.stopImmediatePropagation();
+  renderer.domElement.style.cursor = 'crosshair';
+  audio.clic(520);
+  arrastre = null; // no contar el arrastre como un toque
+};
+renderer.domElement.addEventListener('pointerup', soltarEpi, { capture: true });
+renderer.domElement.addEventListener('pointercancel', soltarEpi, { capture: true });
+
 let arrastre = null;
+function pintarAvisoSeguro() { if (typeof pintarAvisoListo !== 'undefined' && pintarAvisoListo) setTimeout(() => pintarAviso(), 0); }
 renderer.domElement.addEventListener('pointerdown', (e) => { arrastre = [e.clientX, e.clientY]; });
 renderer.domElement.addEventListener('pointerup', (e) => {
   if (arrastre && Math.hypot(e.clientX - arrastre[0], e.clientY - arrastre[1]) < 6) alClic(e, camara, renderer.domElement);
   arrastre = null;
 });
+// ---------------------------------------------------------------------
+// Modo visor (VR con celular, tipo Cardboard): ver js/visor-vr.js
+// ---------------------------------------------------------------------
+const rayoVR = new THREE.Raycaster();
+function rayoCentro(cam) {
+  rayoVR.setFromCamera(new THREE.Vector2(0, 0), cam);
+  const hits = rayoVR.intersectObjects(mapa.pickables.filter(visibleReal), false);
+  const fondo = new Set(['eje', 'placa']);
+  return { hit: (hits.find((h) => !fondo.has(h.object.userData?.tipo)) || hits[0])?.object || null };
+}
+function infoVR(ud) {
+  const r = infoVRTexto(ud);
+  if (!r) return null;
+  const d = ud.data || {};
+  const ui = (id) => `assets/pegatinas/ui/${id}.png`;
+  r.imagen = {
+    estado: `assets/pegatinas/${app.capa}.png`, volcan: ui(d.activo ? 'erupcion' : 'relieve'), especie: d.icono && ui(d.icono),
+    sitio: ui(d.tipo === 'arqueologico' ? 'zona-arqueologica' : d.tipo === 'virreinal' ? 'ciudad-virreinal' : 'historia-moderna'),
+    maravilla: 'assets/pegatinas/maravillas.png', tradicion: ui(PEG_TRADICION[d.id] ?? 'celebracion'), origen: 'assets/pegatinas/sabores.png',
+  }[ud.tipo] ?? null;
+  return r;
+}
+function infoVRTexto(ud) {
+  const d = ud.data || {};
+  switch (ud.tipo) {
+    case 'estado': {
+      fondoEstado(ud.id); // el estado elegido con la mirada: su patrón en el relieve y en la pared del visor
+      const e = ESTADOS[ud.id];
+      const k = CULTURA_ESTADOS[ud.id] || {};
+      if (app.capa === 'cultura' && (k.platillo || k.tradicion)) return { titulo: ud.nombre, sub: 'Cultura', texto: [k.platillo && `Platillo: ${k.platillo}.`, k.tradicion && `Tradición: ${k.tradicion}.`].filter(Boolean).join(' ') };
+      const c = app.clima?.datos?.[ud.id];
+      if (app.capa === 'clima' && c) return { titulo: ud.nombre, sub: 'Clima ahora', texto: `${fmt(c.temp, 1)} °C · humedad ${c.humedad ?? '—'} % · viento ${fmt(c.viento ?? 0)} km/h.` };
+      return { titulo: ud.nombre, sub: `Capital: ${e?.capital ?? ''}`, texto: e?.dato ?? '' };
+    }
+    case 'volcan': return { titulo: d.nombre, sub: `${fmt(d.alt)} m · ${d.estado ?? ''}`, texto: d.dato };
+    case 'especie': return { titulo: d.nombre, sub: `${d.cientifico ?? ''} · ${d.estado ?? ''}`, texto: d.dato };
+    case 'sitio': return { titulo: d.nombre, sub: d.cultura ?? 'Historia', texto: d.dato };
+    case 'maravilla': return { titulo: d.nombre, sub: d.lugar, texto: d.nino ?? d.dato };
+    case 'tradicion': return { titulo: d.nombre, sub: `Patrimonio Inmaterial (UNESCO) · ${d.anio}`, texto: d.dato };
+    case 'origen': return { titulo: `${d.alimento} · ${d.nombre}`, sub: d.lugar, texto: d.nino ?? d.texto };
+    default: return d.nombre || ud.nombre ? { titulo: d.nombre || ud.nombre, sub: '', texto: d.dato || '' } : null;
+  }
+}
+const visor = crearVisor({
+  renderer, escena, mapa, rayoCentro, infoDe: infoVR,
+  capas: [['estados', 'Estados'], ['tectonica', 'Sismos'], ['volcanes', 'Volcanes'], ['biodiversidad', 'Biodiv.'], ['clima', 'Clima'], ['historia', 'Historia'], ['cultura', 'Cultura'], ['lenguas', 'Lenguas'], ['sabores', 'Sabores'], ['maravillas', 'Maravillas']],
+  cambiarCapa: (c) => cambiarCapa(c), capaActual: () => app.capa, fondoActual: () => app.fondoPatron ?? null,
+  alCambiarTamano: () => setTimeout(() => { ultimoAncho = 0; redimensionar(); }, 60),
+});
+$('#btn-vr')?.addEventListener('click', () => { audio.iniciarAudio(); visor.entrar(); });
+fondoVR = (id) => visor.setFondo(id);
+if (new URLSearchParams(location.search).has('dev')) window.__visor = visor; // solo para pruebas
+
 const tooltip = $('#tooltip');
 renderer.domElement.addEventListener('pointermove', (e) => {
   if (e.pointerType !== 'mouse') return;
@@ -766,15 +972,15 @@ function sincronizarControles() {
   $('#val-prof').textContent = sim.cfg.prof;
   $('#epi-texto').textContent = `${sim.cfg.lat.toFixed(2)}°N, ${(-sim.cfg.lon).toFixed(2)}°O`;
 }
-$('#rng-mag').addEventListener('input', (e) => { sim.configurar({ mag: +e.target.value }); $('#val-mag').textContent = (+e.target.value).toFixed(1); });
-$('#rng-prof').addEventListener('input', (e) => { sim.configurar({ prof: +e.target.value }); $('#val-prof').textContent = e.target.value; });
+$('#rng-mag').addEventListener('input', (e) => { sim.configurar({ mag: +e.target.value }); $('#val-mag').textContent = (+e.target.value).toFixed(1); pintarAviso(); });
+$('#rng-prof').addEventListener('input', (e) => { sim.configurar({ prof: +e.target.value }); $('#val-prof').textContent = e.target.value; pintarAviso(); });
 $('#rng-vel').addEventListener('input', (e) => { sim.velocidad = +e.target.value; $('#val-vel').textContent = e.target.value + '×'; });
 $('#chk-alerta').addEventListener('change', (e) => { sim.alertaActiva = e.target.checked; });
 const selEsc = $('#sel-escucha');
 Object.entries(ESTADOS).sort((a, b) => a[1].capital.localeCompare(b[1].capital)).forEach(([id, e]) => {
   selEsc.add(new Option(e.capital, id, false, id === 'MX-HID'));
 });
-const ponerEscucha = (id) => { sim.escucha = id; selEsc.value = id; $('#poe-ciudad').textContent = ESTADOS[id].capital; sim._calcular(); };
+const ponerEscucha = (id) => { sim.escucha = id; selEsc.value = id; $('#poe-ciudad').textContent = ESTADOS[id].capital; sim._calcular(); pintarAviso(); };
 selEsc.addEventListener('change', () => ponerEscucha(selEsc.value));
 $('#rng-pred').addEventListener('input', (e) => { $('#val-pred').textContent = `${e.target.value} s`; });
 $('#btn-sismo').addEventListener('click', () => {
@@ -782,6 +988,43 @@ $('#btn-sismo').addEventListener('click', () => {
   if (sim.corriendo) { tsunami.detener(); sim.detener(); sim.cb.onFin(); return; }
   sim.iniciar();
 });
+// Cuenta regresiva grande: desde que sale la alerta hasta que la onda S llega a la ciudad
+// que escucha (segundos del sismo real, no del reloj acelerado). Al llegar, vibra la tablet.
+const cuentaS = {
+  el: $('#cuenta-s'), esc: null, tAlerta: null, timer: 0,
+  preparar(res) {
+    this.ocultar();
+    this.esc = res?.ciudades.find((c) => c.id === sim.escucha) || null;
+    this.tAlerta = sim.alertaActiva ? res?.tAlerta ?? null : null;
+  },
+  tic(t) {
+    const c = this.esc;
+    if (!c || this.tAlerta === null || c.aviso <= 0 || t < this.tAlerta || t >= c.tS || this.el.classList.contains('llego')) return;
+    this.el.hidden = false;
+    $('#cs-ciudad').innerHTML = `<img class="pi" src="assets/pegatinas/ui/alerta.png" alt="">Alerta en ${c.nombre}`;
+    $('#cs-num').textContent = Math.ceil(c.tS - t);
+    $('#cs-txt').textContent = 'segundos para que llegue la onda S';
+  },
+  llego(c) {
+    const sin = this.tAlerta === null || !(c.aviso > 0);
+    this.el.hidden = false;
+    this.el.classList.add('llego');
+    this.el.classList.toggle('sin-aviso', sin);
+    $('#cs-ciudad').textContent = c.nombre;
+    $('#cs-num').textContent = '¡Llegó la onda S!';
+    $('#cs-txt').textContent = sin ? 'Sin alerta: el sismo llegó sin aviso.' : `Tuviste ${Math.round(c.aviso)} s de aviso para protegerte.`;
+    navigator.vibrate?.([400, 120, 400, 120, 800]);
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.ocultar(), 4500);
+  },
+  ocultar() {
+    clearTimeout(this.timer);
+    this.el.hidden = true;
+    this.el.classList.remove('llego', 'sin-aviso');
+  },
+};
+// el mismo botón, flotando sobre el mapa: en tablet el del panel queda abajo, fuera de la vista
+$('#btn-sismo-flotante').addEventListener('click', () => $('#btn-sismo').click());
 $('#historicos').innerHTML = SISMOS_HISTORICOS.map((s, i) => `<button class="btn mini" data-i="${i}" title="${s.nota}">${s.nombre}<small>M${s.mag}</small></button>`).join('');
 $$('#historicos button').forEach((b) => b.addEventListener('click', () => {
   const s = SISMOS_HISTORICOS[b.dataset.i];
@@ -824,9 +1067,9 @@ $('#chk-usgs').addEventListener('change', (e) => {
 // Volcanes y biodiversidad: listas
 // ---------------------------------------------------------------------
 $('#lista-volcanes').innerHTML = VOLCANES.slice().sort((a, b) => b.alt - a.alt)
-  .map((v) => `<li data-n="${v.nombre}"><span>${v.activo ? '🔥' : '⛰️'} ${v.nombre.split(' (')[0]}</span><small>${fmt(v.alt)} m</small></li>`).join('');
+  .map((v) => `<li data-n="${v.nombre}"><span>${pi(v.activo ? 'erupcion' : 'relieve')}${v.nombre.split(' (')[0]}</span><small>${fmt(v.alt)} m</small></li>`).join('');
 $$('#lista-volcanes li').forEach((li) => li.addEventListener('click', () => fichaObjeto({ tipo: 'volcan', data: VOLCANES.find((v) => v.nombre === li.dataset.n) })));
-$('#lista-especies').innerHTML = ESPECIES.map((s, i) => `<li data-i="${i}"><span>${s.emoji} ${s.nombre}</span><small>${s.estado}</small></li>`).join('');
+$('#lista-especies').innerHTML = ESPECIES.map((s, i) => `<li data-i="${i}"><span>${pi(s.icono)}${s.nombre}</span><small>${s.estado}</small></li>`).join('');
 $$('#lista-especies li').forEach((li) => li.addEventListener('click', () => fichaObjeto({ tipo: 'especie', data: ESPECIES[li.dataset.i] })));
 
 // ---------------------------------------------------------------------
@@ -881,12 +1124,11 @@ function pintarClima() {
     const t = Math.max(0, Math.min(1, (v - esc.min) / (esc.max - esc.min)));
     mapa.setClimaEstado(id, colorEscala(v, esc), 0.004 + t * 0.04);
     const e = ESTADOS[id];
-    const [ico] = describeTiempo(c.codigo);
-    const lbl = crearEtiqueta(`${ico} ${fmt(v, app.climaVar === 'temp' || app.climaVar === 'sensacion' ? 0 : 0)}${esc.unidad === '°C' ? '°' : esc.unidad === '%' ? '%' : ''}`, { prioridad: id === 'MX-HID' ? 4 : 2, tam: 0.016, fondo: 'rgba(8,12,20,0.72)' });
+        const lbl = crearEtiqueta(`${fmt(v, app.climaVar === 'temp' || app.climaVar === 'sensacion' ? 0 : 0)}${esc.unidad === '°C' ? '°' : esc.unidad === '%' ? '%' : ''}`, { prioridad: id === 'MX-HID' ? 4 : 2, tam: 0.016, fondo: 'rgba(8,12,20,0.72)' });
     lbl.position.copy(vec(e.lon, e.lat, 0.055));
     g.add(lbl);
     // flecha de viento (apunta hacia donde va el viento)
-    if (c.viento != null) {
+    if (c.viento != null && !vientoVivo.verViento) {
       const ang = ((90 - (c.dirViento + 180)) * Math.PI) / 180;
       const dir = new THREE.Vector3(Math.cos(ang), Math.sin(ang), 0);
       const largo = 0.01 + Math.min(c.viento, 40) * 0.0011;
@@ -899,9 +1141,9 @@ function pintarClima() {
         fl.position.copy(base).addScaledVector(dir, ((tt * vel) % 1) * 0.008);
       });
     }
-    if ((c.lluvia ?? 0) > 0 || (c.codigo >= 51 && c.codigo <= 99)) crearLluvia(g, e);
+    if (!vientoVivo.verLluvia && ((c.lluvia ?? 0) > 0 || (c.codigo >= 51 && c.codigo <= 99))) crearLluvia(g, e);
   }
-  const fuenteTxt = { vivo: '🟢 En vivo', cache: '🟡 Último dato guardado', respaldo: '🟠 Sin internet: promedios anuales' }[fuente];
+  const fuenteTxt = { vivo: '<i class="punto vivo"></i>En vivo', cache: '<i class="punto cache"></i>Último dato guardado', respaldo: '<i class="punto respaldo"></i>Sin internet: promedios anuales' }[fuente];
   $('#clima-estado').innerHTML = `${fuenteTxt}${hora ? ` · ${hora.replace('T', ' ')}` : ''} · Open-Meteo`;
   pintarGrafica();
   pintarLeyenda();
@@ -987,7 +1229,73 @@ function pintarGrafica() {
     <b>Solo altitud:</b> ${fmt(simple.b * 1000, 1)} °C/km (R² = ${fmt(simple.r2, 2)})<br>
     <b>Altitud + latitud:</b> ${fmt(b * 1000, 1)} °C/km y ${fmt(mult.c, 2)} °C por grado de latitud (R² = ${fmt(r2, 2)})<br>
     <span class="nota">Datos: ${etiqueta}, ${pts.length} capitales. Referencia teórica: −6.5 °C/km (línea punteada). La diferencia viene de la humedad, la cercanía al mar, la nubosidad y, de noche, las inversiones térmicas. Es una medición observacional, no un experimento controlado.</span>`;
+  app.gradHoy = b * 1000;
+  pintarMonte();
 }
+
+// ---------------------------------------------------------------------
+// Termómetro en la montaña: del nivel del mar a la cumbre del Pico de Orizaba (5,636 m).
+// T(h) = T0 + g·h, con g el gradiente medido hoy (si es razonable) o el teórico −6.5 °C/km.
+// T0 se estima con la temperatura de Xalapa (1,420 m) llevada al nivel del mar con el mismo gradiente.
+// ---------------------------------------------------------------------
+const CUMBRE = 5636;
+const PISOS = [[0, 1000, '#3f9a57', 'Selva y cafetales'], [1000, 2500, '#5a8f4a', 'Bosque de niebla y encino'], [2500, 4000, '#2f6b45', 'Bosque de pino y oyamel'], [4000, 4600, '#a99d6b', 'Zacatonal alpino'], [4600, CUMBRE, '#eef3fb', 'Roca, nieve y glaciar']];
+let monteH = 0;
+const monte = {};
+function gradienteMonte() { const g = app.gradHoy; return g && g < -3 && g > -10 ? g : -6.5; }
+function pintarMonte() {
+  const cv = $('#monte');
+  if (!cv || !cv.offsetWidth) return;
+  const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const izq = 18, der = W - 18, base = H - 18, cima = 16;
+  const yDe = (h) => base - (h / CUMBRE) * (base - cima);
+  // perfil del volcán: ladera cóncava de la costa (izquierda) a la cumbre (derecha)
+  const perfil = (u) => Math.pow(u, 1.8) * CUMBRE;
+  const xDe = (h) => izq + Math.pow(h / CUMBRE, 1 / 1.8) * (der - izq - 40);
+  g.fillStyle = '#0d1424'; g.fillRect(0, 0, W, H);
+  // pisos de vegetación por altitud
+  for (const [h0, h1, col] of PISOS) {
+    g.beginPath();
+    g.moveTo(izq, base);
+    for (let u = 0; u <= 1.0001; u += 0.01) { const h = Math.min(h1, Math.max(h0, perfil(u))); g.lineTo(izq + u * (der - izq - 40), yDe(h)); }
+    g.lineTo(der - 40, yDe(h0)); g.lineTo(der, base); g.closePath();
+    g.save(); g.clip();
+    g.fillStyle = col; g.fillRect(0, yDe(h1), W, yDe(h0) - yDe(h1));
+    g.restore();
+  }
+  g.beginPath(); for (let u = 0; u <= 1.0001; u += 0.01) g.lineTo(izq + u * (der - izq - 40), yDe(perfil(u))); g.lineTo(der, base); g.strokeStyle = '#1a1530'; g.lineWidth = 2; g.stroke();
+  g.fillStyle = '#4fc3ff'; g.fillRect(0, base, izq + 6, 18); // el mar
+  // termómetro
+  const T0 = (app.clima?.datos?.['MX-VER']?.temp ?? 19) - gradienteMonte() * 1.42;
+  const T = T0 + gradienteMonte() * (monteH / 1000);
+  const x = xDe(monteH), y = yDe(monteH) - 4;
+  g.fillStyle = '#fff'; g.strokeStyle = '#1a1530'; g.lineWidth = 2;
+  g.beginPath(); g.roundRect(x - 5, y - 34, 10, 30, 5); g.fill(); g.stroke();
+  const lleno = Math.max(0.08, Math.min(1, (T + 10) / 45));
+  g.fillStyle = T < 0 ? '#4fc3ff' : '#e0473a';
+  g.fillRect(x - 2.5, y - 6 - 24 * lleno, 5, 24 * lleno);
+  g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.font = '600 13px Inter, sans-serif'; g.fillStyle = '#fff'; g.textAlign = x > W - 90 ? 'right' : 'left';
+  g.fillText(`${fmt(T, 1)} °C · ${fmt(monteH)} m`, x + (g.textAlign === 'right' ? -12 : 12), y - 18);
+  const piso = PISOS.find(([a, b]) => monteH >= a && monteH <= b);
+  const fuente = app.gradHoy && gradienteMonte() === app.gradHoy ? `el gradiente que medimos hoy con las 32 capitales (${fmt(gradienteMonte(), 1)} °C/km)` : 'el gradiente teórico (−6.5 °C/km)';
+  $('#monte-res').innerHTML = `A <b>${fmt(monteH)} m</b>: unos <b>${fmt(T, 1)} °C</b> · ${piso[3]}. Calculado con ${fuente}.${T < 0 ? ' <b>Bajo cero:</b> por eso hay nieve y glaciar en la cumbre.' : ''}`;
+  monte.x = xDe; monte.y = yDe;
+}
+function moverMonte(e) {
+  const cv = $('#monte'), r = cv.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  // buscar la altitud cuyo punto de la ladera está más cerca del dedo
+  let mejor = 0, dist = Infinity;
+  for (let h = 0; h <= CUMBRE; h += 20) { const d = Math.hypot(monte.x(h) - px, monte.y(h) - py); if (d < dist) { dist = d; mejor = h; } }
+  monteH = mejor; $('#rng-monte').value = mejor; pintarMonte();
+}
+$('#monte').addEventListener('pointerdown', (e) => { $('#monte').setPointerCapture(e.pointerId); moverMonte(e); });
+$('#monte').addEventListener('pointermove', (e) => { if (e.buttons) moverMonte(e); });
+$('#rng-monte').addEventListener('input', (e) => { monteH = +e.target.value; pintarMonte(); });
+new ResizeObserver(() => pintarMonte()).observe($('#monte'));
 
 function regresion2(x1, x2, y) {
   const n = y.length, m = (v) => v.reduce((s, x) => s + x, 0) / n;
@@ -1009,6 +1317,50 @@ $('#sel-grafica').addEventListener('change', () => app.clima && pintarGrafica())
 
 $('#sel-clima').addEventListener('change', (e) => { app.climaVar = e.target.value; if (app.clima) pintarClima(); });
 $('#btn-clima').addEventListener('click', () => cargarClima());
+// Viento y lluvia en vivo (rejilla de Open-Meteo sobre todo el mapa)
+function textoVientoVivo() {
+  const el = $('#viento-estado');
+  const r = vientoVivo.resumen();
+  if (!vientoVivo.verViento && !vientoVivo.verLluvia) { el.textContent = ''; return; }
+  if (!r) { el.textContent = vientoVivo.cargando ? 'Consultando viento y lluvia…' : 'Sin datos de viento todavía'; return; }
+  const hora = r.hora ? r.hora.slice(11, 16) : '';
+  const fuente = r.fuente === 'vivo' ? '<i class="punto vivo"></i>En vivo' : '<i class="punto cache"></i>Último dato guardado';
+  const lluvia = r.conLluvia ? `${pi('lluvia')}llueve en ${r.conLluvia} zona${r.conLluvia === 1 ? '' : 's'}` : `${pi('despejado')}sin lluvia por ahora`;
+  el.innerHTML = `${fuente}${hora ? ` · ${hora} h` : ''} · ${pi('viento')}máx. ${fmt(r.max)} km/h · ${lluvia}${r.cargando ? ' · actualizando…' : ''}`;
+}
+vientoVivo.alCambiar = textoVientoVivo;
+$('#chk-viento-vivo').addEventListener('change', (e) => { vientoVivo.verViento = e.target.checked; textoVientoVivo(); if (app.clima) pintarClima(); });
+$('#chk-lluvia-vivo').addEventListener('change', (e) => { vientoVivo.verLluvia = e.target.checked; textoVientoVivo(); if (app.clima) pintarClima(); });
+textoVientoVivo();
+
+// ---------------------------------------------------------------------
+// Fenómenos meteorológicos: huracanes y frentes fríos (simulación didáctica)
+// ---------------------------------------------------------------------
+const nombreEstado = (id) => mapa.estados.get(id)?.nombre ?? id;
+const meteoros = new Meteoros(mapa, {
+  onInicio(e) {
+    meteoros.lista = [];
+    $('#meteoro-res').innerHTML = e.tipo === 'huracan'
+      ? `<b>Huracán categoría ${e.cat}</b> formándose en el ${e.oceano}, sobre mar cálido. Observa hacia dónde gira.`
+      : '<b>Frente frío</b> entrando por el norte: una masa de aire polar baja hacia el sur.';
+  },
+  onTierra() { $('#meteoro-res').insertAdjacentHTML('beforeend', '<br>Tocó tierra: sin el mar cálido empieza a perder fuerza.'); },
+  onEstado(e) { meteoros.lista.push(nombreEstado(e.id)); },
+  onNorte() { $('#meteoro-res').insertAdjacentHTML('beforeend', '<br>Llegó a la costa del Golfo: soplan los <b>nortes</b>.'); },
+  onFin(e) {
+    const n = meteoros.lista.length;
+    const lista = meteoros.lista.join(', ');
+    $('#meteoro-res').innerHTML = e.tipo === 'huracan'
+      ? `<b>Fin del recorrido.</b> Vientos y lluvias alcanzaron ${n} estado${n === 1 ? '' : 's'}: ${lista || 'ninguno'}. Al entrar a tierra se debilitó porque perdió su fuente de energía, el mar cálido.`
+      : `<b>El frente cruzó el país.</b> Bajó la temperatura en ${n} estados. En la costa del Golfo (Tamaulipas, Veracruz, Tabasco, Campeche) provocó nortes.`;
+    guia.completar?.('meteoro');
+  },
+});
+const textoCat = () => { const s = SAFFIR[+$('#rng-cat').value - 1]; return `${s.cat} · ${s.min}${s.cat === 5 ? ' km/h o más' : `–${s.max} km/h`}`; };
+$('#rng-cat').addEventListener('input', () => { $('#cat-txt').textContent = textoCat(); });
+$('#btn-huracan').addEventListener('click', () => meteoros.huracan($('#sel-oceano').value, +$('#rng-cat').value));
+$('#btn-frente').addEventListener('click', () => meteoros.frente());
+var meteorosRef = meteoros; // eslint-disable-line no-var
 
 // ---------------------------------------------------------------------
 // Reto (quiz)
@@ -1023,17 +1375,19 @@ function nuevaPregunta() {
     <h2>${pr.p}</h2>
     <div class="opciones">${pr.o.map((o, i) => `<button class="btn opcion" data-i="${i}">${o}</button>`).join('')}</div>
     <p class="explica" hidden></p>
-    <div class="acciones-ficha"><button class="btn" id="reto-sig" hidden>Siguiente →</button></div>`;
+    <div class="acciones-ficha"><button class="btn" id="reto-sig" hidden><img class="pi" src="assets/pegatinas/ui/siguiente.png" alt="">Siguiente</button></div>`;
   $$('.opcion', dlg).forEach((b) => b.addEventListener('click', () => {
     if (reto.respondida) return;
     reto.respondida = true;
+    $('.opciones', dlg).classList.add('respondida');
     const bien = +b.dataset.i === pr.r;
     if (bien) reto.ok++;
+    contarStand('preguntas'); if (bien) contarStand('aciertos');
     b.classList.add(bien ? 'bien' : 'malo');
     $$('.opcion', dlg)[pr.r].classList.add('bien');
     const ex = $('.explica', dlg);
     ex.hidden = false;
-    ex.innerHTML = `${bien ? '✅ ¡Correcto!' : '❌ Casi.'} ${pr.e}`;
+    ex.innerHTML = `${bien ? '<img class="pi" src="assets/pegatinas/ui/correcto.png" alt="">¡Correcto!' : '<img class="pi" src="assets/pegatinas/ui/incorrecto.png" alt="">Casi.'} ${pr.e}`;
     audio.clic(bien ? 1200 : 300);
     const sig = $('#reto-sig');
     sig.hidden = false;
@@ -1046,7 +1400,8 @@ function nuevaPregunta() {
 }
 function finReto() {
   const n = reto.orden.length;
-  $('#reto-cont').innerHTML = `<p class="sub">Resultado</p><h2>${reto.ok} de ${n} ${reto.ok === n ? '🏆' : reto.ok >= n / 2 ? '🎉' : '💪'}</h2>
+  contarStand('retos');
+  $('#reto-cont').innerHTML = `<p class="sub">Resultado</p><h2>${reto.ok} de ${n} ${reto.ok === n ? '<img class="pi" src="assets/pegatinas/ui/trofeo.png" alt="">' : reto.ok >= n / 2 ? '<img class="pi" src="assets/pegatinas/ui/celebracion.png" alt="">' : '<img class="pi" src="assets/pegatinas/ui/fuerza.png" alt="">'}</h2>
     <p>${reto.ok === n ? '¡Dominas la ciencia de México!' : 'Explora las capas del mapa y vuelve a intentarlo.'}</p>
     <div class="acciones-ficha"><button class="btn" id="reto-otra">Otra vez</button><button class="btn sec" id="reto-cerrar">Cerrar</button></div>`;
   $('#reto-otra').onclick = iniciarReto;
@@ -1172,6 +1527,9 @@ const arEstado = $('#ar-estado');
 async function entrarAR() {
   if (app.modoAR) return salirAR();
   audio.iniciarAudio();
+  // iOS: el permiso del giroscopio solo se puede pedir dentro del toque (antes de cualquier await)
+  const D = window.DeviceOrientationEvent;
+  if (D && typeof D.requestPermission === 'function') D.requestPermission().catch(() => {});
   const { iniciarAR } = await import('./ar.js');
   arEstado.hidden = false;
   arEstado.innerHTML = '<div class="spinner"></div><p>Cargando realidad aumentada…</p>';
@@ -1191,29 +1549,90 @@ async function entrarAR() {
         $('#ar-aviso').hidden = ok !== 'perdido';
         if (ok === true) audio.clic(1320);
       },
-      onFrame: frame,
+      onFrame: (dt) => { frame(dt); rayosX(); },
     });
     arEstado.hidden = true;
     $('#ar-guia').hidden = false;
     $('#btn-ar .etq').textContent = 'Salir de AR';
     const el = $('#ar-contenedor');
-    let ini = null;
-    el.onpointerdown = (e) => (ini = [e.clientX, e.clientY]);
+    let ini = null, sostener = 0, sostenido = false;
+    el.onpointerdown = (e) => {
+      ini = [e.clientX, e.clientY];
+      sostenido = false;
+      clearTimeout(sostener);
+      // mantener presionado: nombre rápido de lo que está bajo el dedo, sin abrir el panel
+      sostener = setTimeout(() => { sostenido = true; vistazoAR(e); }, 550);
+    };
+    el.onpointermove = (e) => { if (ini && Math.hypot(e.clientX - ini[0], e.clientY - ini[1]) > 10) clearTimeout(sostener); };
     el.onpointerup = (e) => {
+      clearTimeout(sostener);
       // El lienzo de MindAR es más grande que el contenedor (recorta el video para
       // llenar la pantalla): el rayo se calcula con SU rectángulo, no con el del contenedor.
-      if (ini && Math.hypot(e.clientX - ini[0], e.clientY - ini[1]) < 10) alClic(e, app.ar.camera, app.ar.lienzo);
+      if (!sostenido && ini && Math.hypot(e.clientX - ini[0], e.clientY - ini[1]) < 10) alClic(e, app.ar.camera, app.ar.lienzo);
+      ini = null;
     };
+    $('#btn-foto-ar').hidden = !app.ar.foto;
   } catch (err) {
     console.error(err);
     app.ar = null;
-    arEstado.innerHTML = `<p>⚠️ No se pudo iniciar la AR.</p><p class="nota">${err?.message || 'Error desconocido'}</p><button class="btn" id="ar-cerrar">Volver al modo 3D</button>`;
+    arEstado.innerHTML = `<p><img class="pi" src="assets/pegatinas/ui/advertencia.png" alt="">No se pudo iniciar la AR.</p><p class="nota">${err?.message || 'Error desconocido'}</p><button class="btn" id="ar-cerrar">Volver al modo 3D</button>`;
     $('#ar-cerrar').onclick = () => { arEstado.hidden = true; salirAR(); };
   }
 }
+// Vistazo en AR: al mantener presionado, el nombre aparece junto al dedo unos segundos.
+let vistazoT = 0;
+function vistazoAR(e) {
+  if (!app.ar) return;
+  const { hit } = lanzarRayo(e, app.ar.camera, app.ar.lienzo);
+  const ud = hit?.userData;
+  const txt = ud?.tipo === 'estado' ? ud.nombre : ud?.data?.nombre || (ud?.tipo === 'usgs' ? `M${ud.data.mag.toFixed(1)} · ${ud.data.lugar}` : '');
+  if (!txt) return;
+  audio.clic(990);
+  navigator.vibrate?.(15);
+  tooltip.textContent = txt;
+  tooltip.style.transform = `translate(${Math.min(innerWidth - 180, e.clientX + 14)}px, ${Math.max(10, e.clientY - 46)}px)`;
+  tooltip.hidden = false;
+  clearTimeout(vistazoT);
+  vistazoT = setTimeout(() => { tooltip.hidden = true; }, 2600);
+}
+// Foto en AR: video + mapa + sello; se puede guardar o compartir.
+async function fotoAR() {
+  if (!app.ar?.foto) return;
+  audio.clic(1500);
+  const destello = document.createElement('div');
+  destello.className = 'destello-foto';
+  document.body.appendChild(destello);
+  setTimeout(() => destello.remove(), 450);
+  const blob = await app.ar.foto();
+  if (!blob) return;
+  const url = URL.createObjectURL(blob);
+  const nombre = `mexico-vivo-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.jpg`;
+  const caja = document.createElement('div');
+  caja.className = 'foto-ar';
+  caja.innerHTML = `<img src="${url}" alt="Tu foto con el mapa en realidad aumentada">
+    <div class="fila"><a class="btn primario" href="${url}" download="${nombre}">Guardar foto</a>
+    ${navigator.canShare?.({ files: [new File([blob], nombre, { type: 'image/jpeg' })] }) ? '<button class="btn" data-a="compartir">Compartir</button>' : ''}
+    <button class="btn sec" data-a="cerrar">Cerrar</button></div>`;
+  document.body.appendChild(caja);
+  caja.addEventListener('click', async (ev) => {
+    const a = ev.target.closest('[data-a]')?.dataset.a;
+    if (a === 'compartir') { try { await navigator.share({ files: [new File([blob], nombre, { type: 'image/jpeg' })], title: 'México Vivo' }); } catch (_) {} }
+    if (a === 'cerrar' || ev.target === caja) { caja.remove(); URL.revokeObjectURL(url); }
+  });
+}
+$('#btn-foto-ar').addEventListener('click', fotoAR);
+// precarga de la AR mientras el visitante está en la portada (no en equipos «ligeros»)
+if (navigator.mediaDevices?.getUserMedia && !new URLSearchParams(location.search).has('ligero')) {
+  const precargar = () => import('./ar.js').then((m) => m.precargarAR()).catch(() => {});
+  setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(precargar, { timeout: 4000 }) : precargar()), 5000);
+}
+
 async function salirAR() {
+  $('#btn-foto-ar').hidden = true;
+  document.querySelector('.foto-ar')?.remove();
   if (app.ar) await app.ar.detener();
   app.ar = null;
+  if (rayosXActivo !== null) { rayosXActivo = null; $('#chk-subsuelo').checked = true; mapa.setSubsuelo(true); } // fuera de AR vuelve la vista normal
   app.modoAR = false;
   document.body.classList.remove('modo-ar');
   $('#ar-guia').hidden = true;
@@ -1240,12 +1659,14 @@ function frame(dt) {
   mapa.update(dt);
   sim.update(dt);
   tsunami.update(dt, sim.velocidad * 0.02); // horas de tsunami por segundo
+  meteorosRef?.update(dt);
+  vientoVivo.update(dt);
   acumEtiq += dt;
   if (acumEtiq > 0.12) {
     acumEtiq = 0;
     const enAR = app.modoAR && app.ar;
     const lienzo = enAR ? app.ar.lienzo : renderer.domElement;
-    const cam = enAR ? app.ar.camera : camara;
+    const cam = enAR ? app.ar.camera : visor?.activo ? visor.camara : camara;
     cam.updateMatrixWorld();
     mapa.root.updateMatrixWorld();
     mapa.ordenarEtiquetas(cam, lienzo.clientWidth, lienzo.clientHeight);
@@ -1309,28 +1730,44 @@ function vigilarCalidad(dtReal) {
   if (mediana > 1 / 40) bajarCalidad();
 }
 
+let cuadroSombra = 0;
 function bucle() {
   const dtReal = reloj.getDelta();
   vigilarCalidad(dtReal);
   const dt = Math.min(0.05, dtReal);
   frame(dt);
+  if ((cuadroSombra = (cuadroSombra + 1) % 3) === 0) renderer.shadowMap.needsUpdate = true;
   aplicarZoom(dt);
   aplicarVuelo();
+  if (visor.activo) { visor.render(); return; }
   controles.update();
   renderer.render(escena, camara);
 }
+let ultimoAncho = 0, ultimaForma = '', reencuadre = 0;
 function redimensionar() {
   const w = vista.clientWidth, h = vista.clientHeight;
+  if (!w || !h) return; // vista oculta (modo AR): no deformar la cámara
+  // al girar el celular o cambiar mucho el ancho, se vuelve a encuadrar el país completo
+  const forma = w / h < 1 ? 'vertical' : 'horizontal';
+  if (ultimoAncho && (forma !== ultimaForma || Math.abs(w - ultimoAncho) / ultimoAncho > 0.3)) {
+    // esperar a que termine el giro o la animación del panel: con tamaños intermedios el encuadre sale mal
+    clearTimeout(reencuadre);
+    reencuadre = setTimeout(() => { encuadrado = false; redimensionar(); }, 250);
+  }
+  ultimoAncho = w; ultimaForma = forma;
   renderer.setSize(w, h, false);
   camara.aspect = w / h;
   // en pantallas angostas alejamos la cámara para que quepa el país
   camara.fov = w / h < 1 ? 55 : 38;
   camara.updateProjectionMatrix();
   if (!encuadrado && w > 0) {
-    // distancia para que quepa todo el país (≈1 unidad de ancho)
-    const hfov = 2 * Math.atan(Math.tan((camara.fov * Math.PI) / 360) * camara.aspect);
-    const dist = Math.min(1.7, 0.5 / Math.tan(hfov / 2) + 0.12);
-    camara.position.copy(controles.target).addScaledVector(new THREE.Vector3(0, 0.8, 0.6), dist);
+    // distancia para que quepa todo el país (≈1 unidad de ancho); conserva el ángulo en que el usuario lo dejó
+    // que quepa a lo ancho (≈1 unidad) y a lo alto (≈0.72 unidades vistas en ángulo)
+    const tv = Math.tan((camara.fov * Math.PI) / 360);
+    const dist = Math.min(1.7, Math.max(0.5 / (tv * camara.aspect), 0.36 / tv) + 0.12);
+    const dir = camara.position.clone().sub(controles.target);
+    if (dir.lengthSq() < 1e-6) dir.set(0, 0.8, 0.6);
+    camara.position.copy(controles.target).addScaledVector(dir.normalize(), dist);
     controles.update();
     encuadrado = true;
   }
@@ -1370,7 +1807,7 @@ $('#btn-todas-epocas').addEventListener('click', () => ponerAnio(null));
 $('#eras').innerHTML = ERAS.map((e) => `<button class="btn mini" data-a="${Math.round((e.desde + e.hasta) / 2)}">${e.nombre}<small>${fechaAnio(e.desde)} – ${fechaAnio(e.hasta)}</small></button>`).join('');
 $$('#eras button').forEach((b) => b.addEventListener('click', () => { $('#rng-anio').value = b.dataset.a; ponerAnio(+b.dataset.a); audio.clic(700); }));
 $('#lista-sitios').innerHTML = SITIOS.slice().sort((a, b) => a.desde - b.desde)
-  .map((s, i) => `<li data-id="${s.id}"><span>${s.tipo === 'arqueologico' ? '🛕' : s.tipo === 'virreinal' ? '⛪' : '⭐'} ${s.nombre}</span><small>${fechaAnio(s.desde)}</small></li>`).join('');
+  .map((s, i) => `<li data-id="${s.id}"><span>${pi(s.tipo === 'arqueologico' ? 'zona-arqueologica' : s.tipo === 'virreinal' ? 'ciudad-virreinal' : 'historia-moderna')}${s.nombre}</span><small>${fechaAnio(s.desde)}</small></li>`).join('');
 $$('#lista-sitios li').forEach((li) => li.addEventListener('click', () => fichaObjeto({ tipo: 'sitio', data: SITIOS.find((s) => s.id === li.dataset.id) })));
 $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><small>${a}</small></li>`).join('');
 
@@ -1391,7 +1828,7 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
       <summary><i style="background:${f.color}"></i>${f.num}. ${f.nombre} <small>${f.agrupaciones.length} ${f.agrupaciones.length === 1 ? 'agrupación' : 'agrupaciones'}</small></summary>
       <p>${f.agrupaciones.join(' · ')}</p>
     </details>`).join('') + '<p class="nota">Nombres de las agrupaciones como aparecen en el Catálogo del INALI (2008). Cada agrupación puede tener varias variantes y autodenominaciones.</p>';
-  $('#fuentes-lenguas').innerHTML = Object.values(FUENTES_LENGUAS).map((s) => `
+  ($('#fuentes-lenguas') || {}).innerHTML = Object.values(FUENTES_LENGUAS).map((s) => `
     <li><a href="${s.url}" target="_blank" rel="noopener">${s.titulo}</a>. ${s.institucion}, ${s.fecha}. Consulta: ${s.consulta}. Nivel ${s.nivel}.
       <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
 }
@@ -1406,12 +1843,11 @@ $('#inmaterial').innerHTML = INMATERIAL.map(([n, a]) => `<li><span>${n}</span><s
     <li><b>${l.hace > 100 ? `Hace ~${fmt(l.hace)} años` : 'Hoy'}</b><span>${l.texto}</span><small>${autor(l.fuente)} ${anio(l.fuente)}</small></li>`).join('');
   $('#efectos-nixtamal').innerHTML = EFECTOS_NIXTAMAL.map((x) => `
     <div class="efecto"><b>${x.titulo}</b><p>${x.texto}</p><small>Fuente: ${autor(x.fuente)} ${anio(x.fuente)} (nivel ${FUENTES_SABORES[x.fuente].nivel})</small></div>`).join('');
-  $('#fuentes-sabores').innerHTML = Object.values(FUENTES_SABORES).map((s) => `
+  ($('#fuentes-sabores') || {}).innerHTML = Object.values(FUENTES_SABORES).map((s) => `
     <li><a href="${s.url}" target="_blank" rel="noopener">${s.cita}</a> Consulta: ${s.consulta}. Nivel ${s.nivel}.
       <br><small>Uso: ${s.usado} <i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
   $('#otros-alimentos').innerHTML = OTROS_ALIMENTOS.map((x) => `
     <div class="efecto"><b>${x.nombre}</b><p>${x.texto}</p><small>Fuente: ${autor(x.fuente)} ${anio(x.fuente)} (nivel ${FUENTES_SABORES[x.fuente].nivel})</small></div>`).join('');
-  $('#pendientes-sabores').innerHTML = PENDIENTES_SABORES.map((p) => `<li><b>${p.nombre}:</b> ${p.referencias}</li>`).join('');
   $('#btn-ir-platillos').onclick = () => cambiarCapa('cultura');
 
   // Laboratorio: el visitante avanza paso a paso y la olla cambia de estado
@@ -1456,7 +1892,7 @@ function pintarExpedicion() {
     volarA(m.lon, m.lat, 0.5);
     fichaObjeto({ tipo: 'maravilla', data: m });
   }));
-  $('#fuentes-maravillas').innerHTML = FUENTES_MARAVILLAS.map((s) => `
+  ($('#fuentes-maravillas') || {}).innerHTML = FUENTES_MARAVILLAS.map((s) => `
     <li><a href="${s.url}" target="_blank" rel="noopener">${s.cita}</a> Consulta: ${s.consulta}. Nivel ${s.nivel}.<br><small><i>Limitaciones:</i> ${s.limitaciones}</small></li>`).join('');
   pintarExpedicion();
 }
@@ -1525,13 +1961,14 @@ async function mostrarReal(s, boton) {
       <span class="nota">Registro real: estación G.UNM (red GEOSCOPE), servicio FDSN de EarthScope. El sensor puede saturarse con sismos muy fuertes.</span>`;
     $('#btn-escuchar').disabled = false;
   } catch (e) {
-    $('#sismograma-info').textContent = '⚠️ ' + e.message;
+    $('#sismograma-info').innerHTML = '<img class="pi" src="assets/pegatinas/ui/advertencia.png" alt="">' + e.message;
   }
 }
 
 $('#btn-escuchar').addEventListener('click', () => {
   if (!sisActual) return;
   const factor = +$('#sel-acelerar').value;
+  mostrarSubtitulo(`Sismograma real · ${sisActual.s.nombre}, estación CU de la UNAM, acelerado ×${factor}. Primero un golpe seco (onda P) y después la sacudida fuerte (onda S).`, 12000);
   sisDur = sonificar(sisActual.reg, factor, () => { sisInicio = 0; });
   sisInicio = performance.now();
   guia.completar('sismoReal');
@@ -1554,7 +1991,7 @@ const disparos = [];
 $('#btn-sensor').addEventListener('click', async () => {
   if (sensorActivo()) {
     detenerSensor();
-    $('#btn-sensor').textContent = '📳 Activar mi sismógrafo';
+    $('#btn-sensor').innerHTML = '<img class="pi" src="assets/pegatinas/ui/sensor.png" alt="">Activar mi sismógrafo';
     return;
   }
   $('#sensor-info').textContent = 'Pidiendo permiso…';
@@ -1563,7 +2000,7 @@ $('#btn-sensor').addEventListener('click', async () => {
       onDatos: (st) => {
         dibujarSensor(cvSen, st, disparos);
         const u = st.tipo === 'acelerometro' ? ' m/s²' : ' (nivel)';
-        $('#sensor-info').innerHTML = `${st.tipo === 'acelerometro' ? '📳 Acelerómetro' : '🎙️ Micrófono'} · ahora: <b>${fmt(st.buf.at(-1)[1], 2)}${u}</b> · máximo: <b>${fmt(st.pico, 2)}${u}</b>`;
+        $('#sensor-info').innerHTML = `${st.tipo === 'acelerometro' ? '<img class="pi" src="assets/pegatinas/ui/sensor.png" alt="">Acelerómetro' : '<img class="pi" src="assets/pegatinas/ui/microfono.png" alt="">Micrófono'} · ahora: <b>${fmt(st.buf.at(-1)[1], 2)}${u}</b> · máximo: <b>${fmt(st.pico, 2)}${u}</b>`;
       },
       onDeteccion: (d) => {
         disparos.push(d);
@@ -1574,14 +2011,14 @@ $('#btn-sensor').addEventListener('click', async () => {
         guia.completar('tuSismo');
       },
     });
-    $('#btn-sensor').textContent = '■ Detener sismógrafo';
+    $('#btn-sensor').innerHTML = '<img class="pi" src="assets/pegatinas/ui/detener.png" alt="">Detener sismógrafo';
     guia.decir(tipo === 'acelerometro' ? '¡Listo! Pon la tablet en la mesa y da un salto o un golpe junto a ella.' : 'Esta computadora no tiene acelerómetro, así que usamos el micrófono. ¡Aplaude o golpea la mesa!');
   } catch (e) {
     const motivo = e?.name === 'NotAllowedError' ? 'diste «no permitir» o el navegador lo bloqueó'
       : e?.name === 'NotFoundError' ? 'este equipo no tiene micrófono ni acelerómetro'
         : !window.isSecureContext ? 'abre la página con https:// o desde localhost'
           : e?.message || 'error desconocido';
-    $('#sensor-info').textContent = '⚠️ No se pudo usar el sensor: ' + motivo;
+    $('#sensor-info').innerHTML = '<img class="pi" src="assets/pegatinas/ui/advertencia.png" alt="">No se pudo usar el sensor: ' + motivo;
   }
 });
 
@@ -1589,62 +2026,79 @@ $('#btn-sensor').addEventListener('click', async () => {
 // Simulacro: agáchate, cúbrete y sujétate
 // ---------------------------------------------------------------------
 const PASOS = [
-  { id: 'agachate', ico: '🧎', txt: 'Agáchate', ok: true },
-  { id: 'cubrete', ico: '🛡️', txt: 'Cúbrete bajo una mesa firme', ok: true },
-  { id: 'sujetate', ico: '✊', txt: 'Sujétate de la mesa', ok: true },
-  { id: 'elevador', ico: '🛗', txt: 'Usar el elevador', ok: false, porque: 'El elevador puede detenerse o atorarse. Nunca lo uses durante un sismo.' },
-  { id: 'correr', ico: '🏃', txt: 'Correr y empujar', ok: false, porque: 'Correr y empujar causa caídas. Recuerda: no corro, no grito, no empujo.' },
-  { id: 'foto', ico: '📸', txt: 'Tomar un video', ok: false, porque: 'Primero tu seguridad. El video puede esperar.' },
+  { id: 'agachate', ico: pi('simulacro-agachate'), txt: 'Agáchate', ok: true },
+  { id: 'cubrete', ico: pi('simulacro-cubrete'), txt: 'Cúbrete bajo una mesa firme', ok: true },
+  { id: 'sujetate', ico: pi('simulacro-sujetate'), txt: 'Sujétate de la mesa', ok: true },
+  { id: 'elevador', ico: pi('simulacro-elevador'), txt: 'Usar el elevador', ok: false, porque: 'El elevador puede detenerse o atorarse. Nunca lo uses durante un sismo.' },
+  { id: 'correr', ico: pi('simulacro-correr'), txt: 'Correr y empujar', ok: false, porque: 'Correr y empujar causa caídas. Recuerda: no corro, no grito, no empujo.' },
+  { id: 'foto', ico: pi('simulacro-video'), txt: 'Tomar un video', ok: false, porque: 'Primero tu seguridad. El video puede esperar.' },
 ];
+let simulacroReloj = 0;
+function terminarSimulacro() {
+  clearInterval(simulacroReloj);
+  simulacroReloj = 0;
+  sim.tiempoReal = false;
+}
 function iniciarSimulacro(ciudad) {
   const d = $('#simulacro');
   const orden = ['agachate', 'cubrete', 'sujetate'];
   let paso = 0;
-  const t0 = performance.now();
+  // el tiempo se mide con el reloj de la simulación (puesto a tiempo real mientras dura el simulacro)
+  terminarSimulacro();
+  sim.tiempoReal = true;
+  const t0 = sim.t;
+  const restante = () => Math.max(0, ciudad.tS - sim.t);
   const opciones = [...PASOS].sort(() => Math.random() - 0.5);
-  d.innerHTML = `<p class="sub">¡Suena la alerta en ${ciudad.nombre}!</p>
+  d.innerHTML = `<div class="sim-tarjeta"><p class="sub">¡Suena la alerta en ${ciudad.nombre}!</p>
     <h2>Protégete: elige los 3 pasos en orden</h2>
-    <p class="nota">Si no puedes salir rápido y seguro, quédate y protégete. Tienes <b>${fmt(ciudad.aviso)} s</b> antes de que llegue la onda S.</p>
+    <p class="nota">Si no puedes salir rápido y seguro, quédate y protégete. La onda S llega en <b id="sim-cuenta">${fmt(restante())} s</b>.</p>
     <div class="pasos-hechos"><span>1</span><span>2</span><span>3</span></div>
     <div class="opciones-sim">${opciones.map((p) => `<button class="btn opcion-sim" data-id="${p.id}"><span>${p.ico}</span>${p.txt}</button>`).join('')}</div>
-    <p class="explica" id="sim-msg" hidden></p>`;
+    <p class="explica" id="sim-msg" hidden></p></div>`;
   d.hidden = false;
   audio.clic(700);
+  const resultado = (aTiempo, t) => {
+    terminarSimulacro();
+    contarStand(aTiempo ? 'simulacrosATiempo' : 'simulacrosTarde');
+    d.innerHTML = `<div class="sim-tarjeta"><p class="sub">Simulacro</p><h2>${aTiempo ? '¡A salvo! <img class="pi" src="assets/pegatinas/ui/simulacro-cubrete.png" alt="">' : 'No alcanzaste <img class="pi" src="assets/pegatinas/ui/tiempo.png" alt="">'}</h2>
+      <p>${aTiempo ? `Te tomó <b>${fmt(t, 1)} s</b> protegerte. Tenías <b>${fmt(ciudad.aviso)} s</b> de aviso: te sobraron ${fmt(ciudad.aviso - t)} s.` : `La onda S llegó antes de que terminaras los tres pasos. Tenías <b>${fmt(ciudad.aviso)} s</b> de aviso.`}</p>
+      <p class="nota">Por eso la alerta sirve: unos segundos bastan para protegerte si sabes qué hacer.</p>
+      <div class="acciones-ficha"><button class="btn primario" id="sim-ok">Seguir</button></div></div>`;
+    $('#sim-ok').onclick = () => (d.hidden = true);
+    if (aTiempo) guia.completar('simulacro');
+  };
+  // cuenta regresiva y cierre automático si llega la onda S (o si se detiene la simulación)
+  simulacroReloj = setInterval(() => {
+    if (d.hidden) return terminarSimulacro();
+    if (!sim.corriendo) { terminarSimulacro(); d.hidden = true; return; }
+    const c = $('#sim-cuenta');
+    if (c) c.textContent = `${fmt(restante())} s`;
+    if (paso < 3 && sim.t >= ciudad.tS) resultado(false, sim.t - t0);
+  }, 200);
   $$('.opcion-sim', d).forEach((b) => (b.onclick = () => {
     const p = PASOS.find((x) => x.id === b.dataset.id);
     const msg = $('#sim-msg');
-    if (!p.ok) { b.classList.add('malo'); msg.hidden = false; msg.textContent = '✋ ' + p.porque; audio.clic(250); return; }
+    if (!p.ok) { b.classList.add('malo'); msg.hidden = false; msg.innerHTML = '<img class="pi" src="assets/pegatinas/ui/advertencia.png" alt="">' + p.porque; audio.clic(250); return; }
     if (p.id !== orden[paso]) { msg.hidden = false; msg.textContent = 'Casi: el orden es agáchate, cúbrete y sujétate.'; audio.clic(300); return; }
     b.classList.add('bien'); b.disabled = true;
     $$('.pasos-hechos span', d)[paso].classList.add('hecho');
-    $$('.pasos-hechos span', d)[paso].textContent = p.ico;
+    $$('.pasos-hechos span', d)[paso].innerHTML = p.ico;
     paso++;
     audio.clic(900 + paso * 200);
     if (paso === 3) {
-      const t = (performance.now() - t0) / 1000;
-      const aTiempo = t < ciudad.aviso;
-      d.innerHTML = `<p class="sub">Simulacro</p><h2>${aTiempo ? '¡A salvo! 🛡️' : 'No alcanzaste ⏱️'}</h2>
-        <p>Te tomó <b>${fmt(t, 1)} s</b> protegerte. Tenías <b>${fmt(ciudad.aviso)} s</b> de aviso${aTiempo ? `: te sobraron ${fmt(ciudad.aviso - t)} s.` : '.'}</p>
-        <p class="nota">Por eso la alerta sirve: unos segundos bastan para protegerte si sabes qué hacer.</p>
-        <div class="acciones-ficha"><button class="btn primario" id="sim-ok">Seguir</button></div>`;
-      $('#sim-ok').onclick = () => (d.hidden = true);
-      if (aTiempo) guia.completar('simulacro');
+      const t = sim.t - t0;
+      resultado(sim.t < ciudad.tS, t);
     }
   }));
 }
 
 // ---------------------------------------------------------------------
-// Encabezado: pasaporte y créditos
+// Encabezado: pasaporte
 // ---------------------------------------------------------------------
 $('#btn-pasaporte').addEventListener('click', () => guia.abrirPasaporte());
 guia.montarGuia();
 guia.onProgreso((n, total) => { $('#btn-pasaporte .cuenta').textContent = `${n}/${total}`; pintarMisiones(); });
-audio.cargarManifiesto().then(() => {
-  const cr = audio.creditos();
-  $('#creditos-sonido').innerHTML = cr.length
-    ? cr.map((c) => `<li><b>${c.titulo || c.clave}</b>: ${c.autor || '¿autor?'}, ${c.licencia || '¿licencia?'}${c.fuente ? ` · <a href="${c.fuente}" target="_blank" rel="noopener">fuente</a>` : ''}</li>`).join('')
-    : '<li>Todos los sonidos actuales están sintetizados por la aplicación (Web Audio API).</li>';
-});
+audio.cargarManifiesto();
 
 // ---------------------------------------------------------------------
 // Barra superior: si las pestañas no caben en una fila, pasan a una segunda.
@@ -1675,6 +2129,52 @@ cambiarCapa('estados');
 sincronizarControles();
 const inicio = $('#inicio');
 $('#btn-empezar').addEventListener('click', () => { audio.iniciarAudio(); inicio.classList.add('fuera'); setTimeout(() => (inicio.hidden = true), 600); });
+// ---------------------------------------------------------------------
+// Rayos X al inclinar la tablet (realidad aumentada, capa Sismos): si la cámara mira el mapa
+// de lado (a menos de ~35° sobre el papel), se activa sola la vista bajo la superficie con la
+// placa de Cocos y el hipocentro; al volver a mirar desde arriba, regresa a lo que eligió el usuario.
+// ---------------------------------------------------------------------
+let rayosXActivo = null; // null = aún no se decide en esta sesión de AR
+const _n = new THREE.Vector3(), _c = new THREE.Vector3(), _o = new THREE.Vector3();
+function rayosX() {
+  if (!app.ar || app.capa !== 'tectonica' || !mapa.root.parent) return;
+  mapa.root.updateWorldMatrix(true, false);
+  _o.setFromMatrixPosition(mapa.root.matrixWorld);
+  _n.set(0, 0, 1).transformDirection(mapa.root.matrixWorld);
+  app.ar.camera.getWorldPosition(_c);
+  const elev = 90 - THREE.MathUtils.radToDeg(_n.angleTo(_c.sub(_o).normalize())); // grados sobre el papel
+  // histéresis: se enciende bajo 35° y se apaga sobre 45°, para que no parpadee
+  const quiero = elev < 35 ? true : elev > 45 ? false : rayosXActivo;
+  if (quiero === null || quiero === rayosXActivo) return;
+  rayosXActivo = quiero;
+  $('#chk-subsuelo').checked = quiero; mapa.setSubsuelo(quiero);
+  if (quiero) mostrarSubtitulo('Rayos X: estás viendo bajo la superficie. La placa de Cocos se hunde y ahí nacen los sismos.', 5000);
+}
+
+// Subtítulos de los sonidos
+let subTimer = 0;
+function mostrarSubtitulo(texto, ms = 7000) {
+  const el = $('#subtitulo');
+  el.innerHTML = '<img class="pi" src="assets/pegatinas/ui/sonido.png" alt="">' + texto;
+  el.hidden = false;
+  el.classList.remove('sale'); void el.offsetWidth; el.classList.add('entra');
+  clearTimeout(subTimer);
+  subTimer = setTimeout(() => { el.classList.add('sale'); setTimeout(() => (el.hidden = true), 300); }, ms);
+}
+audio.avisos.addEventListener('subtitulo', (e) => mostrarSubtitulo(e.detail));
+
+// Inicio de un toque: el primer contacto es un sismo, no una pantalla de opciones.
+$('#btn-un-toque').addEventListener('click', () => {
+  audio.iniciarAudio();
+  inicio.classList.add('fuera');
+  setTimeout(() => (inicio.hidden = true), 600);
+  cambiarCapa('tectonica');
+  ponerEscucha('MX-HID');
+  sim.configurar({ lat: 16.98, lon: -99.77, mag: 7.4, prof: 20 });
+  sincronizarControles();
+  pintarAviso();
+  setTimeout(() => sim.iniciar(), 900);
+});
 $('#btn-empezar-ar').addEventListener('click', () => {
   audio.iniciarAudio();
   inicio.classList.add('fuera');
@@ -1756,6 +2256,16 @@ renderer.domElement.addEventListener('pointerdown', () => { vuelo = null; }); //
 const params = new URLSearchParams(location.search);
 if ('serviceWorker' in navigator && location.protocol !== 'file:' && !params.has('dev')) {
   navigator.serviceWorker.register('sw.js').catch((e) => console.warn('Sin modo sin conexión:', e));
+  // Cuando se instala una versión nueva, la página se recarga sola una vez para usarla (si no, la copia
+  // guardada se seguía mostrando hasta una segunda recarga). No interrumpe el visor VR ni la AR.
+  const habiaControl = !!navigator.serviceWorker.controller;
+  let recargando = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habiaControl || recargando) return;
+    const recargar = () => { if (recargando) return; recargando = true; location.reload(); };
+    if (!visor.activo && !app.modoAR) recargar();
+    else { const t = setInterval(() => { if (!visor.activo && !app.modoAR) { clearInterval(t); recargar(); } }, 2000); }
+  });
 }
 
 // ---------------------------------------------------------------------
@@ -1777,7 +2287,7 @@ function volverAlInicio() {
   cerrarFicha();
   document.querySelectorAll('dialog[open]').forEach((d) => d.close());
   $('#simulacro').hidden = true;
-  cerrarVolcan();
+  cerrarVolcan(); cerrarEspecie();
   sim.detener(); sim.cb.onFin(); tsunami.detener();
   detenerSensor(); detenerSonido();
   audio.detenerAmbiente(); audio.detenerGrabacion();
@@ -1809,4 +2319,114 @@ if (EXHIBICION) {
 } else {
   // Exponer para depuración (no en el museo)
   window.mexicoVivo = { mapa, sim, app, camara, renderer, escena, controles, aplicarZoom, tsunami, volverAlInicio };
+}
+
+
+// ---------------------------------------------------------------------
+// Portada: sismos reales de las últimas 24 h (USGS)
+// ---------------------------------------------------------------------
+montarSismosVivo(inicio);
+
+// ---------------------------------------------------------------------
+// Modo guía para el equipo del stand (no lo ve el visitante).
+// Se abre manteniendo presionado el sello de la barra 1.5 s, o con la tecla G.
+// Escenarios listos para demostrar, controles rápidos y lo que pasó hoy en el stand.
+// ---------------------------------------------------------------------
+const CLAVE_STAND = 'mv-stand';
+function leerStand() {
+  const hoy = new Date().toISOString().slice(0, 10);
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(CLAVE_STAND)); } catch (_) {}
+  if (!d || d.dia !== hoy) d = { dia: hoy, visitas: 0, simulaciones: 0, simulacrosATiempo: 0, simulacrosTarde: 0, retos: 0, aciertos: 0, preguntas: 0 };
+  return d;
+}
+function contarStand(campo, n = 1) {
+  const d = leerStand();
+  d[campo] = (d[campo] || 0) + n;
+  try { localStorage.setItem(CLAVE_STAND, JSON.stringify(d)); } catch (_) {}
+}
+// visitas: cada vez que alguien sale de la portada
+new MutationObserver(() => { if (inicio.hidden) contarStand('visitas'); }).observe(inicio, { attributes: true, attributeFilter: ['hidden'] });
+// simulaciones lanzadas
+{
+  const iniciarOriginal = sim.iniciar.bind(sim);
+  sim.iniciar = (...a) => { contarStand('simulaciones'); return iniciarOriginal(...a); };
+}
+
+const ESCENARIOS = [
+  { id: 'acapulco', titulo: 'Acapulco M8 → ¿aviso en Pachuca?', nota: 'El clásico: 90 s de aviso en Pachuca.', fn: () => sismoGuia({ lat: 16.6, lon: -99.6, mag: 8.0, prof: 20 }, 'MX-HID') },
+  { id: 'puebla', titulo: 'Puebla–Morelos 2017 (M7.1)', nota: 'Cerca de la CDMX: casi sin aviso.', fn: () => sismoGuia({ lat: 18.55, lon: -98.49, mag: 7.1, prof: 57 }, 'MX-CMX') },
+  { id: 'michoacan', titulo: 'Michoacán 1985 (M8.1)', nota: 'El origen de la alerta sísmica.', fn: () => sismoGuia({ lat: 18.19, lon: -102.53, mag: 8.1, prof: 17 }, 'MX-CMX') },
+  { id: 'tsunami', titulo: 'Tsunami en Guerrero (M8.4)', nota: 'Epicentro en el mar y poco profundo.', fn: () => sismoGuia({ lat: 16.2, lon: -99.9, mag: 8.4, prof: 10 }, 'MX-GRO') },
+  { id: 'popo', titulo: 'Erupción del Popocatépetl', nota: 'Abre su ficha y lo hace hacer erupción.', fn: () => {
+    cambiarCapa('volcanes');
+    const v = VOLCANES.find((x) => /Popocat/.test(x.nombre));
+    if (v) { fichaObjeto({ tipo: 'volcan', data: v }); setTimeout(() => $('#panel .ficha .btn.peligro')?.click(), 400); }
+  } },
+  { id: 'clima', titulo: 'Clima en vivo de las 32 capitales', nota: 'Datos de hace unos minutos.', fn: () => cambiarCapa('clima') },
+  { id: 'recorrido', titulo: 'Recorrido guiado (4 min)', nota: 'Para grupos grandes.', fn: () => $('#btn-recorrido').click() },
+];
+function sismoGuia(cfg, escucha) {
+  if (!inicio.hidden) { inicio.classList.add('fuera'); setTimeout(() => (inicio.hidden = true), 600); }
+  audio.iniciarAudio();
+  cambiarCapa('tectonica');
+  sim.detener(); tsunami.detener();
+  ponerEscucha(escucha);
+  sim.configurar(cfg);
+  sincronizarControles();
+  pintarAviso();
+  setTimeout(() => sim.iniciar(), 350);
+}
+let dlgGuia = null;
+function abrirGuia() {
+  if (!dlgGuia) {
+    dlgGuia = document.createElement('dialog');
+    dlgGuia.className = 'reto guia-stand';
+    dlgGuia.setAttribute('aria-label', 'Modo guía del stand');
+    document.body.appendChild(dlgGuia);
+  }
+  const d = leerStand();
+  const sims = d.simulacrosATiempo + d.simulacrosTarde;
+  dlgGuia.innerHTML = `<button class="cerrar" aria-label="Cerrar">×</button>
+    <p class="sub">Solo para el equipo del stand</p><h2>Modo guía</h2>
+    <h3>Demostraciones listas</h3>
+    <div class="gs-escenarios">${ESCENARIOS.map((e) => `<button class="btn" data-e="${e.id}"><b>${e.titulo}</b><small>${e.nota}</small></button>`).join('')}</div>
+    <h3>Controles rápidos</h3>
+    <div class="fila gs-controles">
+      <button class="btn primario" data-a="reiniciar">Reiniciar para el siguiente visitante</button>
+      <button class="btn" data-a="vel" data-v="1">Velocidad 1×</button><button class="btn" data-a="vel" data-v="10">10×</button><button class="btn" data-a="vel" data-v="40">40×</button>
+      <label class="switch"><input type="checkbox" data-a="simulacro" ${$('#chk-simulacro')?.checked ? 'checked' : ''}><span></span>Simulacro al sonar la alerta</label>
+    </div>
+    <h3>Hoy en el stand <small>(${d.dia})</small></h3>
+    <div class="tarjetas gs-cifras">
+      <div><b>${d.visitas}</b><span>visitas</span></div>
+      <div><b>${d.simulaciones}</b><span>sismos simulados</span></div>
+      <div><b>${sims ? Math.round((d.simulacrosATiempo / sims) * 100) + ' %' : '—'}</b><span>simulacros a tiempo (${d.simulacrosATiempo} de ${sims})</span></div>
+      <div><b>${d.preguntas ? Math.round((d.aciertos / d.preguntas) * 100) + ' %' : '—'}</b><span>aciertos en el reto (${d.retos} retos)</span></div>
+    </div>
+    <p class="nota">Se abre manteniendo presionado el sello de la barra o con la tecla G. Las cifras se guardan solo en este equipo y empiezan de cero cada día.</p>
+    <div class="acciones-ficha"><button class="btn sec" data-a="borrar">Poner las cifras de hoy en cero</button></div>`;
+  dlgGuia.querySelector('.cerrar').onclick = () => dlgGuia.close();
+  dlgGuia.querySelectorAll('[data-e]').forEach((b) => (b.onclick = () => { dlgGuia.close(); ESCENARIOS.find((e) => e.id === b.dataset.e).fn(); }));
+  dlgGuia.querySelectorAll('[data-a="vel"]').forEach((b) => (b.onclick = () => {
+    const v = +b.dataset.v; sim.velocidad = v;
+    const r = $('#rng-vel'); if (r) { r.value = v; $('#val-vel').textContent = `${v}×`; }
+    audio.clic(900);
+  }));
+  dlgGuia.querySelector('[data-a="reiniciar"]').onclick = () => { dlgGuia.close(); volverAlInicio(); };
+  dlgGuia.querySelector('[data-a="simulacro"]').onchange = (e) => { const c = $('#chk-simulacro'); if (c) c.checked = e.target.checked; };
+  dlgGuia.querySelector('[data-a="borrar"]').onclick = () => { try { localStorage.removeItem(CLAVE_STAND); } catch (_) {} abrirGuia(); };
+  if (!dlgGuia.open) dlgGuia.showModal();
+}
+{
+  const sello = $('.barra .marca');
+  let t = 0;
+  const cancelar = () => clearTimeout(t);
+  sello?.addEventListener('pointerdown', () => { cancelar(); t = setTimeout(() => { navigator.vibrate?.(30); abrirGuia(); }, 1500); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => sello?.addEventListener(ev, cancelar));
+  sello?.addEventListener('contextmenu', (e) => e.preventDefault());
+  document.addEventListener('keydown', (e) => {
+    if (e.target.matches?.('input, select, textarea')) return;
+    if (e.key === 'g' || e.key === 'G') abrirGuia();
+  });
 }

@@ -30,7 +30,7 @@ export const MARAVILLAS = [
     pregunta: { p: '¿Qué son en realidad estas islas?', o: ['Restos de un continente hundido', 'Cimas de volcanes submarinos', 'Arrecifes de coral'], r: 1 },
   },
   {
-    id: 'pinacate', nombre: 'El Pinacate y Gran Desierto de Altar', tipo: 'natural', anio: 2013, lugar: 'Desierto de Sonora, Sonora',
+    id: 'pinacate', relieve: 'lugar-pinacate', nombre: 'El Pinacate y Gran Desierto de Altar', tipo: 'natural', anio: 2013, lugar: 'Desierto de Sonora, Sonora',
     lon: -113.92, lat: 32.0,
     fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Reserva de la Biosfera El Pinacate y Gran Desierto de Altar (1410).', url: WHC(1410), nivel: 'A' },
     nino: 'Aquí hay cráteres enormes y casi redondos, y dunas de arena que se mueven y llegan a medir 200 metros.',
@@ -52,7 +52,7 @@ export const MARAVILLAS = [
   {
     id: 'vizcaino', nombre: 'Santuario de ballenas de El Vizcaíno', tipo: 'natural', anio: 1993, lugar: 'Centro de la península de Baja California',
     lon: -114.1, lat: 27.75,
-    fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Santuario de ballenas de El Vizcaíno (554). Descripción bajo licencia CC-BY-SA IGO 3.0.', url: WHC(554), nivel: 'A' },
+    fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Santuario de ballenas de El Vizcaíno (554).', url: WHC(554), nivel: 'A' },
     nino: 'Las ballenas grises vienen a estas lagunas tranquilas a tener a sus crías.',
     porque: 'Las lagunas costeras de Ojo de Liebre y San Ignacio son sitios importantes de reproducción e invernada de la ballena gris, la foca de puerto, el lobo marino de California, el elefante marino del norte y la ballena azul. También viven ahí cuatro especies de tortugas marinas en peligro.',
     dato: 'Está en la parte central de la península de Baja California.',
@@ -60,9 +60,9 @@ export const MARAVILLAS = [
     enlace: { capa: 'biodiversidad', texto: 'Ver especies en Biodiversidad' },
   },
   {
-    id: 'monarca', nombre: 'Reserva de la Biosfera de la Mariposa Monarca', tipo: 'natural', anio: 2008, lugar: 'Montañas a unos 100 km al noroeste de la Ciudad de México',
+    id: 'monarca', relieve: 'lugar-monarca', nombre: 'Reserva de la Biosfera de la Mariposa Monarca', tipo: 'natural', anio: 2008, lugar: 'Montañas a unos 100 km al noroeste de la Ciudad de México',
     lon: -100.25, lat: 19.6,
-    fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Reserva de la Biosfera de la Mariposa Monarca (1290). Descripción bajo licencia CC-BY-SA IGO 3.0.', url: WHC(1290), nivel: 'A' },
+    fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Reserva de la Biosfera de la Mariposa Monarca (1290).', url: WHC(1290), nivel: 'A' },
     nino: 'Cada otoño llegan millones de mariposas y pintan los árboles de naranja. ¡Pesan tanto juntas que doblan las ramas!',
     porque: 'Cada otoño, millones (quizás mil millones) de mariposas de grandes zonas de Norteamérica regresan a estos bosques de montaña y se agrupan en áreas pequeñas. En primavera inician una migración de 8 meses hasta el este de Canadá y de regreso; en ese viaje nacen y mueren cuatro generaciones. Cómo encuentran el camino de vuelta sigue siendo un misterio.',
     dato: 'La reserva mide 56,259 ha y está a unos 100 km al noroeste de la Ciudad de México.',
@@ -72,7 +72,7 @@ export const MARAVILLAS = [
   {
     id: 'siankaan', nombre: "Sian Ka'an", tipo: 'natural', anio: 1987, lugar: 'Costa oriental de la península de Yucatán, Quintana Roo',
     lon: -87.79, lat: 19.38,
-    fuente: { cita: "UNESCO, Centro del Patrimonio Mundial. Sian Ka'an (410). Descripción bajo licencia CC-BY-SA IGO 3.0.", url: WHC(410), nivel: 'A' },
+    fuente: { cita: "UNESCO, Centro del Patrimonio Mundial. Sian Ka'an (410).", url: WHC(410), nivel: 'A' },
     nino: 'Tiene selva, manglares, pantanos y un arrecife de coral. ¡Viven ahí más de 300 tipos de aves!',
     porque: 'Su complejo sistema de agua une selvas tropicales, manglares y pantanos con una gran zona marina atravesada por un arrecife de barrera. Esa variedad de ambientes da casa a una flora muy rica y a más de 300 especies de aves.',
     dato: "En maya, Sian Ka'an significa «origen del cielo».",
@@ -89,7 +89,7 @@ export const MARAVILLAS = [
     enlace: { capa: 'historia', texto: 'Ver la historia de México' },
   },
   {
-    id: 'tehuacan', nombre: 'Valle de Tehuacán-Cuicatlán', tipo: 'mixto', anio: 2018, lugar: 'Sureste de Puebla y norte de Oaxaca',
+    id: 'tehuacan', relieve: 'lugar-tehuacan', nombre: 'Valle de Tehuacán-Cuicatlán', tipo: 'mixto', anio: 2018, lugar: 'Sureste de Puebla y norte de Oaxaca',
     lon: -97.2, lat: 18.1,
     fuente: { cita: 'UNESCO, Centro del Patrimonio Mundial. Valle de Tehuacán-Cuicatlán: hábitat originario de Mesoamérica (1534).', url: WHC(1534), nivel: 'A' },
     nino: 'Es una zona seca llena de cactus gigantes que forman «bosques». Aquí vivieron algunos de los primeros agricultores de Mesoamérica.',
@@ -99,7 +99,7 @@ export const MARAVILLAS = [
     enlace: { capa: 'sabores', texto: 'Ver el chile del valle de Tehuacán en Sabores' },
   },
   {
-    id: 'comarca', nombre: 'Geoparque Comarca Minera', tipo: 'geoparque', anio: 2017, lugar: 'Centro-sur de Hidalgo',
+    id: 'comarca', relieve: 'lugar-comarca', nombre: 'Geoparque Comarca Minera', tipo: 'geoparque', anio: 2017, lugar: 'Centro-sur de Hidalgo',
     lon: -98.73, lat: 20.12,
     fuente: { cita: 'UNESCO, Programa Internacional de Ciencias de la Tierra y Geoparques. Comarca Minera UNESCO Global Geopark.', url: 'https://www.unesco.org/en/iggp/comarca-minera-unesco-global-geopark', nivel: 'A' },
     nino: '¡Es nuestro geoparque, aquí en Hidalgo! Los volcanes de hace millones de años dejaron metales y obsidiana.',
@@ -109,7 +109,7 @@ export const MARAVILLAS = [
     enlace: { capa: 'volcanes', texto: 'Ver sus geositios en Volcanes' },
   },
   {
-    id: 'mixteca', nombre: 'Geoparque Mixteca Alta', tipo: 'geoparque', anio: 2017, lugar: 'Mixteca Alta, Oaxaca',
+    id: 'mixteca', relieve: 'lugar-mixteca', nombre: 'Geoparque Mixteca Alta', tipo: 'geoparque', anio: 2017, lugar: 'Mixteca Alta, Oaxaca',
     lon: -97.33, lat: 17.55,
     fuente: { cita: 'UNESCO, Programa Internacional de Ciencias de la Tierra y Geoparques. Mixteca Alta UNESCO Global Geopark.', url: 'https://www.unesco.org/en/iggp/mixteca-alta-unesco-global-geopark', nivel: 'A' },
     nino: 'Aquí los agricultores mixtecos construyen muros de piedra que atrapan agua y tierra para sembrar. ¡Una técnica de miles de años que se sigue usando!',
@@ -135,11 +135,11 @@ export const MARAVILLAS = [
 
 export const FUENTES_MARAVILLAS = [
   { cita: 'UNESCO, Centro del Patrimonio Mundial: ficha de México y de cada sitio natural y mixto (8 sitios).', url: 'https://whc.unesco.org/es/statesparties/mx', nivel: 'A', consulta: CONSULTA,
-    limitaciones: 'Las descripciones de los sitios inscritos antes de 2005 están bajo licencia CC-BY-SA IGO 3.0; la app las resume en español.' },
+    limitaciones: 'La app resume en español las descripciones de la UNESCO.' },
   { cita: 'UNESCO, Programa Internacional de Ciencias de la Tierra y Geoparques: lista de Geoparques Mundiales (México: Comarca Minera y Mixteca Alta, 2017).', url: 'https://www.unesco.org/en/iggp/geoparks', nivel: 'A', consulta: CONSULTA,
     limitaciones: 'Se consultaron las fichas de cada geoparque en inglés.' },
   { cita: 'Hildebrand AR, Pilkington M, Connors M, Ortiz-Alemán C, Chávez RE. Size and structure of the Chicxulub crater revealed by horizontal gravity gradients and cenotes. Nature 1995;376:415-417.', url: 'https://doi.org/10.1038/376415a0', nivel: 'B', consulta: CONSULTA,
-    limitaciones: 'Se verificaron los datos bibliográficos y el título, no el texto completo.' },
+    limitaciones: 'Se consultaron los datos bibliográficos y el título.' },
   { cita: 'Perry E, Marin L, McClain J, Velázquez G. Ring of Cenotes (sinkholes), northwest Yucatan, Mexico. Geology 1995;23:17.', url: 'https://doi.org/10.1130/0091-7613(1995)023%3C0017:ROCSNY%3E2.3.CO;2', nivel: 'B', consulta: CONSULTA,
-    limitaciones: 'Se verificaron los datos bibliográficos y el título, no el texto completo.' },
+    limitaciones: 'Se consultaron los datos bibliográficos y el título.' },
 ];

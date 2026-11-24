@@ -1,27 +1,199 @@
 {
   "_instrucciones": "Descarga cada archivo desde 'descarga' (clic derecho > Guardar como) con el nombre de 'archivo' en esta carpeta. La app usa los que encuentre y, si falta alguno, usa el sonido sintetizado. Las licencias se verificaron en Wikimedia Commons el 17 nov 2026.",
-
-  "alerta-sismica": { "archivo": null, "nota": "Opcional. Solo con autorización por escrito del CIRES (dueño del audio del SASMEX) y del museo. Guarda el archivo como alerta-sismica.mp3 y escribe su nombre aquí. Mientras sea null se usa el tono genérico de la app.", "autor": null, "licencia": null, "fuente": null },
-
-  "bioma-selva": { "archivo": "selva-huehuetla.mp3", "titulo": "Ambiente nocturno en Huehuetla (Sierra Norte de Puebla, México)", "autor": "Luisalvaz", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Ambiente_nocturno_en_Huehuetla.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1a/Ambiente_nocturno_en_Huehuetla.ogg/Ambiente_nocturno_en_Huehuetla.ogg.mp3", "volumen": 0.8 },
-  "bioma-selvaSeca": { "archivo": "chara-yucateca.mp3", "titulo": "Chara yucateca (Cyanocorax yucatanicus), Quintana Roo, México", "autor": "Donají Graham (iNaturalist)", "licencia": "CC0", "fuente": "https://commons.wikimedia.org/wiki/File:Cyanocorax_yucatanicus_1232937.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e3/Cyanocorax_yucatanicus_1232937.ogg/Cyanocorax_yucatanicus_1232937.ogg.mp3", "volumen": 0.8 },
-  "bioma-bosque": { "archivo": "carpintero-bellotero.mp3", "titulo": "Carpintero bellotero (Melanerpes formicivorus), ave de bosques de pino-encino; grabado en California, EUA", "autor": "Jonathon Jongsma (xeno-canto XC110258)", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Melanerpes_formicivorus_-_Acorn_Woodpecker_XC110258.mp3", "descarga": "https://upload.wikimedia.org/wikipedia/commons/0/05/Melanerpes_formicivorus_-_Acorn_Woodpecker_XC110258.mp3", "volumen": 0.8 },
-  "bioma-humedal": { "archivo": "rio-san-pedro.mp3", "titulo": "Río San Pedro: viento y fauna nocturna junto al río", "autor": "Chuyiro Olmos", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Rio_San_Pedro.wav", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/28/Rio_San_Pedro.wav/Rio_San_Pedro.wav.mp3", "volumen": 0.8 },
-  "bioma-desierto": { "archivo": null, "busqueda": "Sin grabación libre verificada todavía: se usa el viento sintetizado." },
-
-  "especie-quetzal": { "archivo": "quetzal.mp3", "titulo": "Canto de quetzal (Pharomachrus mocinno), Guatemala", "autor": "Leander Khil (xeno-canto XC872148)", "licencia": "CC BY 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Resplendent_Quetzal_song_(Pharomachrus_mocinno).ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/9/91/Resplendent_Quetzal_song_%28Pharomachrus_mocinno%29.ogg/Resplendent_Quetzal_song_%28Pharomachrus_mocinno%29.ogg.mp3" },
-  "especie-guacamaya-roja": { "archivo": "guacamaya-roja.mp3", "titulo": "Guacamaya roja (Ara macao), ejemplar en cautiverio", "autor": "Ganesh Mohan T", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Scarlet_macaw_01.wav", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Scarlet_macaw_01.wav/Scarlet_macaw_01.wav.mp3" },
-  "especie-jaguar": { "archivo": "jaguar.mp3", "titulo": "«Serrucho» del jaguar (Panthera onca), Attica Zoological Park", "autor": "About Zoos", "licencia": "CC BY 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Jaguar_saw.flac", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b4/Jaguar_saw.flac/Jaguar_saw.flac.mp3" },
-  "especie-lobo-mexicano": { "archivo": "lobo.mp3", "titulo": "Aullidos de lobo gris (Canis lupus, la especie del lobo mexicano)", "autor": "U.S. Fish & Wildlife Service", "licencia": "Dominio público", "fuente": "https://commons.wikimedia.org/wiki/File:Wolf_howls.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Wolf_howls.ogg/Wolf_howls.ogg.mp3" },
-
-  "especie-mono-aullador-de-manto": { "archivo": "mono-aullador.mp3", "titulo": "Mono aullador de manto (Alouatta palliata), Parque Nacional Santa Rosa, Costa Rica; la misma especie vive en Los Tuxtlas", "autor": "Richard Ranft / British Library", "licencia": "CC BY 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Mantled_Howler_Monkey_(Alouatta_palliata)_(W_ALOUATTA_PALLIATA_R1_C2).ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/81/Mantled_Howler_Monkey_%28Alouatta_palliata%29_%28W_ALOUATTA_PALLIATA_R1_C2%29.ogg/Mantled_Howler_Monkey_%28Alouatta_palliata%29_%28W_ALOUATTA_PALLIATA_R1_C2%29.ogg.mp3" },
-  "especie-tucan-real": { "archivo": "tucan.mp3", "titulo": "Tucán real (Ramphastos sulfuratus), Veracruz, México", "autor": "Juan Carlos Pérez Magaña (iNaturalist)", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Ramphastos_sulfuratus_audio_observation_charro_401730.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/4/4f/Ramphastos_sulfuratus_audio_observation_charro_401730.ogg/Ramphastos_sulfuratus_audio_observation_charro_401730.ogg.mp3" },
-  "especie-ballena-jorobada": { "archivo": "ballena-jorobada.mp3", "titulo": "Ballena jorobada (Megaptera novaeangliae), hidrófono en Glacier Bay, Alaska; esta población inverna en México", "autor": "U.S. National Park Service", "licencia": "Dominio público", "fuente": "https://commons.wikimedia.org/wiki/File:Humpback_whale_moo.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/6/67/Humpback_whale_moo.ogg/Humpback_whale_moo.ogg.mp3" },
-
-  "clima-lluvia": { "archivo": "truenos-lluvia.mp3", "titulo": "Truenos y lluvia durante una tormenta", "autor": "Luis Alvaz", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:Truenos_y_lluvia_(sonido)_01.wav", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/bc/Truenos_y_lluvia_%28sonido%29_01.wav/Truenos_y_lluvia_%28sonido%29_01.wav.mp3" },
-
-  "musica-chiapas": { "archivo": "marimba-chiapanecas.mp3", "titulo": "Las Chiapanecas en marimba, por Alejandro Nuricumbo (cortesía del Museo de la Marimba, Chiapas)", "autor": "Alejandro Nuricumbo", "licencia": "Dominio público", "fuente": "https://commons.wikimedia.org/wiki/File:Chiapanecas_marimba.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/Chiapanecas_marimba.ogg/Chiapanecas_marimba.ogg.mp3" },
-  "musica-veracruz": { "archivo": "son-jarocho.mp3", "titulo": "La morena, son jarocho grabado en Santiago Tuxtla, Veracruz", "autor": "Koffermejia", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:La_morena._Son_Jarocho.wav", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/5a/La_morena._Son_Jarocho.wav/La_morena._Son_Jarocho.wav.mp3" },
-  "musica-huasteca": { "archivo": "son-huasteco.mp3", "titulo": "El pitorreal, son huasteco (Joel Ramírez Rueda y Ricardo Ruiz Basilio)", "autor": "Joel Ramírez Rueda, Ricardo Ruiz Basilio; grabación de estudiantes del ITESM CCM", "licencia": "CC BY-SA 4.0", "fuente": "https://commons.wikimedia.org/wiki/File:El_pitorreal_pre-master_44-16.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c6/El_pitorreal_pre-master_44-16.ogg/El_pitorreal_pre-master_44-16.ogg.mp3" },
-  "nombre-popocatepetl": { "archivo": "popocatepetl-pronunciacion.mp3", "titulo": "Pronunciación de «Popocatépetl»", "autor": "Natalia0893", "licencia": "CC BY-SA 3.0", "fuente": "https://commons.wikimedia.org/wiki/File:Popocatepetl1.ogg", "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/14/Popocatepetl1.ogg/Popocatepetl1.ogg.mp3" }
+  "alerta-sismica": {
+    "archivo": null,
+    "nota": "Opcional. Solo con autorización por escrito del CIRES (dueño del audio del SASMEX) y del museo. Guarda el archivo como alerta-sismica.mp3 y escribe su nombre aquí. Mientras sea null se usa el tono genérico de la app.",
+    "autor": null,
+    "licencia": null,
+    "fuente": null
+  },
+  "bioma-selva": {
+    "archivo": "selva-huehuetla.mp3",
+    "titulo": "Ambiente nocturno en Huehuetla (Sierra Norte de Puebla, México)",
+    "autor": "Luisalvaz",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Ambiente_nocturno_en_Huehuetla.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/1a/Ambiente_nocturno_en_Huehuetla.ogg/Ambiente_nocturno_en_Huehuetla.ogg.mp3",
+    "volumen": 0.8
+  },
+  "bioma-selvaSeca": {
+    "archivo": "chara-yucateca.mp3",
+    "titulo": "Chara yucateca (Cyanocorax yucatanicus), Quintana Roo, México",
+    "autor": "Donají Graham (iNaturalist)",
+    "licencia": "CC0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Cyanocorax_yucatanicus_1232937.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e3/Cyanocorax_yucatanicus_1232937.ogg/Cyanocorax_yucatanicus_1232937.ogg.mp3",
+    "volumen": 0.8
+  },
+  "bioma-bosque": {
+    "archivo": "carpintero-bellotero.mp3",
+    "titulo": "Carpintero bellotero (Melanerpes formicivorus), ave de bosques de pino-encino; grabado en California, EUA",
+    "autor": "Jonathon Jongsma (xeno-canto XC110258)",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Melanerpes_formicivorus_-_Acorn_Woodpecker_XC110258.mp3",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/0/05/Melanerpes_formicivorus_-_Acorn_Woodpecker_XC110258.mp3",
+    "volumen": 0.8,
+    "subtitulo": "Carpintero bellotero en el bosque de pino-encino"
+  },
+  "bioma-humedal": {
+    "archivo": "rio-san-pedro.mp3",
+    "titulo": "Río San Pedro: viento y fauna nocturna junto al río",
+    "autor": "Chuyiro Olmos",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Rio_San_Pedro.wav",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/2/28/Rio_San_Pedro.wav/Rio_San_Pedro.wav.mp3",
+    "volumen": 0.8
+  },
+  "bioma-desierto": {
+    "archivo": null,
+    "busqueda": "Sin grabación libre verificada todavía: se usa el viento sintetizado."
+  },
+  "especie-quetzal": {
+    "archivo": "quetzal.mp3",
+    "titulo": "Canto de quetzal (Pharomachrus mocinno), Guatemala",
+    "autor": "Leander Khil (xeno-canto XC872148)",
+    "licencia": "CC BY 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Resplendent_Quetzal_song_(Pharomachrus_mocinno).ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/9/91/Resplendent_Quetzal_song_%28Pharomachrus_mocinno%29.ogg/Resplendent_Quetzal_song_%28Pharomachrus_mocinno%29.ogg.mp3",
+    "subtitulo": "Canto del quetzal"
+  },
+  "especie-guacamaya-roja": {
+    "archivo": "guacamaya-roja.mp3",
+    "titulo": "Guacamaya roja (Ara macao), ejemplar en cautiverio",
+    "autor": "Ganesh Mohan T",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Scarlet_macaw_01.wav",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/89/Scarlet_macaw_01.wav/Scarlet_macaw_01.wav.mp3",
+    "subtitulo": "Guacamaya roja"
+  },
+  "especie-jaguar": {
+    "archivo": "jaguar.mp3",
+    "titulo": "«Serrucho» del jaguar (Panthera onca), Attica Zoological Park",
+    "autor": "About Zoos",
+    "licencia": "CC BY 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Jaguar_saw.flac",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b4/Jaguar_saw.flac/Jaguar_saw.flac.mp3",
+    "subtitulo": "«Serrucho» del jaguar"
+  },
+  "especie-lobo-mexicano": {
+    "archivo": "lobo.mp3",
+    "titulo": "Aullidos de lobo gris (Canis lupus, la especie del lobo mexicano)",
+    "autor": "U.S. Fish & Wildlife Service",
+    "licencia": "Dominio público",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Wolf_howls.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/87/Wolf_howls.ogg/Wolf_howls.ogg.mp3",
+    "subtitulo": "Aullidos de lobo"
+  },
+  "especie-mono-aullador-de-manto": {
+    "archivo": "mono-aullador.mp3",
+    "titulo": "Mono aullador de manto (Alouatta palliata), Parque Nacional Santa Rosa, Costa Rica; la misma especie vive en Los Tuxtlas",
+    "autor": "Richard Ranft / British Library",
+    "licencia": "CC BY 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Mantled_Howler_Monkey_(Alouatta_palliata)_(W_ALOUATTA_PALLIATA_R1_C2).ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/8/81/Mantled_Howler_Monkey_%28Alouatta_palliata%29_%28W_ALOUATTA_PALLIATA_R1_C2%29.ogg/Mantled_Howler_Monkey_%28Alouatta_palliata%29_%28W_ALOUATTA_PALLIATA_R1_C2%29.ogg.mp3",
+    "subtitulo": "Mono aullador de manto"
+  },
+  "especie-tucan-real": {
+    "archivo": "tucan.mp3",
+    "titulo": "Tucán real (Ramphastos sulfuratus), Veracruz, México",
+    "autor": "Juan Carlos Pérez Magaña (iNaturalist)",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Ramphastos_sulfuratus_audio_observation_charro_401730.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/4/4f/Ramphastos_sulfuratus_audio_observation_charro_401730.ogg/Ramphastos_sulfuratus_audio_observation_charro_401730.ogg.mp3"
+  },
+  "especie-ballena-jorobada": {
+    "archivo": "ballena-jorobada.mp3",
+    "titulo": "Ballena jorobada (Megaptera novaeangliae), hidrófono en Glacier Bay, Alaska; esta población inverna en México",
+    "autor": "U.S. National Park Service",
+    "licencia": "Dominio público",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Humpback_whale_moo.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/6/67/Humpback_whale_moo.ogg/Humpback_whale_moo.ogg.mp3",
+    "subtitulo": "Canto de la ballena jorobada"
+  },
+  "efecto-erupcion": {
+    "archivo": "erupcion-santa-helena.mp3",
+    "titulo": "Erupción del monte Santa Helena (EUA) oída a 225 km, filtrada y amplificada",
+    "autor": "Digifish, a partir de una grabación de DaveInCamas (Freesound)",
+    "licencia": "CC BY 3.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Eruption_of_Mount_St._Helens,_heard_from_140_miles_away_(filtered_and_amplified).wav",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Eruption_of_Mount_St._Helens%2C_heard_from_140_miles_away_%28filtered_and_amplified%29.wav",
+    "nota": "Recorte de 16 s (seg. 18–34), mono, normalizado.",
+    "volumen": 0.9,
+    "subtitulo": "Erupción volcánica oída a lo lejos"
+  },
+  "efecto-oleaje": {
+    "archivo": "oleaje-costa.mp3",
+    "titulo": "Olas rompiendo en la orilla (fiordo de Kalundborg, Dinamarca)",
+    "autor": "Luftrum",
+    "licencia": "CC BY 3.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Oceanwavescrushing.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Oceanwavescrushing.ogg",
+    "nota": "Recorte de 12 s (seg. 8–20), mono, normalizado.",
+    "volumen": 0.9,
+    "subtitulo": "Olas rompiendo en la orilla"
+  },
+  "efecto-viento": {
+    "archivo": "viento-tormenta.mp3",
+    "titulo": "Viento de la tormenta Floris en Killiney Hill (Irlanda), ráfagas de hasta 83 km/h",
+    "autor": "Karlunun",
+    "licencia": "CC0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Killiney_Hill_Storm_Floris_20250804_1537.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/6/63/Killiney_Hill_Storm_Floris_20250804_1537.ogg",
+    "nota": "Recorte de 20 s (seg. 8–28), mono, normalizado; se repite en bucle.",
+    "volumen": 0.8,
+    "subtitulo": "Viento de tormenta"
+  },
+  "efecto-lluvia": {
+    "archivo": "lluvia.mp3",
+    "titulo": "Lluvia intensa",
+    "autor": "ezwa (PDSounds)",
+    "licencia": "Dominio público",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Rain_(1).ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Rain_%281%29.ogg",
+    "nota": "Recorte de 20 s, mono, normalizado; se repite en bucle. Más ligera que clima-lluvia.",
+    "volumen": 0.7
+  },
+  "clima-lluvia": {
+    "archivo": "truenos-lluvia.mp3",
+    "titulo": "Truenos y lluvia durante una tormenta",
+    "autor": "Luis Alvaz",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Truenos_y_lluvia_(sonido)_01.wav",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/bc/Truenos_y_lluvia_%28sonido%29_01.wav/Truenos_y_lluvia_%28sonido%29_01.wav.mp3"
+  },
+  "musica-chiapas": {
+    "archivo": "marimba-chiapanecas.mp3",
+    "titulo": "Las Chiapanecas en marimba, por Alejandro Nuricumbo (cortesía del Museo de la Marimba, Chiapas)",
+    "autor": "Alejandro Nuricumbo",
+    "licencia": "Dominio público",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Chiapanecas_marimba.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/b7/Chiapanecas_marimba.ogg/Chiapanecas_marimba.ogg.mp3",
+    "subtitulo": "Las Chiapanecas en marimba"
+  },
+  "musica-veracruz": {
+    "archivo": "son-jarocho.mp3",
+    "titulo": "La morena, son jarocho grabado en Santiago Tuxtla, Veracruz",
+    "autor": "Koffermejia",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:La_morena._Son_Jarocho.wav",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/5/5a/La_morena._Son_Jarocho.wav/La_morena._Son_Jarocho.wav.mp3",
+    "subtitulo": "La morena, son jarocho"
+  },
+  "musica-huasteca": {
+    "archivo": "son-huasteco.mp3",
+    "titulo": "El pitorreal, son huasteco (Joel Ramírez Rueda y Ricardo Ruiz Basilio)",
+    "autor": "Joel Ramírez Rueda, Ricardo Ruiz Basilio; grabación de estudiantes del ITESM CCM",
+    "licencia": "CC BY-SA 4.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:El_pitorreal_pre-master_44-16.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c6/El_pitorreal_pre-master_44-16.ogg/El_pitorreal_pre-master_44-16.ogg.mp3",
+    "subtitulo": "El pitorreal, son huasteco"
+  },
+  "nombre-popocatepetl": {
+    "archivo": "popocatepetl-pronunciacion.mp3",
+    "titulo": "Pronunciación de «Popocatépetl»",
+    "autor": "Natalia0893",
+    "licencia": "CC BY-SA 3.0",
+    "fuente": "https://commons.wikimedia.org/wiki/File:Popocatepetl1.ogg",
+    "descarga": "https://upload.wikimedia.org/wikipedia/commons/transcoded/1/14/Popocatepetl1.ogg/Popocatepetl1.ogg.mp3"
+  }
 }

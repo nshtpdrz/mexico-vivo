@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs><path id="ca" d="M50 50 m-38 0 a38 38 0 1 1 76 0 a38 38 0 1 1 -76 0"/></defs>
+  <circle cx="50" cy="50" r="48" fill="#f3ecdd"/>
+  <circle cx="50" cy="50" r="46.5" fill="none" stroke="#1b1a17" stroke-width="1.4"/>
+  <circle cx="50" cy="50" r="30" fill="#b3261e"/>
+  <path d="M26 62 L42 40 L46 43 L50 36 L54 43 L58 40 L74 62 Z" fill="#f3ecdd"/>
+  <path d="M45 37 Q47 30 52 31 Q56 26 60 29" fill="none" stroke="#f3ecdd" stroke-width="2" stroke-linecap="round"/>
+  <path d="M22 66 L34 66 L37 60 L41 72 L45 58 L49 70 L52 64 L78 64" fill="none" stroke="#1b1a17" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+  <text font-family="DM Mono, monospace" font-size="7.2" letter-spacing="2.4" fill="#1b1a17"><textPath href="#ca">MÉXICO VIVO · ATLAS INTERACTIVO · 2026 ·</textPath></text>
+</svg>

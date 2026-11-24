@@ -1,0 +1,265 @@
+/* =====================================================================
+   Tema «Atlas de Velasco»: la interfaz es papel, tinta y grana.
+   Se carga después de estilo.css y solo cambia la apariencia (no el layout).
+   Las pantallas de instrumento (sismograma, gráficas, sensor) siguen oscuras,
+   como monitores apoyados sobre el papel.
+   ===================================================================== */
+:root {
+  --fondo: #e9dfcc;
+  --fondo-2: #f7f1e4;
+  --vidrio: rgba(251, 247, 238, 0.94);
+  --vidrio-2: rgba(27, 26, 23, 0.05);
+  --linea: rgba(27, 26, 23, 0.14);
+  --texto: #1b1a17;
+  --texto-2: #5a5245;
+  --oro: #b3261e;
+  --oro-2: #8f1d17;
+  --tierra: #a88b4f;
+  --cielo: #8fa9c4;
+  color-scheme: light;
+}
+body {
+  background: radial-gradient(ellipse 70% 60% at 45% 45%, #f3ecdd 0%, #e6dcc7 70%, #d9cdb4 100%);
+  color: var(--texto);
+}
+b { color: var(--texto); }
+a { color: var(--oro); }
+h3 { color: var(--texto-2); font-family: var(--dato); font-weight: 500; letter-spacing: .14em; font-size: 11.5px; }
+
+/* barra superior */
+.barra { background: var(--vidrio); border: 1px solid var(--linea); box-shadow: 0 10px 30px rgba(60, 45, 20, .14); backdrop-filter: blur(14px) saturate(1.1); }
+.marca small { color: var(--texto-2); }
+.capas button { color: var(--texto-2); font-family: var(--cuerpo); }
+.capas button:hover { background: var(--vidrio-2); color: var(--texto); }
+.capas button[aria-selected='true'] { background: var(--texto); color: var(--fondo-2); box-shadow: 0 6px 18px rgba(27, 26, 23, .22); }
+
+/* botones */
+.btn { background: rgba(255, 252, 244, .9); color: var(--texto); border: 1px solid var(--linea); }
+.btn:hover { background: #fff; }
+.btn.primario { background: var(--texto); color: var(--fondo-2); border-color: var(--texto); box-shadow: 0 8px 20px rgba(27, 26, 23, .22); }
+.btn.peligro { background: var(--oro); color: #fff; box-shadow: 0 8px 20px rgba(179, 38, 30, .3); }
+.btn.sec { background: transparent; }
+.btn.icono { color: var(--texto); }
+#btn-ar { background: var(--oro); color: #fff; border-color: var(--oro); box-shadow: 0 6px 18px rgba(179, 38, 30, .3); }
+#btn-sencillo[aria-pressed='true'] { background: var(--texto); color: var(--fondo-2); }
+
+/* panel lateral */
+.panel { background: linear-gradient(180deg, #fbf7ee, #f4ecdc); border-left: 1px solid var(--linea); color: var(--texto); scrollbar-color: rgba(27, 26, 23, .2) transparent; }
+.panel .sub { color: var(--oro); }
+.tarjeta-capa { background: #fffaf0; border: 1px solid rgba(179, 38, 30, .35); box-shadow: 0 6px 18px rgba(60, 45, 20, .08); }
+.tc-etq { color: var(--oro); font-family: var(--dato); font-weight: 500; }
+.mision-capa { background: #fffaf0; border: 1px dashed rgba(27, 26, 23, .22); }
+.mision-capa.completa { border-color: rgba(47, 107, 69, .55); }
+.mision-capa.completa .mc-ico { color: #2f6b45; }
+.pestanas { background: #f7f1e4; border-bottom: 1px solid var(--linea); }
+.pestanas .pt { color: var(--texto-2); }
+.pestanas .pt[aria-selected='true'] { background: rgba(179, 38, 30, .08); color: var(--texto); box-shadow: inset 0 -2px 0 var(--oro); }
+.tarjetas div { background: #fffaf0; border: 1px solid var(--linea); }
+.tarjetas b { color: var(--oro); }
+.dato { background: #fffaf0; }
+.chip { background: #fffaf0; border: 1px solid var(--linea); color: var(--texto); }
+details { background: #fffaf0; border: 1px solid var(--linea); }
+.lista li:hover { background: rgba(27, 26, 23, .05); }
+.nota { color: var(--texto-2); }
+.resultado { background: rgba(168, 139, 79, .12); border: 1px solid rgba(168, 139, 79, .45); }
+.aviso-sim { color: #6b3a12; background: rgba(179, 38, 30, .06); border-left-color: var(--oro); }
+.poe { background: rgba(143, 169, 196, .14); border: 1px solid rgba(143, 169, 196, .55); }
+.poe-res { background: rgba(168, 139, 79, .14); border-color: rgba(168, 139, 79, .5); }
+input[type='range'] { accent-color: var(--oro); }
+select, .campo select, .campo input { background: #fffaf0; color: var(--texto); border: 1px solid var(--linea); }
+select option { background: #fffaf0; color: var(--texto); }
+.switch span { background: rgba(27, 26, 23, .18); }
+.switch input:checked + span { background: var(--oro); }
+.paso-sim .paso-num { background: var(--texto); color: var(--fondo-2); }
+.historicos .btn.activo { border-color: var(--oro); background: rgba(179, 38, 30, .08); }
+.log li { background: rgba(27, 26, 23, .04); }
+.log .ev-alerta { background: rgba(179, 38, 30, .12); }
+.log .ev-sensor { background: rgba(143, 169, 196, .2); }
+.tag.p { background: rgba(47, 127, 191, .14); color: #1f5f99; }
+.tag.s { background: rgba(179, 38, 30, .12); color: #9a1f19; }
+tr.dest td { background: rgba(179, 38, 30, .06); }
+
+/* ficha */
+.ficha { background: #fffaf0; border: 1px solid var(--linea); box-shadow: 0 14px 34px rgba(60, 45, 20, .14); color: var(--texto); }
+.ficha .cerrar, .reto .cerrar { background: rgba(27, 26, 23, .07); color: var(--texto); }
+.revision { color: #7a5a12; }
+
+/* leyenda, tooltip, Axo */
+.leyenda { background: var(--vidrio); border: 1px solid var(--linea); color: var(--texto); box-shadow: 0 8px 24px rgba(60, 45, 20, .12); }
+.tooltip { background: #1b1a17; color: var(--fondo-2); border-color: transparent; }
+.axo-globo { background: #fffaf0; color: var(--texto); border: 1px solid var(--linea); box-shadow: 0 10px 26px rgba(60, 45, 20, .16); font-family: var(--cuerpo); }
+
+/* ventanas: reto, pasaporte, créditos */
+.reto, dialog { background: #fbf7ee; color: var(--texto); border: 1px solid var(--linea); }
+.reto::backdrop, dialog::backdrop { background: rgba(40, 30, 15, .45); backdrop-filter: blur(4px); }
+.opcion.bien { background: rgba(47, 107, 69, .14); border-color: #2f6b45; }
+.opcion.malo { background: rgba(179, 38, 30, .12); border-color: var(--oro); }
+.explica { background: #fffaf0; }
+
+/* fondo según el estado: el patrón viste TODA la página (detrás del mapa y del panel), con velo claro */
+.fondo-estado { display: none !important; }
+body.con-patron { background:
+  radial-gradient(ellipse 70% 60% at 45% 45%, rgba(243, 236, 221, .55) 0%, rgba(233, 223, 204, .72) 70%, rgba(217, 205, 180, .80) 100%),
+  var(--patron) 0 0 / 240px repeat; background-attachment: fixed, fixed; }
+body.patron-entra { animation: patronEntra .7s ease; }
+@keyframes patronEntra { from { background-position: 0 0, 0 28px; } }
+/* el panel deja ver el patrón de la página; tarjetas y textos siguen sobre papel sólido */
+body.con-patron .panel { background: rgba(251, 247, 238, .80); backdrop-filter: blur(1.5px); }
+body.con-patron .tarjeta-capa, body.con-patron .mision-capa, body.con-patron .pestanas,
+body.con-patron .ficha, body.con-patron .lista li, body.con-patron details { background-color: #fffaf0; }
+
+/* subtítulos y cuenta de la onda S siguen sobre fondo oscuro para leerse encima del mapa */
+.subtitulo { background: rgba(27, 26, 23, .9); color: var(--fondo-2); }
+
+/* pegatinas pequeñas en línea (sustituyen a los emojis) */
+img.pi { width: 1.35em; height: 1.35em; object-fit: contain; vertical-align: -0.32em; margin-right: .25em; }
+.btn img.pi { width: 1.5em; height: 1.5em; }
+.mision-capa .mc-ico img.pi, .mc-ico img.pi { width: 34px; height: 34px; margin: 0; }
+.btn.icono img.pi { width: 26px; height: 26px; margin: 0; }
+
+/* ===== Contraste: textos claros heredados del tema oscuro (auditoría WCAG 4.5:1) ===== */
+.cuerpo, .ficha .cuerpo p, .ficha .cuerpo li, .recorrido p, details.familia p, .avanzado, .inicio p { color: #2b2823; }
+.ficha .cuerpo .dato, p.dato { color: #2b2823; background: #f6eedd; }
+.chip.mal, .mal, b.mal { color: #9a1f19; }
+b.ok, .ok, td .ok { color: #2f6b45; }
+.lt-cab b, #anio-texto { color: var(--oro); }
+.ola { color: #1f5f99; } .ola.media { color: #8a5a10; } .ola.alta { color: #9a1f19; }
+.aviso-sim { color: #5a3410; }
+.revision { display: none; }
+.lista-maravillas li.vista b::after, .mision-capa.completa .mc-ico { color: #2f6b45; }
+.lab-pasos span.actual { color: #fff; background: var(--oro); }
+.mmi-8 { color: #1b1a17; }
+.alerta-banner small { color: #fff; }
+.capas button:not([aria-selected='true']) { color: #3a352c; }
+.nota, small, .lista li small { color: #4a443a; }
+
+/* pegatinas dentro de controles concretos */
+.opcion-sim span img.pi { width: 44px; height: 44px; margin: 0; vertical-align: middle; }
+.pasos-hechos span img.pi { width: 40px; height: 40px; margin: 0; }
+.sello-ico img.pi { width: 40px; height: 40px; margin: 0; }
+.sello:not(.hecho) .sello-ico img.pi { opacity: .45; }
+.lista-sp img.pi, .lista li img.pi { width: 1.6em; height: 1.6em; }
+.ficha h2 img.pi { width: 1.25em; height: 1.25em; vertical-align: -0.22em; }
+.chip img.pi { width: 1.4em; height: 1.4em; margin-right: .2em; }
+.log img.pi { width: 1.3em; height: 1.3em; }
+.cuenta-s img.pi, .alerta-banner img.pi { width: 1.4em; height: 1.4em; }
+i.punto { display: inline-block; width: .62em; height: .62em; border-radius: 50%; margin-right: .4em; vertical-align: .05em; font-style: normal; }
+i.punto.vivo { background: #2f6b45; box-shadow: 0 0 0 3px rgba(47,107,69,.18); }
+i.punto.cache { background: #b9861c; }
+i.punto.respaldo { background: #b3261e; }
+
+/* visor de relieve de volcanes: papel en lugar de azul marino */
+.volcan-vista { background: #f3ecdd; color: var(--texto); }
+.vv-barra { background: #fbf7ee; }
+.vv-barra .cerrar { background: rgba(27, 26, 23, .07); color: var(--texto); }
+.vv-panel { background: #fbf7ee; color: #2b2823; }
+.vv-leyenda, .vv-leyenda div { color: #2b2823; }
+.vv-leyenda i { box-shadow: inset 0 0 0 1px rgba(27, 26, 23, .25); }
+
+/* ===== AR: foto, destello y vistazo ===== */
+.btn-foto-ar { position: fixed; right: 16px; bottom: calc(34vh + 64px); z-index: 30; border-radius: 999px; padding: 10px 16px; }
+@media (min-width: 900px) { .btn-foto-ar { bottom: 24px; right: calc(var(--panel-ancho, 360px) + 24px); } }
+body:not(.modo-ar) .btn-foto-ar { display: none; }
+.destello-foto { position: fixed; inset: 0; background: #fff; z-index: 90; pointer-events: none; animation: destello .45s ease-out forwards; }
+@keyframes destello { from { opacity: .85; } to { opacity: 0; } }
+.foto-ar { position: fixed; inset: 0; z-index: 85; background: rgba(40, 30, 15, .55); backdrop-filter: blur(4px); display: grid; place-items: center; align-content: center; gap: 14px; padding: 16px; }
+.foto-ar img { max-width: min(92vw, 760px); max-height: 70vh; border-radius: 10px; border: 6px solid #fffaf0; box-shadow: 0 18px 40px rgba(0, 0, 0, .35); }
+.foto-ar .fila { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.ar-guia small { position: absolute; bottom: 11%; max-width: 86vw; text-align: center; font-size: 12.5px; color: #fff; opacity: .92; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
+.foto-ar .btn.sec { background: #fffaf0; }
+
+/* nivel elegido en la portada: sin transición al cargar (evita el parpadeo gris) */
+.inicio .btn.nivel { transition: box-shadow .2s, transform .2s; }
+.inicio .btn.nivel[aria-checked='true'] { background: #1b1a17; color: #f3ecdd; border-color: #1b1a17; }
+
+/* interruptores: toda la etiqueta es área táctil de al menos 44 px de alto */
+.switch { min-height: 44px; align-items: center; cursor: pointer; }
+
+
+/* ===== Ajustes de diseño (21 nov) ===== */
+/* reto: después de responder, las opciones no elegidas se atenúan */
+.opciones.respondida .opcion { cursor: default; }
+.opciones.respondida .opcion:not(.bien):not(.malo) { opacity: .45; }
+
+/* leyenda: en escritorio se ve completa; en celular empieza plegada */
+.ley-boton { display: none; }
+.leyenda .ley-items { display: contents; } /* las muestras se acomodan como antes, directo en la leyenda */
+@media (max-width: 900px) {
+  .leyenda { padding: 6px 8px; }
+  .ley-boton { display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; font: 600 12.5px var(--cuerpo); color: var(--texto); padding: 4px 2px; min-height: 32px; cursor: pointer; }
+  .ley-boton::after { content: '\25BE'; font-size: 11px; transition: transform .2s; }
+  .leyenda.abierta .ley-boton::after { transform: rotate(180deg); }
+  .ley-muestras { display: inline-flex; gap: 2px; }
+  .ley-muestras i { width: 9px; height: 9px; border-radius: 3px; }
+  .leyenda:not(.abierta) .ley-items { display: none; }
+  .leyenda.abierta .ley-boton { flex-basis: 100%; }
+}
+
+/* barra de capas: en pantallas angostas se desvanece en la orilla para indicar que hay más */
+@media (max-width: 900px) {
+  .capas { -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent); }
+  .capas.al-final { -webkit-mask-image: none; mask-image: none; }
+}
+
+/* portada: dos acciones claras; la AR como acción secundaria */
+.inicio .enlace-ar { background: transparent; border: 0; box-shadow: none; color: var(--oro); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
+.inicio .enlace-ar:hover { background: rgba(179, 38, 30, .06); }
+
+
+/* ===== Portada: sismos reales en vivo ===== */
+.sismos-vivo { position: absolute; right: clamp(16px, 3vw, 40px); bottom: clamp(16px, 3vw, 40px); width: min(300px, 34vw); background: rgba(251, 247, 238, .94); border: 1px solid var(--linea); border-radius: 14px; padding: 12px 14px; box-shadow: 0 14px 34px rgba(60, 45, 20, .2); z-index: 2; }
+.sismos-vivo p { margin: 0; color: var(--texto); }
+.sv-etq { font: 500 11px var(--dato); letter-spacing: .12em; text-transform: uppercase; color: var(--oro) !important; display: flex; align-items: center; gap: 8px; }
+.sv-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--oro); animation: svLate 1.6s ease-in-out infinite; }
+@keyframes svLate { 50% { box-shadow: 0 0 0 6px rgba(179, 38, 30, 0); } 0% { box-shadow: 0 0 0 0 rgba(179, 38, 30, .5); } }
+.sv-mapa { width: 100%; height: auto; display: block; margin: 8px 0 6px; }
+.sv-cifra { font: 400 20px/1.2 var(--titular); }
+.sv-cifra b { font-weight: 400; color: var(--oro); }
+.sv-cifra small { font: 11px var(--cuerpo); color: var(--texto-2); }
+.sv-renglon { font-size: 12.5px; color: #2b2823 !important; margin-top: 4px !important; min-height: 2.6em; }
+.sv-renglon span { color: var(--texto-2); }
+@media (max-width: 900px) { .sismos-vivo { position: static; width: 100%; max-width: 420px; margin: 14px auto 0; } }
+@media (prefers-reduced-motion: reduce) { .sv-punto { animation: none; } }
+
+/* ===== Modo guía del stand ===== */
+.guia-stand { max-width: 760px; width: calc(100vw - 32px); }
+.guia-stand h3 { margin: 18px 0 8px; }
+.gs-escenarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.gs-escenarios .btn { flex-direction: column; align-items: flex-start; text-align: left; gap: 2px; padding: 10px 12px; }
+.gs-escenarios .btn small { color: var(--texto-2); font-weight: 400; }
+.gs-controles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.gs-cifras { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.gs-cifras div { padding: 10px 12px; border-radius: 10px; display: grid; gap: 2px; }
+.gs-cifras b { font: 400 26px var(--titular); }
+.gs-cifras span { font-size: 12px; color: var(--texto-2); }
+.barra .marca { -webkit-touch-callout: none; user-select: none; }
+
+/* ---------- simulacro: tarjeta de papel sobre el fondo rojo que late ----------
+   (antes el texto y el botón «Seguir» quedaban en tinta oscura sobre el rojo difuminado) */
+.simulacro { background: rgba(70, 6, 4, 0.62); }
+.sim-tarjeta { background: var(--fondo-2); color: var(--texto); border: 2px solid var(--oro); border-radius: 18px;
+  padding: 22px 26px 24px; width: min(600px, 92vw); box-shadow: 0 24px 70px rgba(20, 0, 0, .45); }
+.sim-tarjeta .sub { color: var(--oro); }
+.sim-tarjeta h2 { color: var(--texto); }
+.sim-tarjeta .nota { color: var(--texto-2); }
+.sim-tarjeta .pasos-hechos span { border-color: rgba(27, 26, 23, .35); color: var(--texto); }
+.sim-tarjeta .pasos-hechos span.hecho { border-color: #2e7d4f; background: rgba(46, 125, 79, .15); }
+.sim-tarjeta .opciones-sim { width: 100%; }
+.sim-tarjeta .opcion-sim { background: #fff; color: var(--texto); border: 2px solid var(--linea); }
+.sim-tarjeta .opcion-sim.bien { background: rgba(46, 125, 79, .14); border-color: #2e7d4f; }
+.sim-tarjeta .opcion-sim.malo { background: rgba(179, 38, 30, .12); border-color: var(--oro); }
+.sim-tarjeta .explica { background: #efe5d0; color: var(--texto); }
+.sim-tarjeta .acciones-ficha { justify-content: center; margin-top: 16px; }
+.sim-tarjeta #sim-ok { background: var(--oro); border-color: var(--oro); color: #fff; min-height: 50px; padding: 0 40px;
+  font-size: 17px; box-shadow: 0 8px 22px rgba(179, 38, 30, .35); }
+.sim-tarjeta #sim-ok:hover { background: var(--oro-2); }
+
+/* ---------- modo visor (VR con celular): solo el lienzo, a pantalla completa ---------- */
+body.en-visor > *:not(#vista) { display: none !important; }
+body.en-visor #vista { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 1000; background: #000; }
+body.en-visor { background: #000; cursor: none; }
+
+/* AR: el fondo es la cámara; el patrón del estado elegido enmarca la vista (no la tapa) */
+body.modo-ar.con-patron .ar-contenedor::after { content: ''; position: absolute; inset: 0; z-index: 12; pointer-events: none;
+  border: 18px solid transparent; border-image: var(--patron) 70 round;
+  box-shadow: inset 0 0 0 2px rgba(27, 26, 23, .45), inset 0 0 24px rgba(27, 26, 23, .35); animation: patronEntra .7s ease; }

@@ -8,7 +8,7 @@ import {
   ESTADOS, REGIONES, ZONAS_SISMICAS, BIOMAS, LIMITES_PLACAS, PLACAS, VOLCANES,
   EJE_NEOVOLCANICO, GEOSITIOS, ESPECIES, SENSORES, MUSEO,
 } from './datos.js';
-import { SITIOS } from './cultura.js';
+import { SITIOS, TRADICIONES } from './cultura.js';
 import { LENGUA_ESTADOS } from './lenguas.js';
 import { ORIGENES } from './sabores.js';
 import { MARAVILLAS, TIPOS_MARAVILLA } from './maravillas.js';
@@ -20,15 +20,20 @@ export function colorLenguas(pct) {
   const n = ESCALA_LENGUAS.length - 1, i = Math.min(n - 1, Math.floor(t * n));
   return new THREE.Color(ESCALA_LENGUAS[i]).lerp(new THREE.Color(ESCALA_LENGUAS[i + 1]), t * n - i).getStyle();
 }
-import { dibujarMarcador } from './marcador.js';
+import { dibujarMesa } from './mesa.js';
+import { cargarDEM, geometriaRelieve, ESCALA_H, EXAGERACION_V } from './relieve-mapa.js';
+import { cargarModelo } from './especie3d.js';
+import { modeloSitio, modeloMaravilla, modeloAlimento, radioSitio, modeloTradicion } from './modelos-sitios.js';
 
-export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgba(10,14,22,0.78)', borde = null, negrita = true, prioridad = 1 } = {}) {
+// icono: id de una pegatina de assets/pegatinas/ui (se dibuja a la izquierda del texto al cargar)
+export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgba(10,14,22,0.78)', borde = null, negrita = true, prioridad = 1, icono = null } = {}) {
   const lineas = String(texto).split('\n');
   const fs = 44;
   const cv = document.createElement('canvas');
   const c = cv.getContext('2d');
   c.font = `${negrita ? '700' : '500'} ${fs}px system-ui, sans-serif`;
-  const w = Math.max(...lineas.map((l) => c.measureText(l).width)) + fs * 0.9;
+  const ancho = icono ? fs * 1.15 : 0;
+  const w = Math.max(...lineas.map((l) => c.measureText(l).width)) + fs * 0.9 + ancho;
   const h = lineas.length * fs * 1.2 + fs * 0.5;
   cv.width = Math.ceil(w);
   cv.height = Math.ceil(h);
@@ -44,10 +49,15 @@ export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgb
   c.fillStyle = color;
   c.textBaseline = 'middle';
   c.textAlign = 'center';
-  lineas.forEach((l, i) => c.fillText(l, cv.width / 2, fs * 0.25 + fs * 0.6 + i * fs * 1.2));
+  lineas.forEach((l, i) => c.fillText(l, (cv.width + ancho) / 2, fs * 0.25 + fs * 0.6 + i * fs * 1.2));
   const tex = new THREE.CanvasTexture(cv);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
+  if (icono) {
+    const img = new Image();
+    img.onload = () => { c.drawImage(img, fs * 0.28, (cv.height - fs * 1.05) / 2, fs * 1.05, fs * 1.05); tex.needsUpdate = true; };
+    img.src = `assets/pegatinas/ui/${icono}.png`;
+  }
   const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
   const s = new THREE.Sprite(mat);
   const alto = tam * (h / (fs * 1.7));
@@ -57,11 +67,23 @@ export function crearEtiqueta(texto, { tam = 0.022, color = '#fff', fondo = 'rgb
   s.userData.etiqueta = true; // participa en el acomodo anti-encimado
   s.userData.prioridad = prioridad;
   s.userData.actualizarTexto = (nuevo) => {
-    const n = crearEtiqueta(nuevo, { tam, color, fondo, borde, negrita });
+    const n = crearEtiqueta(nuevo, { tam, color, fondo, borde, negrita, icono });
     s.material.map.dispose();
     s.material.map = n.material.map;
-    s.scale.copy(n.scale);
+    s.userData.base = n.scale.clone();
+    s.scale.copy(n.scale).multiplyScalar(s.userData.factor || 1);
   };
+  return s;
+}
+
+const cargadorPeg = new THREE.TextureLoader();
+function pegatinaSprite(id, tam = 0.03) {
+  const tex = cargadorPeg.load(`assets/pegatinas/ui/${id}.png`);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: true, transparent: true, alphaTest: 0.05 }));
+  s.scale.set(tam, tam, 1);
+  s.center.set(0.5, 0);
   return s;
 }
 
@@ -81,6 +103,80 @@ function emojiSprite(emoji, tam = 0.03) {
   s.scale.set(tam, tam, 1);
   s.center.set(0.5, 0);
   return s;
+}
+
+// Material «Atlas de Velasco»: Lambert mate (barato en tabletas) con tres
+// toques de dibujo a mano, todo en el mismo shader y sin posproceso:
+//  · rayado suave en las laderas en sombra (más denso cuanto más oscuro,
+//    cruzado en la sombra más honda), que se funde a tono plano al alejarse
+//    para no producir muaré;
+//  · curvas de nivel en sepia cada `curva` metros (más gruesas cada 5),
+//    si la geometría trae el atributo `alturaM`;
+//  · grano de papel muy leve.
+// `rayado` = líneas por unidad del espacio local del objeto.
+export function materialAtlas({ rayado = 4, fuerza = 0.32, curva = 0, luzRef = 1, ...resto } = {}) {
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, ...resto });
+  const u = {
+    uRayado: { value: rayado }, uFuerza: { value: fuerza }, uCurva: { value: curva },
+    uLuzRef: { value: luzRef }, uTinta: { value: new THREE.Color('#3a2a1c') },
+  };
+  mat.userData.uniforms = u;
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, u);
+    if (curva) sh.defines = { ...sh.defines, CURVAS: '' };
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vPosL;
+#ifdef CURVAS
+attribute float alturaM;
+varying float vAltM;
+#endif`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+vPosL = transformed;
+#ifdef CURVAS
+vAltM = alturaM;
+#endif`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>
+uniform float uRayado, uFuerza, uCurva, uLuzRef;
+uniform vec3 uTinta;
+varying vec3 vPosL;
+#ifdef CURVAS
+varying float vAltM;
+#endif
+float atlasLinea(float coord, float medio) {
+  float w = fwidth(coord);
+  float d = abs(fract(coord) - 0.5);
+  float l = 1.0 - smoothstep(medio - w, medio + w, d);
+  // de lejos (líneas de < 3 px) se cambia por su tono medio: sin muaré
+  return mix(l, medio * 2.0, smoothstep(0.18, 0.4, w)) * smoothstep(0.0, 0.04, medio);
+}`)
+      .replace('#include <opaque_fragment>', `{
+  vec3 alb = max(diffuseColor.rgb, vec3(0.03));
+  float luz = dot(outgoingLight / alb, vec3(0.3333)) / uLuzRef;
+  float sombra = 1.0 - smoothstep(0.25, 0.8, luz);
+  vec2 q = vPosL.xz * uRayado;
+  float temblor = sin(q.y * 0.9 + q.x * 0.31) * 0.07; // trazo a mano, no regla
+  float r1 = atlasLinea(dot(q, vec2(0.7071, 0.7071)) + temblor, 0.42 * sombra);
+  float r2 = atlasLinea(dot(q, vec2(-0.7071, 0.7071)) - temblor, 0.5 * max(0.0, sombra - 0.6));
+  float tinta = max(r1, r2) * uFuerza;
+  #ifdef CURVAS
+    float a = vAltM / uCurva, ai = a / 5.0;
+    float fa = fwidth(a), fai = fwidth(ai);
+    float c1 = 1.0 - smoothstep(0.4, 1.1, abs(fract(a + 0.5) - 0.5) / fa);
+    float c5 = 1.0 - smoothstep(0.7, 1.6, abs(fract(ai + 0.5) - 0.5) / fai);
+    c1 *= 1.0 - smoothstep(0.12, 0.3, fa); // curvas demasiado juntas: se omiten
+    c5 *= 1.0 - smoothstep(0.1, 0.25, fai);
+    tinta = max(tinta, max(c1 * 0.22, c5 * 0.42));
+  #endif
+  float grano = fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453);
+  outgoingLight *= 0.985 + grano * 0.03;
+  outgoingLight = mix(outgoingLight, uTinta * 0.35 + outgoingLight * 0.35, tinta);
+}
+#include <opaque_fragment>`);
+  };
+  mat.customProgramCacheKey = () => 'atlas' + (curva ? 'C' : '');
+  return mat;
 }
 
 // Volcán con perfil cóncavo (como los estratovolcanes reales), cráter en la
@@ -107,8 +203,10 @@ function geometriaVolcan(v, h) {
   const geo = new THREE.LatheGeometry(perfil, 72);
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
-  const cBos = new THREE.Color('#3d6a34'), cBos2 = new THREE.Color('#5a7a3a'), cPasto = new THREE.Color('#8a8455');
-  const cRoca = new THREE.Color('#6e5a4c'), cOsc = new THREE.Color('#33261f'), cNieve = new THREE.Color('#f3f6fb');
+  // paleta de atlas (tierras del valle de Velasco): verdes oliva, ocre, sepia y nieve de papel
+  const cBos = new THREE.Color('#5e7744'), cBos2 = new THREE.Color('#6f8550'), cPasto = new THREE.Color('#b3a067');
+  const cRoca = new THREE.Color('#8a6f57'), cOsc = new THREE.Color('#4a3527'), cNieve = new THREE.Color('#f7efe0');
+  const cFalda = new THREE.Color('#bda57a');
   const c = new THREE.Color();
   const mezcla = (a, b, x) => c.copy(a).lerp(b, Math.max(0, Math.min(1, x)));
   for (let i = 0; i < pos.count; i++) {
@@ -117,19 +215,27 @@ function geometriaVolcan(v, h) {
     const ang = Math.atan2(z, x);
     const n = ruido(ang, t);
     // barrancas radiales que se hacen más profundas a media ladera
-    const barranca = 0.09 * Math.pow(Math.max(0, Math.sin(ang * 11 + n * 6)), 6) * Math.sin(Math.PI * Math.min(1, t * 1.1));
-    const f = Math.max(0.6, 1 + n * (1 - t * 0.7) - barranca);
+    // dos familias de surcos (finos y medianos), no pliegues gruesos
+    const barranca = (0.055 * Math.pow(Math.max(0, Math.sin(ang * 17 + n * 6)), 8) + 0.03 * Math.pow(Math.max(0, Math.sin(ang * 31 - n * 9)), 10))
+      * Math.sin(Math.PI * Math.min(1, t * 1.1));
+    // irregular en las laderas, casi redondo en el faldón (sin lóbulos de «col»)
+    const f = Math.max(0.6, 1 + n * (1 - t * 0.7) * (0.35 + 0.65 * Math.min(1, t / 0.18)) - barranca);
     pos.setX(i, x * f); pos.setZ(i, z * f);
     pos.setY(i, y * (1 + n * 0.25 * t * (1 - t)));
     // color por piso de altitud, con límites irregulares (no líneas rectas)
     const altM = v.alt * (0.3 + 0.7 * t) + n * 450;
-    if (t > 0.935) mezcla(cOsc, cRoca, 0.25);
-    else if (altM > 4750) mezcla(cRoca, cNieve, (altM - 4750) / 150);
+    // la nieve baja más por las barrancas (lenguas de hielo) y en la cara norte
+    // (local -z = norte tras girar el cono), que recibe menos sol
+    const lineaNieve = 4750 - (barranca / 0.06) * 260 - Math.max(0, -Math.sin(ang)) * 160;
+    if (t > 0.935) mezcla(cOsc, cRoca, 0.2);
+    else if (altM > lineaNieve) mezcla(cRoca, cNieve, (altM - lineaNieve) / 140);
     else if (altM > 3950) mezcla(cPasto, cRoca, (altM - 3950) / 400);
     else if (altM > 3300) mezcla(cBos2, cPasto, (altM - 3300) / 650);
     else mezcla(cBos, cBos2, (altM - 2200) / 1100);
-    // las barrancas se ven más oscuras
-    c.multiplyScalar(1 - barranca * 2.2);
+    // el faldón se funde con el papel del mapa
+    if (t < 0.08) c.lerp(cFalda, 1 - t / 0.08);
+    // las barrancas se ven más oscuras (menos en la nieve)
+    c.multiplyScalar(1 - barranca * (altM > lineaNieve ? 0.8 : 2.2));
     col.set([c.r, c.g, c.b], i * 3);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
@@ -165,6 +271,7 @@ export class MapaMexico {
     this._sabores();
     this._maravillas();
     this.capas.clima = new THREE.Group();
+    this._tradiciones();
     this.capas.sismo = new THREE.Group();
     this.capas.usgs = new THREE.Group();
     Object.values(this.capas).forEach((g) => this.root.add(g));
@@ -172,11 +279,11 @@ export class MapaMexico {
   }
 
   _papel() {
-    const cv = dibujarMarcador(document.createElement('canvas'), 2048);
+    const cv = dibujarMesa(document.createElement('canvas'), 2048); // fondo tranquilo en pantalla; el marcador AR impreso no cambia
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 8;
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, color: 0x8a8f99 });
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.95, color: 0xffffff });
     this.papel = new THREE.Mesh(new THREE.PlaneGeometry(1, MARCADOR_ASPECTO), mat);
     this.papel.position.z = -0.0005;
     this.papel.receiveShadow = true;
@@ -238,7 +345,7 @@ export class MapaMexico {
     const bola = new THREE.Mesh(new THREE.SphereGeometry(0.0055, 20, 14), new THREE.MeshStandardMaterial({ color: 0xffc21a, emissive: 0x8a5a00, emissiveIntensity: 0.6 }));
     bola.position.z = 0.052;
     pin.add(palo, bola);
-    const lbl = crearEtiqueta('★ Museo El Rehilete', { prioridad: 10, tam: 0.017, color: '#1a1200', fondo: 'rgba(255,205,60,0.95)' });
+    const lbl = crearEtiqueta('Museo El Rehilete', { icono: 'museo', prioridad: 10, tam: 0.017, color: '#fbf7ee', fondo: 'rgba(179,38,30,0.96)', borde: '#fbf7ee' });
     lbl.position.z = 0.062;
     pin.add(lbl);
     pin.position.copy(V(MUSEO.lon, MUSEO.lat, 0));
@@ -414,10 +521,13 @@ export class MapaMexico {
     g.add(lblEje);
 
     this.volcanes = [];
+    let matVolcan = null;
     for (const v of VOLCANES) {
       const h = 0.005 + (v.alt / 5636) * 0.022; // altura discreta: realista sin tapar el mapa
       const grupo = new THREE.Group();
-      const cono = new THREE.Mesh(geometriaVolcan(v, h), new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85 }));
+      // un solo material (un programa de shader) para todos los conos
+      matVolcan ??= materialAtlas({ rayado: 320, fuerza: 0.3, luzRef: 0.93 });
+      const cono = new THREE.Mesh(geometriaVolcan(v, h), matVolcan);
       cono.rotation.x = Math.PI / 2;
       // el Iztaccíhuatl es una sierra alargada de norte a sur ("la mujer dormida")
       if (v.nombre === 'Iztaccíhuatl') cono.scale.set(0.8, 0.85, 2.1);
@@ -431,23 +541,107 @@ export class MapaMexico {
       this.pickables.push(cono);
       g.add(grupo);
       const reg = { v, grupo, h, humo: null, erupcion: null, lbl };
-      if (v.activo) reg.humo = this._humo(grupo, h);
+      if (v.activo) reg.humo = this._humo(grupo, () => reg.h);
       this.volcanes.push(reg);
     }
+    this._relieveVolcanes(g, matVolcan);
 
+    // geositios: prisma basáltico hexagonal en tinta, geometría y material compartidos
+    const geoPrisma = new THREE.CylinderGeometry(0.0045, 0.0045, 0.012, 6);
+    const matPrisma = new THREE.MeshStandardMaterial({ color: 0x2e2a26, roughness: 0.55, metalness: 0.1, flatShading: true });
     for (const s of GEOSITIOS) {
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.012, 6), new THREE.MeshStandardMaterial({ color: 0x2b2f3a, roughness: 0.4, metalness: 0.3, flatShading: true }));
+      const m = new THREE.Mesh(geoPrisma, matPrisma);
       m.rotation.x = Math.PI / 2;
       m.position.copy(V(s.lon, s.lat, 0.04));
       m.userData = { tipo: 'geositio', data: s };
-      const lbl = crearEtiqueta('⬡ ' + s.nombre, { prioridad: s.nombre.startsWith('Prismas') ? 4 : 2, tam: 0.012, color: '#e7f1ff', fondo: 'rgba(20,30,60,0.8)', negrita: false });
+      const lbl = crearEtiqueta(s.nombre, { icono: 'mision-geoparque', prioridad: s.nombre.startsWith('Prismas') ? 4 : 2, tam: 0.012, color: '#e7f1ff', fondo: 'rgba(20,30,60,0.8)', negrita: false });
       lbl.position.copy(m.position).add(new THREE.Vector3(0, 0, 0.01));
       this.pickables.push(m);
       g.add(m, lbl);
     }
   }
 
-  _humo(grupo, h, n = 40) {
+  // Relieve real de los volcanes (modelo digital de elevación). Mientras carga se ven los conos;
+  // al llegar los datos, el cono queda invisible (sigue sirviendo para tocar el volcán) y en su
+  // lugar aparece el terreno real: misma forma, cráter y barrancas, a escala ×ESCALA_H y altura ×EXAGERACION_V.
+  // estado bajo un punto (para que el relieve se apoye en la cara de arriba del estado, que sube y baja)
+  _estadoEn(lon, lat) {
+    this.root.updateMatrixWorld(true);
+    const origen = this.root.localToWorld(V(lon, lat, 1));
+    const abajo = this.root.localToWorld(V(lon, lat, 0)).sub(origen).normalize();
+    const ray = new THREE.Raycaster(origen, abajo);
+    const mallas = [...this.estados.values()].map((r) => r.mesh);
+    const hit = ray.intersectObjects(mallas, false)[0];
+    return hit ? [...this.estados.values()].find((r) => r.mesh === hit.object) : null;
+  }
+
+  async _relieveVolcanes(g, mat) {
+    const invisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false });
+    const porDEM = new Map();
+    for (const reg of this.volcanes) if (reg.v.relieve) (porDEM.get(reg.v.relieve) || porDEM.set(reg.v.relieve, []).get(reg.v.relieve)).push(reg);
+    await Promise.all([...porDEM.entries()].map(async ([id, regs]) => {
+      const dem = await cargarDEM(id);
+      if (!dem) return;
+      const lon = (dem.lon0 + dem.lon1) / 2, lat = (dem.lat0 + dem.lat1) / 2;
+      const radio = ((dem.lat1 - dem.lat0) / 2) * 0.98;
+      const r = geometriaRelieve(dem, lon, lat, radio);
+      const malla = new THREE.Mesh(r.geometria, this._matRelieve ??= materialAtlas({ rayado: 320, fuerza: 0.3, luzRef: 0.93, transparent: true }));
+      malla.rotation.x = Math.PI / 2;
+      malla.position.copy(V(lon, lat, 0));
+      malla.castShadow = true; malla.receiveShadow = true;
+      malla.userData.relieveReal = id;
+      g.add(malla);
+      for (const reg of regs) {
+        const cono = reg.grupo.children.find((o) => o.isMesh && o.userData?.tipo === 'volcan');
+        if (cono) { cono.material = invisible; cono.castShadow = false; }
+        reg.h = Math.max(0.0015, r.alturaEn(reg.v.lon, reg.v.lat)) + 0.0003;
+        reg.lbl.position.z = reg.h + 0.004;
+        reg.relieve = malla;
+      }
+      // el relieve y el volcán (humo, etiqueta, erupción) se apoyan siempre sobre la cara del estado
+      const est = this._estadoEn(lon, lat);
+      this.animables.push(() => {
+        const zt = est ? est.altura : 0.001;
+        malla.position.z = zt + 0.0003;
+        for (const reg of regs) reg.grupo.position.z = zt;
+      });
+    }));
+    this.relieveListo = true;
+  }
+
+  // Relieve real de las maravillas montañosas (bajo su símbolo)
+  async _relieveLugares(g) {
+    const mat = this._matRelieve ??= materialAtlas({ rayado: 320, fuerza: 0.3, luzRef: 0.93, transparent: true });
+    for (const mv of MARAVILLAS) {
+      if (!mv.relieve) continue;
+      const dem = await cargarDEM(mv.relieve);
+      if (!dem) continue;
+      const lon = (dem.lon0 + dem.lon1) / 2, lat = (dem.lat0 + dem.lat1) / 2;
+      const r = geometriaRelieve(dem, lon, lat, ((dem.lat1 - dem.lat0) / 2) * 0.98, { anillos: 26, sectores: 80 });
+      const malla = new THREE.Mesh(r.geometria, mat);
+      malla.rotation.x = Math.PI / 2;
+      malla.position.copy(V(lon, lat, 0));
+      malla.receiveShadow = true;
+      g.add(malla);
+      // el relieve se apoya en la cara del estado y el símbolo se sube a la cima
+      const simbolo = this.maravillas.get(mv.id)?.m;
+      const cima = r.alturaEn(mv.lon, mv.lat, 0.02);
+      // con relieve real, el símbolo se vuelve un marcador chico sobre la cima (sin la base de piedra)
+      if (simbolo) {
+        simbolo.scale.setScalar(0.62);
+        const disco = simbolo.children.find((o) => o.isMesh && o.geometry?.type === 'CylinderGeometry' && o.geometry.parameters.radiusBottom === 0.0085);
+        if (disco) disco.visible = false;
+      }
+      const est = this._estadoEn(lon, lat);
+      this.animables.push(() => {
+        const zt = est ? est.altura : 0.001;
+        malla.position.z = zt + 0.0003;
+        if (simbolo) simbolo.position.z = zt + 0.0015 + cima;
+      });
+    }
+  }
+
+  _humo(grupo, alturaFn, n = 40) {
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(n * 3);
     const vida = new Float32Array(n);
@@ -465,7 +659,7 @@ export class MapaMexico {
         const a = i * 2.399;
         pos[i * 3] = Math.cos(a) * v * 0.006 + v * 0.012;
         pos[i * 3 + 1] = Math.sin(a) * v * 0.006;
-        pos[i * 3 + 2] = h + v * 0.028;
+        pos[i * 3 + 2] = (typeof alturaFn === 'function' ? alturaFn() : alturaFn) + v * 0.028;
       }
       geo.attributes.position.needsUpdate = true;
     };
@@ -521,84 +715,60 @@ export class MapaMexico {
     this.capas.biodiversidad = g;
     this.especies = [];
     for (const e of ESPECIES) {
-      const s = emojiSprite(e.emoji, 0.03);
+      const s = pegatinaSprite(e.icono, 0.034);
       s.position.copy(V(e.lon, e.lat, 0.03));
       s.userData = { tipo: 'especie', data: e };
       this.pickables.push(s);
       g.add(s);
       const fase = Math.random() * 6;
-      this.animables.push((t) => { s.position.z = 0.03 + Math.sin(t * 2 + fase) * 0.003; });
+      this.animables.push((t) => { if (s.visible) s.position.z = 0.03 + Math.sin(t * 2 + fase) * 0.003; });
       this.especies.push(s);
     }
   }
 
-  // Sitios de cultura e historia: pirámides escalonadas (prehispánicos),
-  // templos con cúpula (virreinales) y estrellas (historia moderna).
+  // Modelos 3D reales: cuando existe el modelo de una especie, sustituye a su pegatina en el mapa.
+  // Todos al mismo tamaño de ícono (el tamaño real se ve en el visor «Ver a tamaño real»).
+  async _modelosEspecies(g) {
+    const TAM = 0.03;
+    await Promise.all(this.especies.map(async (s) => {
+      const e = s.userData.data;
+      const m = await cargarModelo(e.icono, true);
+      if (!m) return;
+      m.scale.multiplyScalar(TAM);
+      const giro = new THREE.Group();
+      giro.rotation.x = Math.PI / 2; // los modelos vienen con «arriba» = y; el mapa usa z
+      giro.add(m);
+      const base = new THREE.Group();
+      base.position.copy(V(e.lon, e.lat, 0));
+      base.add(giro);
+      m.traverse((o) => { if (o.isMesh) { o.userData = { tipo: 'especie', data: e }; this.pickables.push(o); } });
+      g.add(base);
+      s.visible = false; // la pegatina queda guardada por si el modelo se quita
+      this.pickables = this.pickables.filter((o) => o !== s);
+      const est = this._estadoEn(e.lon, e.lat);
+      const fase = Math.random() * 6;
+      this.animables.push((t) => {
+        base.position.z = (est ? est.altura : 0.001) + 0.0004;
+        giro.rotation.y = Math.sin(t * 0.4 + fase) * 0.5; // gira despacio para que se lea su forma
+      });
+    }));
+  }
+
+  // Sitios de Historia: cada uno con su maqueta fiel (modelos-sitios.js). Si un sitio nuevo
+  // todavía no tiene maqueta, se marca con una losa de piedra sencilla.
   _cultura() {
     const g = new THREE.Group();
     this.capas.cultura = g;
     this.sitios = [];
-    const piedra = new THREE.MeshStandardMaterial({ color: 0xc9b48a, roughness: 0.85 });
-    const cantera = new THREE.MeshStandardMaterial({ color: 0xe0b9a0, roughness: 0.7 });
-    const oro = new THREE.MeshStandardMaterial({ color: 0xffc21a, emissive: 0x7a5200, emissiveIntensity: 0.5 });
-    const piedraOsc = new THREE.MeshStandardMaterial({ color: 0xb09a72, roughness: 0.9 });
-    const escalera = new THREE.MeshStandardMaterial({ color: 0x8f7b58, roughness: 0.9 });
-    const techo = new THREE.MeshStandardMaterial({ color: 0x9b3d2a, roughness: 0.7 });
-    const azulejo = new THREE.MeshStandardMaterial({ color: 0x2f6fb5, roughness: 0.35, metalness: 0.1 });
+    const losa = new THREE.MeshStandardMaterial({ color: 0xc9b48a, roughness: 0.85 });
     for (const s of SITIOS) {
       const m = new THREE.Group();
-      // tronco de pirámide cuadrado (talud) con eje vertical en Z
-      const talud = (abajo, arriba, alto, z, mat) => {
-        const geo = new THREE.CylinderGeometry(arriba * Math.SQRT1_2, abajo * Math.SQRT1_2, alto, 4, 1);
-        geo.rotateY(Math.PI / 4);
-        geo.rotateX(Math.PI / 2);
-        const t = new THREE.Mesh(geo, mat);
-        t.position.z = z + alto / 2;
-        t.castShadow = true;
-        return t;
-      };
-      const caja = (x, y, z, sx, sy, sz, mat) => {
-        const b = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
-        b.position.set(x, y, z + sz / 2);
-        b.castShadow = true;
-        return b;
-      };
-      if (s.tipo === 'arqueologico') {
-        // pirámide mesoamericana: 4 cuerpos en talud, escalinata al frente y templo
-        let z = 0;
-        const cuerpos = [[0.012, 0.0102], [0.0096, 0.0080], [0.0074, 0.0060], [0.0054, 0.0042]];
-        cuerpos.forEach(([a, b], k) => { m.add(talud(a, b, 0.0024, z, k % 2 ? piedraOsc : piedra)); z += 0.0024; });
-        // escalinata inclinada en la cara sur
-        const esc = new THREE.Mesh(new THREE.BoxGeometry(0.0026, 0.0012, 0.011), escalera);
-        esc.position.set(0, -0.0042, z / 2);
-        esc.rotation.x = -0.62;
-        m.add(esc);
-        m.add(caja(0, 0, z, 0.0034, 0.003, 0.0024, cantera));
-        m.add(talud(0.0044, 0.0008, 0.0016, z + 0.0024, techo));
-      } else if (s.tipo === 'virreinal') {
-        // templo virreinal: nave, fachada, dos torres con remate y cúpula de azulejo
-        m.add(caja(0, 0.001, 0, 0.0062, 0.012, 0.0056, cantera));
-        for (const x of [-0.0036, 0.0036]) {
-          m.add(caja(x, -0.0052, 0, 0.0026, 0.0026, 0.0098, cantera));
-          m.add(talud(0.0026, 0.0004, 0.0026, 0.0098, techo));
-        }
-        const cup = new THREE.Mesh(new THREE.SphereGeometry(0.0028, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), azulejo);
-        cup.rotation.x = Math.PI / 2;
-        cup.position.set(0, 0.0032, 0.0056);
-        const linterna = caja(0, 0.0032, 0.0082, 0.0009, 0.0009, 0.0016, cantera);
-        m.add(cup, linterna);
-      } else {
-        // columna conmemorativa con figura dorada
-        m.add(caja(0, 0, 0, 0.0062, 0.0062, 0.0018, cantera));
-        m.add(caja(0, 0, 0.0018, 0.0042, 0.0042, 0.0016, cantera));
-        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.0011, 0.0013, 0.012, 14), cantera);
-        col.rotation.x = Math.PI / 2;
-        col.position.z = 0.0034 + 0.006;
-        const figura = new THREE.Mesh(new THREE.OctahedronGeometry(0.0022), oro);
-        figura.scale.set(1, 1, 1.5);
-        figura.position.z = 0.0034 + 0.012 + 0.0024;
-        m.add(col, figura);
-        this.animables.push((t) => { if (g.visible) figura.rotation.z = t * 1.2; });
+      const maqueta = modeloSitio(s.id);
+      if (maqueta) m.add(maqueta);
+      else {
+        const b = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.008, 0.003), losa);
+        b.position.z = 0.0015;
+        m.add(b);
       }
       const zona = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.018, 0.02), new THREE.MeshBasicMaterial({ visible: false }));
       zona.position.z = 0.01;
@@ -613,6 +783,7 @@ export class MapaMexico {
       g.add(m);
       this.sitios.push({ s, m, lbl, objetivo: 1, actual: 1 });
     }
+    this._separarSitios(g);
     this.animables.push((t, dt) => {
       if (!g.visible) return;
       for (const r of this.sitios) {
@@ -641,12 +812,14 @@ export class MapaMexico {
       const aro = new THREE.Mesh(new THREE.TorusGeometry(0.0047, 0.0007, 8, 24), bordeMat);
       aro.position.z = 0.0105;
       // el alimento: forma alargada (maíz, chile, cacao) o redonda (calabaza)
-      const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.55 });
-      const fruto = new THREE.Mesh(new THREE.SphereGeometry(0.0034, 16, 12), mat);
-      const forma = { Maíz: [0.75, 0.75, 2.2], Calabaza: [1.25, 1.25, 1], Chile: [0.6, 0.6, 2.4], Cacao: [0.95, 0.95, 1.7], Frijol: [1.3, 0.8, 0.85] }[o.alimento] || [1, 1, 1];
-      fruto.scale.set(...forma);
-      fruto.position.z = 0.012 + 0.0034 * forma[2] * 0.7;
-      if (o.alimento === 'Chile') fruto.rotation.y = 0.5;
+      // modelo del alimento (mazorca, calabaza, chile, cacao, frijoles: modelos-sitios.js)
+      let fruto = modeloAlimento(o.alimento, o.color);
+      if (fruto) fruto.position.z = 0.0098;
+      else {
+        const mat = new THREE.MeshStandardMaterial({ color: o.color, roughness: 0.55 });
+        fruto = new THREE.Mesh(new THREE.SphereGeometry(0.0034, 16, 12), mat);
+        fruto.position.z = 0.0136;
+      }
       m.add(vasija, aro, fruto);
       const zona = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.03), new THREE.MeshBasicMaterial({ visible: false }));
       zona.position.z = 0.014;
@@ -664,46 +837,77 @@ export class MapaMexico {
     }
   }
 
-  // Maravillas naturales: una base de piedra con un símbolo por tipo
-  // (árbol = natural, pirámide en selva = mixto, prisma de basalto = geoparque,
-  // anillo de agua = cenotes). Al visitarlas se marcan con un brillo.
+  // Capa Cultura: los ocho elementos del Patrimonio Cultural Inmaterial de la UNESCO como piezas
+  // (palo volador, máscara de parachico, guitarra, metate, ofrenda, guitarrón, sombrero de charro,
+  // jarrón de talavera) en su lugar de origen.
+  _tradiciones() {
+    const g = new THREE.Group();
+    this.capas.tradiciones = g;
+    for (const d of TRADICIONES) {
+      const m = new THREE.Group();
+      const pieza = modeloTradicion(d.id);
+      if (pieza) {
+        m.add(pieza);
+        if (pieza.userData.animar) this.animables.push((t) => { if (g.visible) pieza.userData.animar(t); });
+      }
+      const zona = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.014, 0.024), new THREE.MeshBasicMaterial({ visible: false }));
+      zona.position.z = 0.012;
+      zona.userData = { tipo: 'tradicion', data: d };
+      m.add(zona);
+      this.pickables.push(zona);
+      const lbl = crearEtiqueta(d.nombre.replace(/ \(paradigma de Michoacán\)|, tradición ecuestre|: música de cuerdas, canto y trompeta|, canto de los p’urhépecha/, ''), { prioridad: 3, tam: 0.012, color: '#fff3dc', fondo: 'rgba(120,24,18,0.82)', negrita: false });
+      lbl.position.z = d.id === 'voladores' ? 0.04 : 0.026;
+      m.add(lbl);
+      m.position.copy(V(d.lon, d.lat, 0.011));
+      g.add(m);
+    }
+  }
+
+  // En el centro del país hay muchos sitios a pocos kilómetros (Teotihuacan, Tenochtitlan, Tula,
+  // Tembleque, Real del Monte, Pachuca…): sus maquetas se encimaban. Se separan lo justo para que
+  // no se toquen y cada una queda unida a su ubicación real con una línea fina y un punto,
+  // como las llamadas de un mapa impreso.
+  _separarSitios(g) {
+    const L = this.sitios.map((r) => ({ r, x: r.m.position.x, y: r.m.position.y, x0: r.m.position.x, y0: r.m.position.y, rad: radioSitio(r.s.id) * 1.5 * 0.6 }));
+    for (let it = 0; it < 120; it++) {
+      for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) {
+        const a = L[i], b = L[j];
+        let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+        const min = a.rad + b.rad;
+        if (d >= min) continue;
+        if (d < 1e-6) { dx = 1; dy = 0; d = 1; }
+        const e = (min - d) / 2;
+        a.x -= (dx / d) * e; a.y -= (dy / d) * e; b.x += (dx / d) * e; b.y += (dy / d) * e;
+      }
+      for (const a of L) { a.x += (a.x0 - a.x) * 0.03; a.y += (a.y0 - a.y) * 0.03; } // resorte hacia su lugar
+    }
+    const tinta = new THREE.LineBasicMaterial({ color: 0x3a2a1c, transparent: true, opacity: 0.75 });
+    const punto = new THREE.MeshBasicMaterial({ color: 0x3a2a1c });
+    const geoPunto = new THREE.CircleGeometry(0.0011, 12);
+    for (const a of L) {
+      if (Math.hypot(a.x - a.x0, a.y - a.y0) < 0.002) continue;
+      a.r.m.position.x = a.x; a.r.m.position.y = a.y;
+      const z = 0.0125;
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x0, a.y0, z), new THREE.Vector3(a.x, a.y, z)]), tinta));
+      const p = new THREE.Mesh(geoPunto, punto); p.position.set(a.x0, a.y0, z + 0.0001); g.add(p);
+    }
+  }
+
+  // Maravillas: maqueta fiel de cada lugar (modelos-sitios.js) sobre un aro del color de su tipo
+  // (natural, mixto, geoparque, cenotes), que brilla al visitarla.
   _maravillas() {
     const g = new THREE.Group();
     this.capas.maravillas = g;
     this.maravillas = new Map();
-    const base = new THREE.MeshStandardMaterial({ color: 0x8a8070, roughness: 0.9 });
     for (const mv of MARAVILLAS) {
       const color = new THREE.Color(TIPOS_MARAVILLA[mv.tipo].color);
       const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.5, emissive: color, emissiveIntensity: 0 });
       const m = new THREE.Group();
-      const disco = new THREE.Mesh(new THREE.CylinderGeometry(0.0075, 0.0085, 0.002, 24), base);
-      disco.rotation.x = Math.PI / 2;
-      disco.position.z = 0.001;
-      m.add(disco);
-      const add = (geo, z, rot = true) => { const o = new THREE.Mesh(geo, mat); if (rot) o.rotation.x = Math.PI / 2; o.position.z = z; m.add(o); return o; };
-      let icono;
-      if (mv.tipo === 'natural') {
-        // árbol estilizado: tronco y copa en dos conos
-        const tronco = new THREE.Mesh(new THREE.CylinderGeometry(0.0009, 0.0011, 0.004, 8), base);
-        tronco.rotation.x = Math.PI / 2; tronco.position.z = 0.004; m.add(tronco);
-        add(new THREE.ConeGeometry(0.0055, 0.008, 12), 0.009);
-        icono = add(new THREE.ConeGeometry(0.004, 0.006, 12), 0.0135);
-      } else if (mv.tipo === 'mixto') {
-        add(new THREE.CylinderGeometry(0.0035, 0.0055, 0.004, 4), 0.004).rotation.y = Math.PI / 4;
-        icono = add(new THREE.CylinderGeometry(0.002, 0.0034, 0.0035, 4), 0.0077);
-        icono.rotation.y = Math.PI / 4;
-      } else if (mv.tipo === 'geoparque') {
-        // haz de prismas hexagonales de distinta altura
-        [[0, 0, 0.012], [0.0034, 0.001, 0.009], [-0.003, 0.0016, 0.0075], [0.0006, -0.0034, 0.0065]].forEach(([x, y, h], k) => {
-          const p = add(new THREE.CylinderGeometry(0.0017, 0.0017, h, 6), h / 2 + 0.002);
-          p.position.x = x; p.position.y = y;
-          if (k === 0) icono = p;
-        });
-      } else {
-        icono = add(new THREE.TorusGeometry(0.0045, 0.0013, 10, 28), 0.004, false);
-        const agua = new THREE.Mesh(new THREE.CircleGeometry(0.0034, 24), new THREE.MeshStandardMaterial({ color: 0x1f7fb0, roughness: 0.2, metalness: 0.2 }));
-        agua.position.z = 0.0035; m.add(agua);
-      }
+      const aro = new THREE.Mesh(new THREE.TorusGeometry(0.0083, 0.0007, 6, 40), mat);
+      aro.position.z = 0.0006;
+      m.add(aro);
+      const maqueta = modeloMaravilla(mv.id);
+      if (maqueta) m.add(maqueta);
       const zona = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.016, 0.026), new THREE.MeshBasicMaterial({ visible: false }));
       zona.position.z = 0.012;
       zona.userData = { tipo: 'maravilla', data: mv };
@@ -716,9 +920,8 @@ export class MapaMexico {
       m.scale.setScalar(1.35);
       g.add(m);
       this.maravillas.set(mv.id, { m, mat });
-      const fase = mv.lon, z0 = icono.position.z;
-      this.animables.push((t) => { if (g.visible) icono.position.z = z0 + Math.sin(t * 1.8 + fase) * 0.0005; });
     }
+    this._relieveLugares(g);
   }
 
   // Marca una maravilla como visitada (brillo suave permanente)
@@ -742,12 +945,14 @@ export class MapaMexico {
       biodiversidad: ['comun', 'biodiversidad'],
       clima: ['comun', 'clima'],
       historia: ['comun', 'cultura'], // el grupo «cultura» contiene los sitios históricos
-      cultura: ['comun'],
+      cultura: ['comun', 'tradiciones'],
       lenguas: ['comun'],
       sabores: ['comun', 'sabores'],
       maravillas: ['comun', 'maravillas'],
     }[capa];
     Object.entries(this.capas).forEach(([k, g]) => { g.visible = vis.includes(k); });
+    // los modelos 3D de especies se descargan la primera vez que se abre Biodiversidad, no al arrancar
+    if (capa === 'biodiversidad' && !this._especiesPedidas) { this._especiesPedidas = true; this._modelosEspecies(this.capas.biodiversidad); }
     this.setSubsuelo(this.subsueloActivo ?? true);
     for (const r of this.estados.values()) {
       const { info } = r;
@@ -816,6 +1021,44 @@ export class MapaMexico {
     this.seleccion = id;
   }
 
+  // Patrón artesanal del estado (assets/patrones/<id>.jpg) tejido sobre su relieve 3D. Al ser parte
+  // del mapa se ve igual en pantalla, en AR sobre la mesa y en el visor VR (donde el fondo de la
+  // página no existe). null lo quita.
+  setPatron(id) {
+    if (this._patron?.id === id) return;
+    if (this._patron) {
+      this._patron.malla.removeFromParent();
+      this._patron.malla.material[0].map?.dispose();
+      this._patron.malla.material.forEach((m) => m.dispose());
+      this._patron = null;
+    }
+    const r = id && this.estados.get(id);
+    if (!r) return;
+    const tex = new THREE.TextureLoader().load(`assets/patrones/${id}.jpg`);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(1 / 0.034, 1 / 0.034); // un mosaico ≈ 0.034 unidades (unos 120 km del mapa)
+    tex.anisotropy = 4;
+    // misma geometría que el estado, como «tela» encima: comparte su altura animada (es hija de la malla)
+    // la extrusión trae dos grupos: 0 = tapas (cara superior), 1 = paredes; el patrón va solo arriba
+    const sinParedes = new THREE.MeshBasicMaterial({ visible: false });
+    const malla = new THREE.Mesh(r.mesh.geometry, [new THREE.MeshStandardMaterial({
+      map: tex, roughness: 0.85, transparent: true, opacity: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    }), sinParedes]);
+    malla.receiveShadow = true;
+    malla.raycast = () => {}; // los toques siguen yendo al estado
+    r.mesh.add(malla);
+    this._patron = { id, malla };
+    const t0 = this.tiempo;
+    this.animables.push(() => { // aparece suave en medio segundo
+      if (this._patron?.malla !== malla) return false;
+      const k = Math.min(1, (this.tiempo - t0) / 0.5);
+      const m = malla.material[0];
+      m.opacity = k * 0.95;
+      if (k >= 1) { m.transparent = false; m.opacity = 1; m.needsUpdate = true; return false; }
+    });
+  }
+
   setHover(id) {
     this.hover = id;
   }
@@ -824,6 +1067,8 @@ export class MapaMexico {
   update(dt) {
     this.tiempo += dt;
     const t = this.tiempo;
+    // las capas ocultas no recalculan las matrices de sus cientos de objetos en cada cuadro
+    for (const g of Object.values(this.capas)) g.matrixWorldAutoUpdate = g.visible;
     const k = 1 - Math.pow(0.0015, dt);
     for (const r of this.estados.values()) {
       const sel = r.id === this.seleccion;
@@ -863,7 +1108,16 @@ export class MapaMexico {
       p.project(cam); q.project(cam);
       if (p.z > 1) { s.material.opacity = 0; continue; }
       const x = (p.x * 0.5 + 0.5) * W, y = (-p.y * 0.5 + 0.5) * H;
-      const h = Math.abs(((-q.y * 0.5 + 0.5) * H) - y);
+      let h = Math.abs(((-q.y * 0.5 + 0.5) * H) - y);
+      // tamaño legible a cualquier distancia (sobre todo en AR, donde la tablet se acerca y se aleja):
+      // la etiqueta se escala para medir entre 14 y 30 px de alto en pantalla
+      const ud = s.userData;
+      if (!ud.base) { ud.base = s.scale.clone(); ud.factor = 1; }
+      const hBase = h / ud.factor;
+      const objetivo = THREE.MathUtils.clamp(hBase, 14, 30);
+      const f = THREE.MathUtils.clamp(objetivo / Math.max(1e-3, hBase), 0.3, 4);
+      if (Math.abs(f - ud.factor) > 0.03) { ud.factor = f; s.scale.copy(ud.base).multiplyScalar(f); }
+      h = hBase * ud.factor;
       const w = h * (esc.x / esc.y);
       const r = { a: x - w / 2 - 2, b: y - h - 2, c: x + w / 2 + 2, d: y + 2 };
       const choca = ocupado.some((o) => r.a < o.c && r.c > o.a && r.b < o.d && r.d > o.b);

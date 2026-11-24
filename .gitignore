@@ -5,3 +5,6 @@ desktop.ini
 # editores
 .vscode/
 .idea/
+
+# herramientas internas de revisión (no se publican en GitHub Pages)
+herramientas/galeria-modelos.html

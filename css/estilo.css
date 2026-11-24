@@ -24,11 +24,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
   font-family: var(--cuerpo);
   color: var(--texto);
-  background:
-    radial-gradient(ellipse at 30% 20%, #1a2a52 0%, transparent 55%),
-    radial-gradient(ellipse at 80% 90%, #3a1f12 0%, transparent 50%),
-    var(--fondo);
-  font-size: 14px;
+  /* fondo calmado: un solo claro detrás del mapa, sin manchas de color que compitan */
+  background: radial-gradient(ellipse 70% 60% at 45% 45%, #17264a 0%, #0c1428 55%, var(--fondo) 100%);
+  font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -39,7 +37,7 @@ p { margin: 0 0 0.8em; }
 a { color: var(--oro); }
 b { color: #fff; font-weight: 600; }
 .sub { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--oro); margin: 0 0 4px; font-weight: 600; }
-.nota { color: var(--texto-2); font-size: 12.5px; }
+.nota { color: var(--texto-2); font-size: 13.5px; }
 [hidden] { display: none !important; }
 
 /* ---------- vista 3D ---------- */
@@ -654,7 +652,7 @@ body.sencillo .no-exploradores { display: none; }
 .lista-maravillas li[data-id] { display: grid; gap: 1px; padding: 7px 10px; margin: 0 0 4px; border-radius: 9px; background: var(--vidrio-2); border: 1px solid var(--linea); cursor: pointer; font-size: 13px; }
 .lista-maravillas li[data-id]:hover { border-color: #2fae7a; }
 .lista-maravillas li[data-id] small { color: var(--texto-2); font-size: 11.5px; }
-.lista-maravillas li.vista b::after { content: ' ✓'; color: #3ddc97; }
+.lista-maravillas li.vista b::after { content: ''; display: inline-block; width: 1.1em; height: 1.1em; margin-left: 4px; vertical-align: -0.2em; background: url(../assets/pegatinas/ui/correcto.png) center / contain no-repeat; }
 .m-pregunta { font-size: 14.5px; }
 .m-opciones { display: grid; gap: 6px; margin: 6px 0 10px; }
 .m-opciones .btn { text-align: left; justify-content: flex-start; }
@@ -738,3 +736,171 @@ body:not(.modo-ar) .axo, body.barra-doble:not(.modo-ar) .axo, body.panel-plegado
   .axo-globo.completo p { display: block; -webkit-line-clamp: unset; overflow: visible; }
   .axo-acciones { margin-top: 6px; }
 }
+
+/* ---------- botón «Simular» flotante sobre el mapa (capa Sismos) ---------- */
+.sim-flotante {
+  position: fixed; z-index: 12; right: calc(var(--panel-ancho, 0px) + 20px); bottom: 20px;
+  padding: 14px 22px; font-size: 17px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+body:not([data-capa="tectonica"]) .sim-flotante { display: none; }
+body.panel-plegado .sim-flotante { right: 20px; }
+@media (max-width: 900px) {
+  /* junto a la leyenda, que se recorre para dejarle lugar (arriba lo tapa el globo de Axo) */
+  .sim-flotante { right: 8px; bottom: calc(42vh + 6px); padding: 10px 16px; font-size: 16px; }
+  body[data-capa="tectonica"] .leyenda { right: 132px; }
+  body.panel-plegado .sim-flotante { bottom: 34px; }
+  body.modo-ar .sim-flotante { bottom: calc(34vh + 10px); }
+}
+
+/* ---------- barra de capas: orillas difuminadas cuando hay más pestañas ---------- */
+.capas.mas-der { -webkit-mask-image: linear-gradient(to right, #000 85%, transparent); mask-image: linear-gradient(to right, #000 85%, transparent); }
+.capas.mas-izq { -webkit-mask-image: linear-gradient(to left, #000 85%, transparent); mask-image: linear-gradient(to left, #000 85%, transparent); }
+.capas.mas-izq.mas-der { -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent); mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent); }
+
+/* ---------- cuenta regresiva hasta la onda S ---------- */
+.cuenta-s {
+  position: fixed; left: 50%; top: 170px; transform: translateX(-50%); z-index: 39; pointer-events: none;
+  display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 260px;
+  background: rgba(8, 12, 24, 0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 2px solid #ff4040; border-radius: 18px; padding: 10px 26px 14px; box-shadow: 0 12px 40px rgba(255, 40, 40, 0.35);
+}
+.cuenta-s[hidden] { display: none; }
+body:not(.modo-ar) .cuenta-s { margin-left: calc(var(--panel-ancho) / -2); }
+body.panel-plegado .cuenta-s { margin-left: 0; }
+body:not([data-capa="tectonica"]) .cuenta-s { display: none; }
+.cuenta-s small { font-weight: 700; letter-spacing: 0.04em; color: #ffb3b3; }
+.cuenta-s b { font: 800 84px/1 var(--display); color: #fff; font-variant-numeric: tabular-nums; }
+.cuenta-s span { font-size: 15px; color: var(--texto-2); }
+.cuenta-s.llego { background: linear-gradient(135deg, #ff3b3b, #a30f1f); animation: sacudida 0.12s linear 12; }
+.cuenta-s.llego b { font-size: 40px; padding: 4px 0; }
+.cuenta-s.llego span { color: #fff; font-weight: 600; }
+.cuenta-s.sin-aviso { background: linear-gradient(135deg, #5a1a1a, #2a0b0b); }
+@keyframes sacudida { 25% { transform: translateX(calc(-50% - 7px)); } 75% { transform: translateX(calc(-50% + 7px)); } }
+@media (prefers-reduced-motion: reduce) { .cuenta-s.llego { animation: none; } }
+@media (max-width: 900px) {
+  .cuenta-s { top: 190px; margin-left: 0 !important; min-width: 220px; padding: 8px 18px 12px; }
+  .cuenta-s b { font-size: 64px; }
+  .cuenta-s.llego b { font-size: 30px; }
+}
+
+/* Pegatinas troqueladas de cada capa (diseño v04) */
+.capas button img.peg { width: 30px; height: 30px; object-fit: contain; flex: none; filter: saturate(.85); transition: transform .18s ease-out, filter .18s; }
+.capas button:hover img.peg { transform: translateY(-2px); }
+.capas button[aria-selected='true'] img.peg { filter: none; transform: scale(1.12) rotate(-4deg); }
+.panel-capa .peg-panel { float: right; width: 76px; height: 76px; margin: -10px -6px 0 8px; transform: rotate(-4deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); shape-outside: circle(50%); }
+@media (max-width: 900px) { .capas button img.peg { width: 26px; height: 26px; } .panel-capa .peg-panel { width: 64px; height: 64px; } }
+@media (prefers-reduced-motion: reduce) { .capas button img.peg { transition: none; } }
+
+/* Celular acostado: el mapa a la izquierda y el panel a la derecha (como en escritorio),
+   para que el mapa no quede aplastado entre la barra y el panel. */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  :root { --panel-ancho: min(44vw, 340px); }
+  .vista { top: 0; bottom: 0; right: var(--panel-ancho); }
+  .barra { right: calc(var(--panel-ancho) + 8px); }
+  .capas button { font-size: 10px; padding: 4px 4px; }
+  .capas button img.peg { width: 22px; height: 22px; }
+  .panel { top: 0; bottom: 0; height: auto; width: var(--panel-ancho); border-top: 0; border-left: 1px solid var(--linea); border-radius: 0; padding: 14px 14px 30px; }
+  .btn-panel { top: 50%; bottom: auto; right: var(--panel-ancho); transform: translateY(-50%); width: 26px; height: 64px; border: 1px solid var(--linea); border-right: 0; border-radius: 12px 0 0 12px; }
+  .btn-panel span { transform: none; }
+  .leyenda { bottom: 8px; left: 8px; right: calc(var(--panel-ancho) + 8px); }
+  body:not(.modo-ar) .axo { bottom: 44px; }
+  body.panel-plegado .panel { transform: translateX(100%); }
+  body.panel-plegado .vista { right: 0; bottom: 0; }
+  body.panel-plegado .barra { right: 8px; }
+  body.panel-plegado .leyenda { bottom: 8px; right: 8px; }
+  body.panel-plegado .btn-panel { right: 0; bottom: auto; }
+  body.panel-plegado .btn-panel span { transform: rotate(180deg); }
+  body.panel-plegado:not(.modo-ar) .axo { bottom: 44px; }
+  body.modo-ar .panel { height: auto; }
+  .alerta-banner { top: 110px; }
+}
+
+/* Aviso en vivo al arrastrar el epicentro */
+.aviso-vivo { font-size: 13.5px; margin: 6px 0 4px; min-height: 1.2em; }
+.escala-aviso { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--texto-2); }
+.escala-aviso span { display: inline-flex; align-items: center; gap: 5px; }
+.escala-aviso span::before { content: ''; width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+
+/* Inicio de un toque */
+.un-toque { font-size: 20px; padding: 16px 28px; border-radius: 18px; display: grid; gap: 2px; justify-items: center; animation: latido 2.2s ease-in-out infinite; }
+.un-toque small { font: 500 13px var(--cuerpo); opacity: .8; }
+body.exhibicion .un-toque { font-size: 24px; padding: 20px 34px; }
+@keyframes latido { 0%, 100% { transform: scale(1); box-shadow: 0 6px 22px rgba(255,160,20,.35); } 50% { transform: scale(1.04); box-shadow: 0 10px 34px rgba(255,160,20,.6); } }
+@media (prefers-reduced-motion: reduce) { .un-toque { animation: none; } }
+
+/* Subtítulos de los sonidos */
+.subtitulo { position: fixed; z-index: 80; bottom: 74px; left: calc((100% - var(--panel-ancho)) / 2); transform: translateX(-50%);
+  max-width: min(640px, calc(100% - var(--panel-ancho) - 32px)); margin: 0; padding: 10px 16px; border-radius: 14px;
+  background: rgba(5, 8, 16, 0.88); border: 1px solid var(--linea); color: #fff; font-size: 15px; line-height: 1.4; text-align: center; pointer-events: none; }
+.subtitulo.entra { animation: aparece 0.25s ease; }
+.subtitulo.sale { opacity: 0; transition: opacity 0.3s; }
+@media (max-width: 900px) { .subtitulo { bottom: calc(42vh + 52px); left: 50%; max-width: calc(100% - 24px); font-size: 13.5px; } }
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  .subtitulo { bottom: 50px; left: calc((100% - var(--panel-ancho)) / 2); max-width: calc(100% - var(--panel-ancho) - 24px); }
+}
+
+/* Termómetro en la montaña */
+.grafica.monte { height: 190px; touch-action: none; cursor: grab; }
+#rng-monte { width: 100%; margin-top: 6px; }
+
+/* Patrón artesanal del estado en la ficha de Cultura */
+.credito-patron { display: flex; gap: 10px; align-items: center; font-size: 12.5px; color: var(--texto-2); margin-top: 10px; }
+.muestra-patron { width: 34px; height: 34px; flex: none; border-radius: 50%; background-size: 60px; border: 2px solid rgba(255,255,255,.8); }
+
+/* Fondo de la página con el patrón del estado que se está tocando */
+.fondo-estado { position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .7s ease;
+  background-size: 260px; background-repeat: repeat; }
+.fondo-estado::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 45% 45%, rgba(12,20,40,.78) 0%, rgba(7,11,22,.86) 100%); }
+.fondo-estado.visible { opacity: 1; }
+body.modo-ar .fondo-estado { display: none; }
+@media (prefers-reduced-motion: reduce) { .fondo-estado { transition: none; } }
+
+/* ===== Marca «Atlas de Velasco»: tipografía editorial ===== */
+:root { --titular: 'Instrument Serif', Georgia, serif; --cuerpo: 'Instrument Sans', 'Inter', system-ui, sans-serif; --dato: 'DM Mono', ui-monospace, monospace; --grana: #b3261e; --papel: #f3ecdd; }
+h1, h2 { font-family: var(--titular); font-weight: 400; letter-spacing: -0.01em; }
+h2 { font-size: 28px; line-height: 1.08; }
+.marca strong { font-family: var(--titular); font-weight: 400; font-size: 23px; letter-spacing: -0.01em; }
+.sub { font-family: var(--dato); font-weight: 500; letter-spacing: 0.14em; }
+.tarjetas b, .lt-cab b { font-family: var(--titular); font-weight: 400; font-size: 28px; }
+.tc-pregunta { font-family: var(--titular); font-weight: 400; font-size: 21px; line-height: 1.2; }
+.inicio-pregunta { font-family: var(--titular); font-style: italic; }
+
+/* Logo-sello de la marca */
+.logo { background: url(../assets/marca/sello.svg) center/contain no-repeat !important; border-radius: 50% !important; -webkit-mask: none !important; mask: none !important; box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+.logo.grande { width: 120px; height: 120px; }
+
+/* ===== Portada editorial «Atlas de Velasco» ===== */
+.inicio {
+  place-items: center start; padding: 32px 6vw;
+  background:
+    linear-gradient(90deg, rgba(243,236,221,.95) 0%, rgba(243,236,221,.86) 34%, rgba(243,236,221,.25) 62%, rgba(243,236,221,0) 78%),
+    url(../assets/marca/velasco-valle-1877.jpg) 60% 40% / cover;
+  backdrop-filter: none; color: #1b1a17;
+}
+.inicio-cont { text-align: left; justify-items: start; max-width: 600px; gap: 12px; }
+.inicio .logo.grande { width: 96px; height: 96px; }
+.inicio-lema { font: 500 13px var(--dato); letter-spacing: .22em; text-transform: uppercase; color: var(--grana) !important; margin: 4px 0 -6px; }
+.inicio h1 { font-family: var(--titular); font-weight: 400; font-size: clamp(60px, 9vw, 112px); line-height: .9; letter-spacing: -0.035em; background: none; -webkit-background-clip: initial; background-clip: initial; color: #1b1a17; }
+.inicio h1 i { color: var(--grana); }
+.inicio p { color: #3a352c; }
+.inicio .inicio-pregunta { color: var(--grana); }
+.inicio .niveles p { color: #3a352c; }
+.inicio .btn { background: rgba(255,252,244,.9); color: #1b1a17; border: 1px solid rgba(27,26,23,.25); }
+.inicio .btn:hover { background: #fff; }
+.inicio .btn.nivel[aria-checked='true'], .inicio .btn.nivel.activo { background: #1b1a17; color: #f3ecdd; border-color: #1b1a17; }
+.inicio .btn.nivel small { color: inherit; opacity: .75; }
+.inicio .btn.primario { background: #1b1a17; color: #f3ecdd; border-color: #1b1a17; box-shadow: 0 8px 22px rgba(27,26,23,.25); }
+.inicio .btn.un-toque { background: var(--grana); color: #fff; border: 0; box-shadow: 0 10px 28px rgba(179,38,30,.35); }
+.inicio .un-toque small { color: #fde9e4; }
+.inicio .niveles, .inicio .inicio-botones { justify-content: flex-start; }
+.inicio a { color: var(--grana); }
+.credito-pintura { font: 500 10.5px var(--dato) !important; letter-spacing: .1em; text-transform: uppercase; color: #5a5245 !important; margin-top: 6px; }
+@keyframes latido { 0%, 100% { transform: scale(1); box-shadow: 0 10px 28px rgba(179,38,30,.3); } 50% { transform: scale(1.03); box-shadow: 0 14px 36px rgba(179,38,30,.5); } }
+@media (max-width: 900px) {
+  .inicio { place-items: start center; padding: 22px 18px; background:
+    linear-gradient(180deg, rgba(243,236,221,.96) 0%, rgba(243,236,221,.9) 55%, rgba(243,236,221,.55) 100%),
+    url(../assets/marca/velasco-valle-1877.jpg) 50% 60% / cover; }
+  .inicio-cont { text-align: center; justify-items: center; }
+  .inicio .niveles, .inicio .inicio-botones { justify-content: center; }
+}
+@media (max-width: 900px), (max-height: 760px) { .inicio { overflow-y: auto; align-content: start; } }
